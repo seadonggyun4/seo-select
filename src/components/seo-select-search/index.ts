@@ -1,6 +1,6 @@
 import { html } from 'lit';
-import { isMultilingualMatch } from '../../utils/search';
-import { SeoSelect } from '../seo-select';
+import { isMultilingualMatch } from '../../utils/search.js';
+import { SeoSelect } from '../seo-select/index.js';
 import {
   SupportedLanguage,
   SelectTheme,
@@ -9,7 +9,7 @@ import {
   EVENT_NAMES,
   CSS_CLASSES,
   ICONS
-} from '../../constants/constants';
+} from '../../constants/constants.js';
 
 interface OptionItem {
   value: string;

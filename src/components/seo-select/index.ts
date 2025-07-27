@@ -1,5 +1,5 @@
 import { LitElement, html } from 'lit';
-import { InteractiveVirtualSelect } from '../../class/InteractiveVirtualSelect';
+import { InteractiveVirtualSelect } from '../../class/InteractiveVirtualSelect.js';
 import '../../styles/components/style.scss';
 import {
   SupportedLanguage,
@@ -12,7 +12,7 @@ import {
   CSS_CLASSES,
   TIMING,
   ICONS
-} from '../../constants/constants';
+} from '../../constants/constants.js';
 
 interface VirtualSelectOption {
   value: string;
@@ -98,7 +98,7 @@ export class SeoSelect extends LitElement {
     this.texts = {};
     this.autoWidth = false;
     this._calculatedWidth = null;
-    this._handleKeydownBound = (e) => this._virtual?.handleKeydown(e);
+    this._handleKeydownBound = (e: KeyboardEvent) => this._virtual?.handleKeydown(e);
     this.tabIndex = 0;
     this._pendingActiveIndex = null;
   }

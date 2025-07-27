@@ -1,19 +1,75 @@
 {
   "name": "seo-select",
-  "private": true,
-  "version": "0.0.0",
+  "version": "1.0.1",
+  "description": "A customizable and accessible select component with search functionality built with Lit",
   "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./components/seo-select": {
+      "types": "./dist/components/seo-select/index.d.ts",
+      "import": "./dist/components/seo-select/index.js"
+    },
+    "./components/seo-select-search": {
+      "types": "./dist/components/seo-select-search/index.d.ts",
+      "import": "./dist/components/seo-select-search/index.js"
+    },
+    "./styles": "./dist/styles/components/style.css"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "lit",
+    "web-components",
+    "select",
+    "dropdown",
+    "search",
+    "accessible",
+    "virtual-scroll",
+    "typescript"
+  ],
+  "author": "seo dong gyun <seadonggyun@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seadonggyun4/seo-select"
+  },
+  "bugs": {
+    "url": "https://github.com/seadonggyun4/seo-select/issues"
+  },
+  "homepage": "https://seoui.netlify.app",
   "scripts": {
+    "build": "tsc -p tsconfig.build.json && vite build --mode production",
+    "build:types": "tsc -p tsconfig.build.json --emitDeclarationOnly",
+    "build:check": "tsc -p tsconfig.build.json --noEmit",
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "lit": "^3.3.1"
+    "lit": "^3.0.0"
   },
   "devDependencies": {
+    "@types/node": "^24.1.0",
     "sass": "^1.89.2",
     "typescript": "~5.8.3",
-    "vite": "^7.0.6"
+    "vite": "^7.0.6",
+    "vite-plugin-dts": "^4.5.4"
+  },
+  "peerDependencies": {
+    "lit": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
