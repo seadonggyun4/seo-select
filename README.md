@@ -304,7 +304,7 @@ Contributions are welcome! Please read our contributing guidelines and submit pu
 
 ## Changelog
 
-### 1.0.0
+### 1.0.2
 - Initial release
 - Basic select functionality
 - Search component with multilingual support
