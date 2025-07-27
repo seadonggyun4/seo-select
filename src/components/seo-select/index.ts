@@ -1,6 +1,6 @@
 import { LitElement, html } from 'lit';
-import { InteractiveVirtualSelect } from './InteractiveVirtualSelect';
-import './style.scss';
+import { InteractiveVirtualSelect } from '../../class/InteractiveVirtualSelect';
+import '../../styles/components/style.scss';
 import {
   SupportedLanguage,
   SelectTheme,
@@ -12,7 +12,7 @@ import {
   CSS_CLASSES,
   TIMING,
   ICONS
-} from './constants';
+} from '../../constants/constants';
 
 interface VirtualSelectOption {
   value: string;

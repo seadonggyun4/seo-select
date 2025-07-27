@@ -1,5 +1,5 @@
 import { html } from 'lit';
-import { isMultilingualMatch } from './search';
+import { isMultilingualMatch } from '../../utils/search';
 import { AgSelect } from '../seo-select';
 import {
   SupportedLanguage,
@@ -9,7 +9,7 @@ import {
   EVENT_NAMES,
   CSS_CLASSES,
   ICONS
-} from '../seo-select/constants';
+} from '../../constants/constants';
 
 interface OptionItem {
   value: string;
