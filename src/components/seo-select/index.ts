@@ -366,7 +366,6 @@ export class AgSelect extends LitElement {
     this.requestUpdate();
   };
 
-  // resetToDefault 메서드를 public으로 변경
   public resetToDefault = (e: Event): void => {
     e.stopPropagation();
 
@@ -411,9 +410,16 @@ export class AgSelect extends LitElement {
               this._virtual.applyHighlight();
             }
           });
+        } else {
+          // 드롭다운이 닫혀있을 때도 다음에 열릴 때를 위해 activeIndex 설정
+          this._pendingActiveIndex = 0;
+          
+          // 드롭다운이 닫혀있을 때 기존 virtual select 인스턴스가 있다면 정리
+          if (this._virtual) {
+            this._virtual.destroy();
+            this._virtual = null;
+          }
         }
-
-        this._pendingActiveIndex = 0;
 
         this.dispatchEvent(
           new CustomEvent(EVENT_NAMES.RESET, {
@@ -424,6 +430,9 @@ export class AgSelect extends LitElement {
         );
       }
     }
+    
+    // 상태 변경 후 UI 업데이트 강제 실행
+    this.requestUpdate();
   };
 
   public toggleDropdown = (): void => {
