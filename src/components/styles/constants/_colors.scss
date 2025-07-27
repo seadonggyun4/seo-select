@@ -1,0 +1,91 @@
+@use "sass:color";
+@use "sass:map";
+
+$primary-color: #3253de;
+$primary-hover: #003766;
+$primary-bg-color: #e5f1fbf2;
+$secondary-color: #5f77ca;
+$secondary-hover: #303c65f2;
+$secondary-bg-color: #eff1faf2;
+
+/**
+  Open color: open-source color scheme + primary color
+*/
+$base-colors: (
+  gray:   color.mix($primary-color, #adb5bd, 0.3%),
+  red:    color.mix($primary-color, #f03e3e, 4.5%),
+  pink:   color.mix($primary-color, #f06595, 6.5%),
+  grape:  color.mix($primary-color, #cc5de8, 7.5%),
+  violet: color.mix($primary-color, #845ef7, 7.5%),
+  indigo: color.mix($primary-color, #5c7cfa, 8.5%),
+  blue:   color.mix($primary-color, #339af0, 10%),
+  cyan:   color.mix($primary-color, #22b8cf, 9.5%),
+  teal:   color.mix($primary-color, #20c997, 9.5%),
+  green:  color.mix($primary-color, #51cf66, 8.5%),
+  lime:   color.mix($primary-color, #94d82d, 7.5%),
+  yellow: color.mix($primary-color, #fcc419, 2%),
+  orange: color.mix($primary-color, #ff922b, 3.5%)
+);
+
+$create-colors: ();
+
+@each $name, $base in $base-colors {
+  $shades: (5: $base);
+
+  @for $i from 1 through 5 {
+    $lighter-step: 5 - $i;
+    $darker-step: 5 + $i;
+
+    $lightened: color.adjust($base, $lightness: $i * 8%);
+    $darkened: color.adjust($base, $lightness: -1 * $i * 8%);
+
+    $shades: map.merge($shades, ($lighter-step: $lightened));
+    $shades: map.merge($shades, ($darker-step: $darkened));
+  }
+
+  $create-colors: map.merge($create-colors, ($name: $shades));
+}
+
+// ex) pick(yellow, 3)
+@function pick($name, $step) {
+  @return map.get(map.get($create-colors, $name), $step);
+}
+
+/**
+  Base color
+*/
+$success-color: pick(green, 5);
+$success-hover: pick(green, 6);
+$success-bg-color: pick(green, 0);
+$error-color: pick(red, 5);
+$error-hover: pick(red, 6);
+$error-bg-color: color.mix(#fff, pick(red, 1), 25%);
+$warning-color: pick(orange, 4);
+$warning-hover: pick(orange, 5);
+$warning-bg-color: color.mix(#fff, pick(orange, 1), 25%);
+$disabled-color: color.adjust(pick(gray, 3), $lightness: 5%);
+
+/**
+  UI color
+*/
+$font-color: color.mix(#000, pick(indigo, 10), 70%);
+$font-secondary-color: pick(gray, 5);
+$border-color: pick(gray, 3);
+$box-head-border-color: color.mix(#fff, pick(gray, 2), 35%);
+
+
+// ============================================
+// 다크 모드 전용 추가 변수들
+// ============================================
+
+// 다크 모드에서 더 나은 구분을 위한 추가 색상
+$dark-accent-bg: #1f2937 !default;           // 더 어두운 배경 (특별한 요소용)
+$dark-card-bg: #374151 !default;             // 카드/컨테이너 배경
+$dark-surface-bg: #4b5563 !default;          // 표면 요소 배경
+$dark-highlight-color: #fbbf24 !default;     // 하이라이트/강조 색상
+
+// 다크 모드 상태별 색상
+$dark-success-color: #10b981 !default;       // 성공 상태
+$dark-warning-color: #f59e0b !default;       // 경고 상태
+$dark-error-color: #ef4444 !default;         // 에러 상태
+$dark-info-color: #3b82f6 !default;          // 정보 상태

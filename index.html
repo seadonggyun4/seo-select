@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Select Components - Welcome</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="hero">
+            <h1 class="hero-title">🎉 Welcome to SEO Select Components</h1>
+            <p class="hero-subtitle">Beautiful, accessible, and SEO-friendly select components for modern web development</p>
+        </header>
+
+        <main class="content">
+            <section class="demo-section">
+                <h2 class="section-title">
+                    <i class="fas fa-star"></i>
+                    Basic Select Component
+                </h2>
+                <p class="section-description">Choose your preferred framework and see the magic happen!</p>
+                
+                <div class="select-container">
+                    <seo-select name="framework">
+                        <option value="react">⚛️ React - Build amazing UIs</option>
+                        <option value="vue" selected>💚 Vue.js - The Progressive Framework</option>
+                        <option value="angular">🅰️ Angular - Platform for building mobile and desktop apps</option>
+                        <option value="svelte">🧡 Svelte - Cybernetically enhanced web apps</option>
+                        <option value="solid">🔷 SolidJS - Simple and performant reactivity</option>
+                    </seo-select>
+                </div>
+            </section>
+
+            <section class="demo-section">
+                <h2 class="section-title">
+                    <i class="fas fa-search"></i>
+                    Search-enabled Select Component
+                </h2>
+                <p class="section-description">Search through your favorite programming languages with ease!</p>
+                
+                <div class="select-container">
+                    <seo-select-search name="language">
+                        <option value="javascript">🟨 JavaScript - The language of the web</option>
+                        <option value="typescript" selected>🔷 TypeScript - JavaScript with syntax for types</option>
+                        <option value="python">🐍 Python - Simple, elegant, and powerful</option>
+                        <option value="rust">🦀 Rust - Fast, reliable, and memory-efficient</option>
+                        <option value="go">🐹 Go - Build simple, secure, scalable systems</option>
+                        <option value="kotlin">🅺 Kotlin - Concise, safe, and fun language</option>
+                        <option value="swift">🦉 Swift - Powerful and intuitive programming</option>
+                        <option value="dart">🎯 Dart - Optimized for UI development</option>
+                    </seo-select-search>
+                </div>
+            </section>
+
+            <section class="features-section">
+                <h2 class="section-title">
+                    <i class="fas fa-rocket"></i>
+                    Why Choose SEO Select?
+                </h2>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🚀</div>
+                        <h3>Lightning Fast</h3>
+                        <p>Optimized virtual scrolling for thousands of options without performance loss</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🌍</div>
+                        <h3>Multi-language Support</h3>
+                        <p>Built-in internationalization with support for multiple languages and search</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">♿</div>
+                        <h3>Accessibility First</h3>
+                        <p>ARIA compliant and keyboard navigation ready for all users</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🎨</div>
+                        <h3>Themeable</h3>
+                        <p>Multiple themes and dark mode support with easy customization</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">📱</div>
+                        <h3>Mobile Ready</h3>
+                        <p>Touch-friendly interface that works perfectly on all devices</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Zero Dependencies</h3>
+                        <p>Lightweight web components that work with any framework</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="installation-section">
+                <h2 class="section-title">
+                    <i class="fas fa-download"></i>
+                    Quick Installation
+                </h2>
+                
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-language">bash</span>
+                        <button class="copy-btn" onclick="copyToClipboard('npm install seo-select')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <pre><code>npm install seo-select</code></pre>
+                </div>
+                
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-language">html</span>
+                        <button class="copy-btn" onclick="copyToClipboard(this.parentNode.nextElementSibling.textContent)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <pre><code>&lt;seo-select name="example"&gt;
+  &lt;option value="option1"&gt;🎯 Amazing Option 1&lt;/option&gt;
+  &lt;option value="option2"&gt;✨ Fantastic Option 2&lt;/option&gt;
+&lt;/seo-select&gt;</code></pre>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>
+                <i class="fas fa-heart text-red"></i>
+                Made with love for the web development community
+            </p>
+            <p class="footer-links">
+                <a href="#" class="footer-link">
+                    <i class="fab fa-github"></i>
+                    GitHub
+                </a>
+                <a href="#" class="footer-link">
+                    <i class="fas fa-book"></i>
+                    Documentation
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show a brief success indication
+                const btn = event.currentTarget;
+                const originalIcon = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+                setTimeout(() => {
+                    btn.innerHTML = originalIcon;
+                }, 1000);
+            });
+        }
+
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add event listeners for select components
+            document.querySelectorAll('seo-select, seo-select-search').forEach(select => {
+                select.addEventListener('seo-select', (e) => {
+                    console.log('Selected:', e.detail);
+                    showNotification(`Selected: ${e.detail.label}`);
+                });
+            });
+        });
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

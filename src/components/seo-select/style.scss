@@ -1,0 +1,604 @@
+@use '../styles/constants/colors' as colors;
+@use './select' as select;
+
+seo-select,
+seo-select-search {
+  display: block;
+  height: auto;
+  width: auto;
+}
+
+.seo-select {
+  position: relative;
+
+  // 테마별 기본 스타일
+  &.theme-basic {
+    margin-bottom: select.$select-basic-margin-bottom;
+  }
+
+  &.theme-float {
+    margin-bottom: select.$select-float-margin-bottom;
+  }
+
+  .selected {
+    position: relative;
+    padding: select.$select-padding;
+    width: 100%;
+    min-height: select.$select-min-height;
+    border: select.$select-border-width solid colors.pick(gray, 5);
+    background: white;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color select.$select-transition-duration select.$select-transition-easing;
+
+    &:focus {
+      outline: none;
+      box-shadow: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    &:hover {
+      border-color: colors.$primary-color;
+    }
+  }
+
+  // Basic Theme 스타일
+  &.theme-basic {
+    .selected {
+      border-radius: select.$select-basic-border-radius;
+      box-shadow: select.$select-basic-box-shadow;
+    }
+
+    &.multi-select .selected-container {
+      border-radius: select.$select-basic-border-radius;
+      box-shadow: select.$select-basic-box-shadow;
+    }
+
+    .seo-select-listbox {
+      border-radius: select.$dropdown-basic-border-radius;
+      box-shadow: select.$dropdown-box-shadow;
+    }
+  }
+
+  // Float Theme 스타일
+  &.theme-float {
+    .selected {
+      border-radius: select.$select-float-border-radius;
+      box-shadow: select.$select-float-box-shadow;
+    }
+
+    &.multi-select .selected-container {
+      border-radius: select.$select-float-border-radius;
+      box-shadow: select.$select-float-box-shadow;
+    }
+
+    .seo-select-listbox {
+      border-radius: select.$dropdown-float-border-radius;
+      box-shadow: select.$dropdown-float-box-shadow;
+      top: select.$dropdown-float-top;
+
+      &:not(.hidden) {
+        animation: float-dropdown-slide-in select.$dropdown-float-animation-duration select.$dropdown-float-animation-easing forwards;
+      }
+
+      .select-search-input {
+        border-radius: select.$select-float-border-radius select.$select-float-border-radius 0 0;
+
+        input {
+          border-radius: select.$select-float-border-radius;
+        }
+      }
+    }
+  }
+
+  // select가 open된 상태일 때 border active 스타일
+  &.open {
+    .selected {
+      border-color: colors.$primary-color;
+    }
+
+    &.multi-select .selected-container {
+      border-color: colors.$primary-color;
+    }
+  }
+
+  &.multi-select {
+    .selected-container {
+      position: relative;
+      min-height: select.$select-min-height;
+      padding: select.$select-padding;
+      width: 100%;
+      border: select.$select-border-width solid colors.pick(gray, 5);
+      background: white;
+      cursor: pointer;
+      transition: border-color select.$select-transition-duration select.$select-transition-easing;
+      display: flex;
+      align-items: flex-start;
+
+      &.with-reset {
+        padding-right: select.$select-multi-padding-right;
+      }
+
+      &:hover {
+        border-color: colors.$primary-color;
+      }
+
+      .selected-tags {
+        flex: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: select.$select-tags-gap;
+        align-items: center;
+        min-height: select.$select-tags-min-height;
+        padding: select.$select-tags-padding;
+
+        .tag {
+          display: inline-flex;
+          align-items: center;
+          gap: select.$tag-gap;
+          padding: select.$tag-padding;
+          color: colors.$primary-color;
+          background: colors.$primary-bg-color;
+          border-radius: select.$tag-border-radius;
+          border: select.$tag-border-width solid colors.$primary-color;
+          max-width: select.$tag-max-width;
+
+          .tag-remove {
+            background: none;
+            border: none;
+            color: colors.$font-secondary-color;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0;
+            width: select.$tag-remove-size;
+            height: select.$tag-remove-size;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: select.$tag-remove-border-radius;
+            transition: select.$tag-remove-transition;
+
+            &:hover {
+              background: colors.$error-color;
+              color: white;
+            }
+          }
+        }
+
+        .placeholder {
+          color: colors.pick(gray, 7);
+          font-style: italic;
+        }
+      }
+    }
+  }
+
+  .seo-select-listbox{
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    border: select.$dropdown-border-width solid colors.$border-color;
+    background-color: #fff;
+    z-index: select.$dropdown-z-index;
+
+    &.hidden {
+      display: none;
+    }
+
+    .select-search-input {
+      position: relative;
+      padding: select.$search-input-padding;
+      background-color: #fff;
+
+      input {
+        text-indent: select.$search-input-text-indent;
+        width: -webkit-fill-available;
+        border: 1px solid colors.pick(gray, 5);
+        padding: 0.5rem;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+        &:not(:disabled):focus,
+        &:not(:read-only):focus {
+          border-color: colors.$primary-color;
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1), 0 0 0 1px colors.pick(indigo, 5);
+        }
+      }
+
+      .search-icon {
+        position: absolute;
+        top: 50%;
+        left: select.$search-icon-left;
+        color: #999;
+        font-size: select.$search-icon-size;
+        pointer-events: none;
+        transform: translateY(-50%);
+      }
+    }
+
+    // 로딩 컨테이너 스타일
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: select.$loading-container-padding;
+      background: white;
+
+      .loading-dots {
+        display: flex;
+        gap: select.$loading-dots-gap;
+        margin-bottom: select.$loading-dots-margin-bottom;
+
+        .dot {
+          width: select.$loading-dot-size;
+          height: select.$loading-dot-size;
+          border-radius: 50%;
+          background-color: colors.$primary-color;
+          animation: loading-bounce select.$loading-animation-duration ease-in-out infinite both;
+
+          &:nth-child(1) {
+            animation-delay: select.$loading-dot-delay-1;
+          }
+
+          &:nth-child(2) {
+            animation-delay: select.$loading-dot-delay-2;
+          }
+
+          &:nth-child(3) {
+            animation-delay: select.$loading-dot-delay-3;
+          }
+        }
+      }
+
+      .loading-text {
+        color: colors.pick(gray, 7);
+        font-size: select.$loading-text-font-size;
+        font-style: italic;
+      }
+    }
+
+    // 데이터 없음 컨테이너 스타일
+    .no-data-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: select.$no-data-container-padding;
+      background: white;
+
+      .no-data-text {
+        color: colors.pick(gray, 7);
+        font-size: select.$no-data-text-font-size;
+        font-style: normal;
+        text-align: center;
+      }
+    }
+  }
+
+  .seo-select-scroll {
+    background-color: #fff;
+    overflow: auto;
+    scrollbar-gutter: stable;
+    will-change: scroll-position, transform;
+    --top-placeholder: 0px;
+    --bottom-placeholder: 0px;
+
+    .virtual-placeholder {
+      will-change: transform;
+      transition: none !important;
+    }
+    .virtual-placeholder.top    { height: var(--top-placeholder); }
+    .virtual-placeholder.bottom { height: var(--bottom-placeholder); }
+
+    .option-wrapper {
+      .option {
+        height: var(--row-height);
+        cursor: pointer;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        line-height: select.$option-line-height;
+        padding: select.$option-padding;
+        display: flex;
+        align-items: center;
+
+        // 멀티셀렉트에서 선택된 항목 스타일
+        &.selected {
+          background-color: colors.$primary-bg-color;
+          color: colors.$primary-color;
+
+          .check-mark {
+            margin-right: select.$option-check-mark-margin;
+            font-weight: bold;
+          }
+        }
+
+        &.focused {
+          background-color: colors.pick(yellow, 0);
+        }
+
+        &.active {
+          background-color: colors.$primary-bg-color;
+          color: colors.$primary-color;
+          font-weight: 500;
+        }
+
+        &.disabled {
+          color: colors.$font-secondary-color;
+          pointer-events: none;
+        }
+      }
+    }
+  }
+
+  .reset-button {
+    position: absolute;
+    top: 50%;
+    right: select.$reset-button-right;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    padding: select.$reset-button-padding;
+    height: select.$reset-button-height;
+    border: none;
+    color: colors.pick(gray, 9);
+    background-color: transparent;
+    border-right: select.$select-border-width solid colors.pick(gray, 6);
+    font-weight: bold;
+    font-size: select.$reset-button-font-size;
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: select.$reset-button-transition;
+
+    &:hover {
+      color: colors.$error-color;
+    }
+
+    svg {
+      margin-bottom: 0.2rem;
+    }
+  }
+
+  .multi-reset-button {
+    position: absolute;
+    top: select.$multi-reset-button-position;
+    right: select.$multi-reset-button-position;
+    width: select.$multi-reset-button-size;
+    height: select.$multi-reset-button-size;
+    border: none;
+    background: colors.pick(gray, 6);
+    color: white;
+    border-radius: select.$multi-reset-button-border-radius;
+    font-weight: bold;
+    font-size: select.$multi-reset-button-font-size;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: select.$tag-remove-transition;
+
+    &:hover {
+      background: colors.$error-color;
+    }
+  }
+
+  .arrow {
+    position: absolute;
+    top: 50%;
+    right: select.$arrow-right;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: select.$arrow-font-size;
+    color: colors.pick(gray, 9);
+    transform: translateY(-50%);
+    transition: select.$arrow-transition;
+    margin-top: select.$arrow-margin-top;
+  }
+
+  // ============================================
+  // 다크 모드 스타일
+  // ============================================
+  &.dark {
+    // 기본 selected 스타일 (단일 선택)
+    .selected {
+      background: select.$dark-select-bg;
+      border-color: select.$dark-border-color;
+      color: select.$dark-text-color;
+
+      &:hover {
+        border-color: select.$dark-border-hover-color;
+      }
+    }
+
+    // 멀티 선택 컨테이너
+    &.multi-select .selected-container {
+      background: select.$dark-select-bg;
+      border-color: select.$dark-border-color;
+
+      &:hover {
+        border-color: select.$dark-border-hover-color;
+      }
+
+      .selected-tags {
+        .tag {
+          background: select.$dark-tag-bg;
+          color: select.$dark-tag-text-color;
+          border-color: select.$dark-tag-border-color;
+
+          .tag-remove {
+            color: select.$dark-text-secondary-color;
+
+            &:hover {
+              background: select.$dark-tag-remove-hover-bg;
+              color: white;
+            }
+          }
+        }
+
+        .placeholder {
+          color: select.$dark-placeholder-color;
+        }
+      }
+    }
+
+    // open 상태일 때 테두리 색상
+    &.open {
+      .selected {
+        border-color: select.$dark-border-focus-color;
+      }
+
+      &.multi-select .selected-container {
+        border-color: select.$dark-border-focus-color;
+      }
+    }
+
+    // 드롭다운 리스트박스
+    .seo-select-listbox {
+      background-color: select.$dark-dropdown-bg;
+      border-color: select.$dark-border-color;
+
+      // 검색 입력
+      .select-search-input {
+        background-color: select.$dark-search-input-bg;
+
+        input {
+          background: select.$dark-search-input-bg;
+          border-color: select.$dark-border-color;
+          color: select.$dark-text-color;
+
+          &::placeholder {
+            color: select.$dark-placeholder-color;
+          }
+
+          &:not(:disabled):focus,
+          &:not(:read-only):focus {
+            border-color: select.$dark-border-focus-color;
+            box-shadow: select.$dark-search-input-focus-shadow;
+          }
+        }
+
+        .search-icon {
+          color: select.$dark-text-secondary-color;
+        }
+      }
+
+      // 로딩 컨테이너
+      .loading-container {
+        background: select.$dark-dropdown-bg;
+
+        .loading-text {
+          color: select.$dark-text-secondary-color;
+        }
+      }
+
+      // 데이터 없음 컨테이너
+      .no-data-container {
+        background: select.$dark-dropdown-bg;
+
+        .no-data-text {
+          color: select.$dark-text-secondary-color;
+        }
+      }
+    }
+
+    // 스크롤 영역
+    .seo-select-scroll {
+      background-color: select.$dark-dropdown-bg;
+
+      .option-wrapper {
+        .option {
+          color: select.$dark-text-color;
+
+          // 멀티셀렉트에서 선택된 항목
+          &.selected {
+            background-color: select.$dark-option-selected-bg;
+            color: white;
+          }
+
+          &.focused {
+            background-color: select.$dark-option-hover-bg;
+          }
+
+          &.active {
+            background-color: select.$dark-option-selected-bg;
+            color: white;
+          }
+
+          &.disabled {
+            color: select.$dark-option-disabled-color;
+          }
+
+          &:hover:not(.disabled) {
+            background-color: select.$dark-option-hover-bg;
+          }
+        }
+      }
+    }
+
+    // 리셋 버튼
+    .reset-button {
+      color: select.$dark-reset-button-color;
+      border-right-color: select.$dark-border-color;
+
+      &:hover {
+        color: select.$dark-reset-button-hover-color;
+      }
+    }
+
+    // 멀티 리셋 버튼
+    .multi-reset-button {
+      background: select.$dark-multi-reset-button-bg;
+
+      &:hover {
+        background: select.$dark-tag-remove-hover-bg;
+      }
+    }
+
+    // 화살표
+    .arrow {
+      color: select.$dark-text-secondary-color;
+    }
+
+    // Float 테마 다크 모드 그림자
+    &.theme-float {
+      .selected {
+        box-shadow: select.$dark-float-box-shadow;
+      }
+
+      &.multi-select .selected-container {
+        box-shadow: select.$dark-float-box-shadow;
+      }
+
+      .seo-select-listbox {
+        box-shadow: select.$dark-dropdown-box-shadow;
+      }
+    }
+  }
+}
+
+// 로딩 애니메이션 키프레임
+@keyframes loading-bounce {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Float 테마 드롭다운 슬라이드 인 애니메이션
+@keyframes float-dropdown-slide-in {
+  0% {
+    transform: translateY(select.$dropdown-float-slide-distance);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
