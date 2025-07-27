@@ -2,6 +2,7 @@
 <a href="https://seoui.netlify.app">
   <img width="300" height="300" alt="logo" src="https://github.com/user-attachments/assets/e567ea31-d046-45b3-80d1-9a1e32c7e002" />
 </a>
+
 A highly customizable and accessible select component with search functionality built with Lit. Supports virtual scrolling, multiple selection, internationalization, and modern theming.
 
 ## Features
