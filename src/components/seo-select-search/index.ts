@@ -1,6 +1,6 @@
 import { html } from 'lit';
 import { isMultilingualMatch } from '../../utils/search';
-import { AgSelect } from '../seo-select';
+import { SeoSelect } from '../seo-select';
 import {
   SupportedLanguage,
   SelectTheme,
@@ -22,7 +22,7 @@ interface VirtualSelectOption {
   label: string;
 }
 
-export class AgSelectSearch extends AgSelect {
+export class SeoSelectSearch extends SeoSelect {
   static get properties() {
     return {
       ...super.properties,
@@ -439,4 +439,4 @@ export class AgSelectSearch extends AgSelect {
   }
 }
 
-customElements.define('seo-select-search', AgSelectSearch);
+customElements.define('seo-select-search', SeoSelectSearch);

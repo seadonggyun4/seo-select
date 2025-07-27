@@ -19,7 +19,7 @@ interface VirtualSelectOption {
   label: string;
 }
 
-export class AgSelect extends LitElement {
+export class SeoSelect extends LitElement {
   static formAssociated = true;
 
   static get properties() {
@@ -769,5 +769,5 @@ export class AgSelect extends LitElement {
 }
 
 if (!customElements.get('seo-select')) {
-  customElements.define('seo-select', AgSelect);
+  customElements.define('seo-select', SeoSelect);
 }
