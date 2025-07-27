@@ -5,6 +5,9 @@
 
 A highly customizable and accessible select component with search functionality built with Lit. Supports virtual scrolling, multiple selection, internationalization, and modern theming.
 
+<br/>
+document site: https://seoui.netlify.app
+
 ## Features
 
 - 🎨 **Multiple Themes**: Basic, float themes with dark mode support
