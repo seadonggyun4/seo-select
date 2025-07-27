@@ -4,12 +4,12 @@ A highly customizable and accessible select component with search functionality 
 
 ## Features
 
-- 🎨 **Multiple Themes**: Float, minimal, rounded themes with dark mode support
+- 🎨 **Multiple Themes**: Basic, float themes with dark mode support
 - 🌍 **Internationalization**: Built-in support for multiple languages (EN, KO, JA, ZH)
 - 🔍 **Search Functionality**: Advanced multilingual search with fuzzy matching
 - ♿ **Accessibility**: Full keyboard navigation and screen reader support
 - 🚀 **Virtual Scrolling**: High performance with large datasets
-- 📱 **Responsive**: Auto-width calculation and mobile-friendly
+- 📏 **Auto Width**: Automatic width calculation based on content
 - 🎯 **Multiple Selection**: Tag-based multi-select with individual remove buttons
 - 💡 **TypeScript**: Full TypeScript support with comprehensive type definitions
 
@@ -65,7 +65,7 @@ npm install seo-select
 <seo-select-search 
   multiple 
   name="skills" 
-  theme="rounded"
+  theme="float"
   show-reset>
   <option value="js">JavaScript</option>
   <option value="ts">TypeScript</option>
@@ -91,11 +91,11 @@ select.language = 'ko';
 document.body.appendChild(select);
 
 // Event handling
-select.addEventListener('seo-select:select', (e) => {
+select.addEventListener('onSelect', (e) => {
   console.log('Selected:', e.detail);
 });
 
-select.addEventListener('seo-select:change', (e) => {
+select.addEventListener('onChange', (e) => {
   console.log('Value changed:', select.value);
 });
 ```
@@ -109,12 +109,12 @@ select.addEventListener('seo-select:change', (e) => {
 | `name` | `string` | - | Form field name |
 | `required` | `boolean` | `false` | Whether the field is required |
 | `multiple` | `boolean` | `false` | Enable multiple selection |
-| `theme` | `'float' \| 'minimal' \| 'rounded'` | `'float'` | Visual theme |
+| `theme` | `'basic' \| 'float'` | `'float'` | Visual theme |
 | `dark` | `boolean` | `false` | Enable dark mode |
 | `language` | `'en' \| 'ko' \| 'ja' \| 'zh'` | `'en'` | Interface language |
-| `showReset` | `boolean` | `false` | Show reset button |
+| `showReset` | `boolean` | `true` | Show reset button |
 | `width` | `string` | `null` | Custom width (auto-calculated if not set) |
-| `height` | `string` | `'40px'` | Component height |
+| `height` | `string` | `'100%'` | Component height |
 
 ### SeoSelectSearch Additional Properties
 
@@ -159,10 +159,10 @@ const matches = select.testMultilingualSearch('search', 'target');
 
 | Event Name | Detail | Description |
 |------------|--------|-------------|
-| `seo-select:select` | `{ value, label }` | Item selected |
-| `seo-select:deselect` | `{ value, label }` | Item deselected (multiple mode) |
-| `seo-select:change` | - | Value changed |
-| `seo-select:reset` | `{ value, label }` or `{ values, labels }` | Reset to default |
+| `onSelect` | `{ value, label }` | Item selected |
+| `onDeselect` | `{ value, label }` | Item deselected (multiple mode) |
+| `onChange` | - | Value changed |
+| `onReset` | `{ value, label }` or `{ values, labels }` | Reset to default |
 
 ## Styling
 
@@ -178,9 +178,9 @@ seo-select {
 
 /* Dark mode */
 seo-select.dark {
-  --select-background: #1a1a1a;
-  --select-text-color: #fff;
-  --select-border-color: #444;
+  --select-background: #374151;
+  --select-text-color: #f3f4f6;
+  --select-border-color: #6b7280;
 }
 ```
 
@@ -201,10 +201,10 @@ function MyComponent() {
     };
 
     const selectElement = selectRef.current;
-    selectElement?.addEventListener('seo-select:select', handleSelect);
+    selectElement?.addEventListener('onSelect', handleSelect);
 
     return () => {
-      selectElement?.removeEventListener('seo-select:select', handleSelect);
+      selectElement?.removeEventListener('onSelect', handleSelect);
     };
   }, []);
 
@@ -223,7 +223,7 @@ function MyComponent() {
 <template>
   <seo-select 
     name="example"
-    @seo-select:select="handleSelect"
+    @onSelect="handleSelect"
   >
     <option value="1">Option 1</option>
     <option value="2">Option 2</option>
@@ -249,7 +249,7 @@ import 'seo-select';
 @Component({
   selector: 'app-example',
   template: `
-    <seo-select name="example" (seo-select:select)="handleSelect($event)">
+    <seo-select name="example" (onSelect)="handleSelect($event)">
       <option value="1">Option 1</option>
       <option value="2">Option 2</option>
     </seo-select>
@@ -308,7 +308,7 @@ Contributions are welcome! Please read our contributing guidelines and submit pu
 - Initial release
 - Basic select functionality
 - Search component with multilingual support
-- Multiple themes (float, minimal, rounded)
+- Multiple themes (basic, float)
 - Dark mode support
 - Internationalization (EN, KO, JA, ZH)
 - Virtual scrolling for performance

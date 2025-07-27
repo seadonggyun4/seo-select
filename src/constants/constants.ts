@@ -99,11 +99,11 @@ export const DEFAULT_CONFIG = {
 
 // 이벤트 이름 상수
 export const EVENT_NAMES = {
-  SELECT_OPEN: 'seo-select-open',
+  SELECT_OPEN: 'onOpen',
   SELECT: 'onSelect',
   DESELECT: 'onDeselect',
   RESET: 'onReset',
-  CHANGE: 'change',
+  CHANGE: 'onChange',
 } as const;
 
 // CSS 클래스 상수
