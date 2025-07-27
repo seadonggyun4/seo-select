@@ -1,5 +1,5 @@
 # seo-select
-<a href="https://seoui.netlify.app">
+<a href="seoui.netlify.app/" target="_blank">
   <img width="300" height="300" alt="logo" src="https://github.com/user-attachments/assets/e567ea31-d046-45b3-80d1-9a1e32c7e002" />
 </a>
 
