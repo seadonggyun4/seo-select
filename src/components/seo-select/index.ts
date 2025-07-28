@@ -171,7 +171,7 @@ export class SeoSelect extends LitElement {
   }
 
   // 디바운스된 업데이트 메서드
-  private _debouncedUpdate(): void {
+  public _debouncedUpdate(): void {
     if (this._updateDebounceTimer) {
       clearTimeout(this._updateDebounceTimer);
     }
