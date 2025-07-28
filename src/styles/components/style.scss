@@ -141,7 +141,7 @@ seo-select-search {
           background: colors.$primary-bg-color;
           border-radius: select.$tag-border-radius;
           border: select.$tag-border-width solid colors.$primary-color;
-          max-width: select.$tag-max-width;
+          font-size: select.$tag-font-size;
 
           .tag-remove {
             background: none;
