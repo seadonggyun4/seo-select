@@ -256,7 +256,7 @@ MIT License
 
 ## Changelog
 
-### 1.0.7
+### 1.0.8
 - Initial release
 - Basic select functionality
 - Search component with multilingual support
@@ -267,3 +267,4 @@ MIT License
 - Full accessibility support
 - TypeScript definitions
 - Fix tag style and Optimize rendering options
+- Fix seo-select-search reset logic

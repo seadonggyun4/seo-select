@@ -132,7 +132,7 @@ export class SeoSelectSearch extends SeoSelect {
                   <button
                     type="button"
                     class="${CSS_CLASSES.TAG_REMOVE}"
-                    @click=${(e: Event) => this.removeTagSearch(e, value)}
+                    @click=${(e: Event) => this.removeTag(e, value)}
                     title="${texts.removeTag}"
                   >${this.getCloseIcon()}</button>
                 </span>
@@ -147,7 +147,7 @@ export class SeoSelectSearch extends SeoSelect {
             ? html`<button
                 type="button"
                 class="${CSS_CLASSES.MULTI_RESET_BUTTON}"
-                @click=${this.resetToDefaultSearch}
+                @click=${this.resetToDefault}
                 title="${texts.clearAll}"
               >${this.getCloseIcon()}</button>`
             : ''
@@ -176,7 +176,7 @@ export class SeoSelectSearch extends SeoSelect {
             ? html`<button
                 type="button"
                 class="${CSS_CLASSES.RESET_BUTTON}"
-                @click=${this.resetToDefaultSearch}
+                @click=${this.resetToDefault}
                 title="${texts.resetToDefault}"
               >${this.getCloseIcon()}</button>`
             : ''
@@ -269,8 +269,8 @@ export class SeoSelectSearch extends SeoSelect {
     this._virtual.setData(filtered, this.multiple ? undefined : this.getCurrentValue());
   }
 
-  // Renamed to avoid conflict with parent class method
-  private removeTagSearch = (e: Event, valueToRemove: string): void => {
+  // 부모 클래스의 removeTag 메서드를 오버라이드하여 검색 기능 추가
+  public override removeTag = (e: Event, valueToRemove: string): void => {
     e.stopPropagation();
     this._selectedValues = this._selectedValues.filter(value => value !== valueToRemove);
     this.updateFormValue();
@@ -305,11 +305,11 @@ export class SeoSelectSearch extends SeoSelect {
       })
     );
 
-    this.requestUpdate();
+    this._debouncedUpdate();
   };
 
-  // Renamed to avoid conflict with parent class method
-  private resetToDefaultSearch = (e: Event): void => {
+  // 부모 클래스의 resetToDefault 메서드를 오버라이드하여 검색 기능 추가
+  public override resetToDefault = (e: Event): void => {
     e.stopPropagation();
 
     if (this.multiple) {
@@ -332,6 +332,8 @@ export class SeoSelectSearch extends SeoSelect {
             this._virtual?.setActiveIndex(0);
           });
         }
+      } else {
+        this._pendingActiveIndex = 0;
       }
 
       this.dispatchEvent(
@@ -357,6 +359,13 @@ export class SeoSelectSearch extends SeoSelect {
               this._virtual.applyHighlight();
             }
           });
+        } else {
+          this._pendingActiveIndex = 0;
+          
+          if (this._virtual) {
+            this._virtual.destroy();
+            this._virtual = null;
+          }
         }
 
         this.dispatchEvent(
@@ -368,6 +377,8 @@ export class SeoSelectSearch extends SeoSelect {
         );
       }
     }
+    
+    this._debouncedUpdate();
   };
 
   public override closeDropdown(): void {
