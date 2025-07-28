@@ -3,129 +3,388 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEO Select Components - Welcome</title>
-    <link rel="stylesheet" href="style.css">
+    <title>SEO Select Components - Comprehensive Demo</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header class="hero">
-            <h1 class="hero-title">🎉 Welcome to SEO Select Components</h1>
-            <p class="hero-subtitle">Beautiful, accessible, and SEO-friendly select components for modern web development</p>
+            <h1 class="hero-title">SEO Select Components Demo</h1>
+            <p class="hero-subtitle">Explore all features and use cases of seo-select and seo-select-search components</p>
         </header>
 
+        <nav class="demo-nav">
+            <button class="nav-btn active" data-section="basic">Basic Usage</button>
+            <button class="nav-btn" data-section="search">Search Select</button>
+            <button class="nav-btn" data-section="themes">Themes</button>
+            <button class="nav-btn" data-section="multiple">Multiple Selection</button>
+            <button class="nav-btn" data-section="advanced">Advanced Features</button>
+        </nav>
+
         <main class="content">
-            <section class="demo-section">
+            <!-- Basic Usage Section -->
+            <section id="basic" class="demo-section active">
                 <h2 class="section-title">
-                    <i class="fas fa-star"></i>
-                    Basic Select Component
+                    <i class="fas fa-play-circle"></i>
+                    Basic Select Usage
                 </h2>
-                <p class="section-description">Choose your preferred framework and see the magic happen!</p>
-                
-                <div class="select-container">
-                    <seo-select name="framework">
-                        <option value="react">⚛️ React - Build amazing UIs</option>
-                        <option value="vue" selected>💚 Vue.js - The Progressive Framework</option>
-                        <option value="angular">🅰️ Angular - Platform for building mobile and desktop apps</option>
-                        <option value="svelte">🧡 Svelte - Cybernetically enhanced web apps</option>
-                        <option value="solid">🔷 SolidJS - Simple and performant reactivity</option>
-                    </seo-select>
+
+                <div class="use-case">
+                    <h3>Slot Method (Recommended)</h3>
+                    <p>Define options directly as children using &lt;option&gt; tags</p>
+                    <div class="demo-container">
+                        <seo-select name="brand" width="200px">
+                            <option value="kia">Kia Motors</option>
+                            <option value="hyundai" selected>Hyundai Motor</option>
+                            <option value="bmw">BMW</option>
+                            <option value="benz">Mercedes-Benz</option>
+                        </seo-select>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>Array Method (Fallback)</h3>
+                    <p>Pass array via optionItems property when no slot is provided</p>
+                    <div class="demo-container">
+                        <seo-select name="brand-alt" width="200px"></seo-select>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>Keyboard Navigation Test</h3>
+                    <p>Tab to focus, use arrow keys to navigate, Enter to select, ESC to close</p>
+                    <div class="demo-container">
+                        <seo-select name="navigation-test" width="250px">
+                            <option value="option1">Option 1</option>
+                            <option value="option2">Option 2</option>
+                            <option value="option3">Option 3</option>
+                            <option value="option4">Option 4</option>
+                            <option value="option5">Option 5</option>
+                            <option value="option6">Option 6</option>
+                            <option value="option7">Option 7</option>
+                            <option value="option8">Option 8</option>
+                            <option value="option9">Option 9</option>
+                            <option value="option10">Option 10</option>
+                        </seo-select>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>Event Handling Demo</h3>
+                    <p>Watch the console for event logs when you interact with this select</p>
+                    <div class="demo-container">
+                        <seo-select id="event-demo" name="demo" width="200px">
+                            <option value="a">Option A</option>
+                            <option value="b">Option B</option>
+                            <option value="c">Option C</option>
+                        </seo-select>
+                    </div>
+                    <div class="event-log" id="event-log"></div>
                 </div>
             </section>
 
-            <section class="demo-section">
+            <!-- Search Select Section -->
+            <section id="search" class="demo-section">
                 <h2 class="section-title">
                     <i class="fas fa-search"></i>
-                    Search-enabled Select Component
+                    Search Select Components
                 </h2>
-                <p class="section-description">Search through your favorite programming languages with ease!</p>
-                
-                <div class="select-container">
-                    <seo-select-search name="language">
-                        <option value="javascript">🟨 JavaScript - The language of the web</option>
-                        <option value="typescript" selected>🔷 TypeScript - JavaScript with syntax for types</option>
-                        <option value="python">🐍 Python - Simple, elegant, and powerful</option>
-                        <option value="rust">🦀 Rust - Fast, reliable, and memory-efficient</option>
-                        <option value="go">🐹 Go - Build simple, secure, scalable systems</option>
-                        <option value="kotlin">🅺 Kotlin - Concise, safe, and fun language</option>
-                        <option value="swift">🦉 Swift - Powerful and intuitive programming</option>
-                        <option value="dart">🎯 Dart - Optimized for UI development</option>
-                    </seo-select-search>
-                </div>
-            </section>
 
-            <section class="features-section">
-                <h2 class="section-title">
-                    <i class="fas fa-rocket"></i>
-                    Why Choose SEO Select?
-                </h2>
-                
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon">🚀</div>
-                        <h3>Virtual Scrolling</h3>
-                        <p>High performance with large datasets using virtual scrolling technology</p>
+                <div class="use-case">
+                    <h3>Basic Multilingual Search</h3>
+                    <p>Search with Korean initial consonants, Japanese romaji, Chinese pinyin, and English</p>
+                    <div class="demo-container">
+                        <seo-select-search name="multilang-demo" width="350px">
+                            <option value="seoul">서울특별시 (Seoul)</option>
+                            <option value="tokyo">東京 (Tokyo)</option>
+                            <option value="beijing">北京 (Beijing)</option>
+                            <option value="shanghai">上海 (Shanghai)</option>
+                            <option value="newyork">New York</option>
+                            <option value="london">London (런던)</option>
+                            <option value="paris">Paris (파리)</option>
+                            <option value="berlin">Berlin (베를린)</option>
+                            <option value="madrid">Madrid (마드리드)</option>
+                            <option value="rome">Roma (로마)</option>
+                        </seo-select-search>
                     </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">🌍</div>
-                        <h3>Multilingual Search</h3>
-                        <p>Advanced search with support for Korean, Japanese, and Chinese</p>
+                    <div class="search-tips">
+                        <strong>Search Examples:</strong>
+                        <ul>
+                            <li>Korean: "서울", "ㅅㅇ", "런던", "ㄹㄷ"</li>
+                            <li>Japanese: "東京", "とうきょう", "tokyo"</li>
+                            <li>Chinese: "北京", "上海", "beijing", "shanghai"</li>
+                            <li>English: "new", "NEW", "london", "LONDON"</li>
+                        </ul>
                     </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">♿</div>
-                        <h3>Full Accessibility</h3>
-                        <p>Complete keyboard navigation and screen reader support for all users</p>
+                </div>
+
+                <div class="use-case">
+                    <h3>Loading State Demo</h3>
+                    <p>See loading state when no options are available</p>
+                    <div class="demo-container">
+                        <seo-select-search id="loading-demo" name="async-multilang" width="350px">
+                        </seo-select-search>
+                        <button class="action-btn" onclick="loadMultilingualData()">Load Multilingual Data</button>
                     </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">🎨</div>
-                        <h3>Multiple Themes</h3>
-                        <p>Basic and float themes with comprehensive dark mode support</p>
-                    </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">📏</div>
-                        <h3>Auto Width</h3>
-                        <p>Automatic width calculation based on content with smart sizing</p>
-                    </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">🏷️</div>
-                        <h3>Multi-Select Tags</h3>
-                        <p>Tag-based multiple selection with individual remove buttons</p>
+                </div>
+
+                <div class="use-case">
+                    <h3>Large Dataset with Virtual Scrolling</h3>
+                    <p>10,000 multilingual items with efficient virtual scrolling</p>
+                    <div class="demo-container">
+                        <seo-select-search id="large-multilang-search" name="large-multilang" width="400px"></seo-select-search>
+                        <button class="action-btn" onclick="loadLargeDataset()">Load 10,000 Items</button>
                     </div>
                 </div>
             </section>
 
-            <section class="installation-section">
+            <!-- Themes Section -->
+            <section id="themes" class="demo-section">
                 <h2 class="section-title">
-                    <i class="fas fa-download"></i>
-                    Quick Installation
+                    <i class="fas fa-palette"></i>
+                    Theme System
                 </h2>
-                
-                <div class="code-block">
-                    <div class="code-header">
-                        <span class="code-language">bash</span>
-                        <button class="copy-btn" onclick="copyToClipboard('npm install seo-select')">
-                            <i class="fas fa-copy"></i>
-                        </button>
+
+                <div class="theme-demo-grid">
+                    <div class="use-case">
+                        <h3>Float Theme (Default)</h3>
+                        <p>Rounded corners with shadow effects and animations</p>
+                        <div class="demo-container">
+                            <seo-select name="float-single" theme="float" width="200px">
+                                <option value="option1">Float Option 1</option>
+                                <option value="option2">Float Option 2</option>
+                                <option value="option3">Float Option 3</option>
+                            </seo-select>
+                        </div>
                     </div>
-                    <pre><code>npm install seo-select</code></pre>
+
+                    <div class="use-case">
+                        <h3>Basic Theme</h3>
+                        <p>Straight corners with immediate display</p>
+                        <div class="demo-container">
+                            <seo-select name="basic-single" theme="basic" width="200px">
+                                <option value="option1">Basic Option 1</option>
+                                <option value="option2">Basic Option 2</option>
+                                <option value="option3">Basic Option 3</option>
+                            </seo-select>
+                        </div>
+                    </div>
+
+                    <div class="use-case">
+                        <h3>Dark Mode - Float Theme</h3>
+                        <p>Dark theme with modern aesthetics</p>
+                        <div class="demo-container dark-demo">
+                            <seo-select name="dark-mode" theme="float" dark width="200px">
+                                <option value="option1">Dark Mode Option 1</option>
+                                <option value="option2">Dark Mode Option 2</option>
+                                <option value="option3">Dark Mode Option 3</option>
+                            </seo-select>
+                        </div>
+                    </div>
+
+                    <div class="use-case">
+                        <h3>Dark Mode - Search Select</h3>
+                        <p>Dark theme with search functionality</p>
+                        <div class="demo-container dark-demo">
+                            <seo-select-search name="dark-multilang" theme="float" dark width="300px">
+                                <option value="apple">사과 (Apple) / りんご / 苹果</option>
+                                <option value="banana">바나나 (Banana) / バナナ / 香蕉</option>
+                                <option value="cherry">체리 (Cherry) / チェリー / 樱桃</option>
+                                <option value="date">대추 (Date) / デーツ / 枣子</option>
+                                <option value="elderberry">엘더베리 (Elderberry) / エルダーベリー / 接骨木果</option>
+                            </seo-select-search>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="code-block">
-                    <div class="code-header">
-                        <span class="code-language">html</span>
-                        <button class="copy-btn" onclick="copyToClipboard(this.parentNode.nextElementSibling.textContent)">
-                            <i class="fas fa-copy"></i>
-                        </button>
+
+                <div class="use-case">
+                    <h3>Dynamic Dark Mode Toggle</h3>
+                    <div class="demo-container">
+                        <seo-select id="dynamic-dark" name="dynamic" width="250px">
+                            <option value="light">Light Mode</option>
+                            <option value="dark">Dark Mode</option>
+                            <option value="auto">Auto Mode</option>
+                        </seo-select>
+                        <button class="action-btn" onclick="toggleDarkMode()">Toggle Dark Mode</button>
                     </div>
-                    <pre><code>&lt;seo-select name="example"&gt;
-  &lt;option value="option1"&gt;🎯 Amazing Option 1&lt;/option&gt;
-  &lt;option value="option2"&gt;✨ Fantastic Option 2&lt;/option&gt;
-&lt;/seo-select&gt;</code></pre>
+                </div>
+            </section>
+
+            <!-- Multiple Selection Section -->
+            <section id="multiple" class="demo-section">
+                <h2 class="section-title">
+                    <i class="fas fa-list-check"></i>
+                    Multiple Selection
+                </h2>
+
+                <div class="use-case">
+                    <h3>Basic Multiple Selection</h3>
+                    <p>Select multiple options with tag display</p>
+                    <div class="demo-container">
+                        <seo-select multiple name="skills" width="400px">
+                            <option value="js">JavaScript</option>
+                            <option value="ts">TypeScript</option>
+                            <option value="react">React</option>
+                            <option value="vue">Vue.js</option>
+                            <option value="angular">Angular</option>
+                            <option value="svelte">Svelte</option>
+                            <option value="node">Node.js</option>
+                            <option value="python">Python</option>
+                            <option value="java">Java</option>
+                            <option value="go">Go</option>
+                        </seo-select>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>Multiple Selection with Search</h3>
+                    <p>Combine multiple selection with multilingual search</p>
+                    <div class="demo-container">
+                        <seo-select-search multiple name="multilang-skills" width="450px">
+                            <option value="javascript">JavaScript (자바스크립트)</option>
+                            <option value="typescript">TypeScript (타입스크립트)</option>
+                            <option value="python">Python (파이썬)</option>
+                            <option value="java">Java (자바)</option>
+                            <option value="csharp">C# (씨샵)</option>
+                            <option value="react">React (리액트)</option>
+                            <option value="vue">Vue.js (뷰)</option>
+                            <option value="angular">Angular (앵귤러)</option>
+                            <option value="nodejs">Node.js (노드)</option>
+                            <option value="spring">Spring (스프링)</option>
+                            <option value="django">Django (장고)</option>
+                            <option value="flask">Flask (플라스크)</option>
+                            <option value="express">Express (익스프레스)</option>
+                            <option value="nestjs">NestJS (네스트)</option>
+                            <option value="mysql">MySQL</option>
+                            <option value="postgresql">PostgreSQL</option>
+                            <option value="mongodb">MongoDB (몽고디비)</option>
+                            <option value="redis">Redis (레디스)</option>
+                        </seo-select-search>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>Dark Mode Multiple Selection</h3>
+                    <div class="demo-container dark-demo">
+                        <seo-select multiple name="dark-multi" theme="float" dark width="300px">
+                            <option value="js">JavaScript</option>
+                            <option value="ts">TypeScript</option>
+                            <option value="react">React</option>
+                            <option value="vue">Vue.js</option>
+                            <option value="node">Node.js</option>
+                        </seo-select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Advanced Features Section -->
+            <section id="advanced" class="demo-section">
+                <h2 class="section-title">
+                    <i class="fas fa-cogs"></i>
+                    Advanced Features
+                </h2>
+
+                <div class="use-case">
+                    <h3>Auto Width Adjustment</h3>
+                    <p>Automatic width based on content length</p>
+                    <div class="demo-container">
+                        <seo-select name="auto-width-demo">
+                            <option value="short">Short</option>
+                            <option value="very-very-long-option-text">Very very long option text here</option>
+                            <option value="medium">Medium length</option>
+                        </seo-select>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>Language Settings</h3>
+                    <p>Multi-language UI support</p>
+                    <div class="demo-container">
+                        <seo-select id="dynamic-lang" name="lang-demo" width="200px">
+                            <option value="a">Option A</option>
+                            <option value="b">Option B</option>
+                            <option value="c">Option C</option>
+                        </seo-select>
+                        <div class="language-controls">
+                            <button class="lang-btn" onclick="setLanguage('ko')">한국어</button>
+                            <button class="lang-btn" onclick="setLanguage('en')">English</button>
+                            <button class="lang-btn" onclick="setLanguage('ja')">日本語</button>
+                            <button class="lang-btn" onclick="setLanguage('zh')">中文</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>Custom Text Customization</h3>
+                    <div class="demo-container">
+                        <seo-select-search
+                            multiple
+                            name="custom-text"
+                            width="300px"
+                            texts='{"placeholder": "🎯 Select technologies", "clearAll": "Clear all"}'
+                        >
+                            <option value="frontend">Frontend</option>
+                            <option value="backend">Backend</option>
+                            <option value="mobile">Mobile</option>
+                            <option value="ai">AI</option>
+                        </seo-select-search>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>Reset Functionality</h3>
+                    <div class="demo-container">
+                        <div class="reset-demo-grid">
+                            <div>
+                                <label>With Reset (Default)</label>
+                                <seo-select id="with-reset" name="with-reset" width="200px">
+                                    <option value="default">Default</option>
+                                    <option value="option1">Option 1</option>
+                                    <option value="option2" selected>Option 2</option>
+                                </seo-select>
+                            </div>
+                            <div>
+                                <label>Without Reset</label>
+                                <seo-select id="no-reset" name="no-reset" width="200px">
+                                    <option value="default">Default</option>
+                                    <option value="option1">Option 1</option>
+                                    <option value="option2" selected>Option 2</option>
+                                </seo-select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>Form Integration</h3>
+                    <div class="demo-container">
+                        <form id="demo-form" class="demo-form">
+                            <div class="form-group">
+                                <label>Preferred Language (Required):</label>
+                                <seo-select name="language" required width="200px">
+                                    <option value="">Please select</option>
+                                    <option value="ko">Korean</option>
+                                    <option value="en">English</option>
+                                    <option value="ja">Japanese</option>
+                                </seo-select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Interests (Multiple Selection):</label>
+                                <seo-select name="interests" multiple width="300px">
+                                    <option value="frontend">Frontend</option>
+                                    <option value="backend">Backend</option>
+                                    <option value="mobile">Mobile</option>
+                                    <option value="ai">AI</option>
+                                    <option value="blockchain">Blockchain</option>
+                                </seo-select>
+                            </div>
+
+                            <button type="submit" class="submit-btn">Submit</button>
+                        </form>
+                        <div id="form-result" class="form-result"></div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -133,63 +392,13 @@
         <footer class="footer">
             <p>
                 <i class="fas fa-heart text-red"></i>
-                Made with love for the web development community
-            </p>
-            <p class="footer-links">
-                <a href="https://github.com/seadonggyun4/seo-select" class="footer-link">
-                    <i class="fab fa-github"></i>
-                    GitHub
-                </a>
-                <a href="http://localhost:5173/document/select/select-usecase/" class="footer-link">
-                    <i class="fas fa-book"></i>
-                    Documentation
-                </a>
+                SEO Select Components Demo - Comprehensive Feature Showcase
             </p>
         </footer>
     </div>
 
+    <!-- Import SEO Select Components -->
     <script type="module" src="/src/main.ts"></script>
-    <script>
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                // Show a brief success indication
-                const btn = event.currentTarget;
-                const originalIcon = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-check"></i>';
-                setTimeout(() => {
-                    btn.innerHTML = originalIcon;
-                }, 1000);
-            });
-        }
-
-        // Add some interactive effects
-        document.addEventListener('DOMContentLoaded', () => {
-            // Add event listeners for select components
-            document.querySelectorAll('seo-select, seo-select-search').forEach(select => {
-                select.addEventListener('seo-select', (e) => {
-                    console.log('Selected:', e.detail);
-                    showNotification(`Selected: ${e.detail.label}`);
-                });
-            });
-        });
-
-        function showNotification(message) {
-            const notification = document.createElement('div');
-            notification.className = 'notification';
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.classList.add('show');
-            }, 100);
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 2000);
-        }
-    </script>
+    <script type="module" src="/main.js"></script>
 </body>
 </html>
