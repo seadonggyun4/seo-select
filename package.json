@@ -1,6 +1,6 @@
 {
   "name": "seo-select",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "A customizable and accessible select component with search functionality built with Lit",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,8 +18,7 @@
     "./components/seo-select-search": {
       "types": "./dist/components/seo-select-search/index.d.ts",
       "import": "./dist/components/seo-select-search/index.js"
-    },
-    "./styles": "./dist/styles/components/style.css"
+    }
   },
   "files": [
     "dist/**/*",
@@ -64,7 +63,8 @@
     "sass": "^1.89.2",
     "typescript": "~5.8.3",
     "vite": "^7.0.6",
-    "vite-plugin-dts": "^4.5.4"
+    "vite-plugin-dts": "^4.5.4",
+    "vite-plugin-lib-inject-css": "^2.1.1"
   },
   "peerDependencies": {
     "lit": "^3.0.0"
