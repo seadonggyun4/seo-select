@@ -309,7 +309,7 @@ Contributions are welcome! Please read our contributing guidelines and submit pu
 
 ## Changelog
 
-### 1.0.3
+### 1.0.6
 - Initial release
 - Basic select functionality
 - Search component with multilingual support
@@ -319,3 +319,4 @@ Contributions are welcome! Please read our contributing guidelines and submit pu
 - Virtual scrolling for performance
 - Full accessibility support
 - TypeScript definitions
+- Fix tag style and Optimize rendering options
