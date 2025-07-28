@@ -245,55 +245,6 @@ const handleSelect = (event) => {
 </script>
 ```
 
-### Angular Integration
-
-```typescript
-// component.ts
-import { Component, OnInit } from '@angular/core';
-import 'seo-select';
-
-@Component({
-  selector: 'app-example',
-  template: `
-    <seo-select name="example" (onSelect)="handleSelect($event)">
-      <option value="1">Option 1</option>
-      <option value="2">Option 2</option>
-    </seo-select>
-  `
-})
-export class ExampleComponent {
-  handleSelect(event: CustomEvent) {
-    console.log('Selected:', event.detail);
-  }
-}
-```
-
-## CDN Usage
-
-For quick prototyping, you can use the CDN version:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <script type="module" src="https://unpkg.com/seo-select@latest/dist/index.js"></script>
-</head>
-<body>
-  <seo-select name="example">
-    <option value="1">Option 1</option>
-    <option value="2">Option 2</option>
-  </seo-select>
-</body>
-</html>
-```
-
-## Browser Support
-
-- Chrome/Edge 79+
-- Firefox 72+
-- Safari 13.1+
-- Modern browsers with ES2020 support
-
 ## Repository
 
 - **GitHub**: [https://github.com/seadonggyun4/seo-select](https://github.com/seadonggyun4/seo-select)
@@ -302,10 +253,6 @@ For quick prototyping, you can use the CDN version:
 ## License
 
 MIT License
-
-## Contributing
-
-Contributions are welcome! Please read our contributing guidelines and submit pull requests to our repository.
 
 ## Changelog
 
