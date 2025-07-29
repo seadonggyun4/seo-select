@@ -442,24 +442,46 @@
                 <div class="use-case">
                     <h3>Internationalization (i18n) Support</h3>
                     <p>
-                        Comprehensive multi-language UI support with RTL text handling, locale-specific formatting, and cultural adaptation. Includes built-in translations for common interface elements and support for custom localization.
+                        Comprehensive multi-language UI support with RTL text handling, locale-specific formatting, and cultural adaptation. Watch how placeholder text, button labels, and interface elements automatically adapt to different languages. Includes built-in translations for common interface elements and support for custom localization.
                     </p>
                     <div class="demo-container">
-                        <seo-select id="dynamic-lang" name="lang-demo" width="200px">
-                            <option value="a">Option A</option>
-                            <option value="b">Option B</option>
-                            <option value="c">Option C</option>
-                        </seo-select>
+                        <seo-select-search 
+                            id="dynamic-lang" 
+                            name="lang-demo" 
+                            width="350px" 
+                            multiple
+                            placeholder="Select your skills..."
+                        >
+                            <option value="frontend">Frontend Development</option>
+                            <option value="backend">Backend Development</option>
+                            <option value="mobile">Mobile Development</option>
+                            <option value="ai">Artificial Intelligence</option>
+                            <option value="blockchain">Blockchain Technology</option>
+                            <option value="devops">DevOps Engineering</option>
+                            <option value="data">Data Science</option>
+                            <option value="security">Cybersecurity</option>
+                            <option value="cloud">Cloud Computing</option>
+                            <option value="ml">Machine Learning</option>
+                        </seo-select-search>
                         <div class="language-controls">
                             <button class="lang-btn" onclick="setLanguage('ko')">한국어</button>
                             <button class="lang-btn" onclick="setLanguage('en')">English</button>
                             <button class="lang-btn" onclick="setLanguage('ja')">日本語</button>
                             <button class="lang-btn" onclick="setLanguage('zh')">中文</button>
                         </div>
+                        <div class="i18n-info">
+                            <strong>🔄 Watch for changes:</strong>
+                            <ul>
+                                <li>Placeholder text adaptation</li>
+                                <li>"Clear all" button text</li>
+                                <li>Search input labels</li>
+                                <li>Loading and empty state messages</li>
+                            </ul>
+                        </div>
                     </div>
                     <div class="demo-description">
                         <span>🌍</span>
-                        <span>Multi-language UI with automatic locale adaptation</span>
+                        <span>Multi-language UI with automatic locale adaptation - watch placeholder and button text changes</span>
                     </div>
                 </div>
 
