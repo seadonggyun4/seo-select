@@ -53,7 +53,8 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "prepublishOnly": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:docs": "node scripts/build-docs.js"
   },
   "dependencies": {
     "lit": "^3.0.0"
@@ -64,7 +65,8 @@
     "typescript": "~5.8.3",
     "vite": "^7.0.6",
     "vite-plugin-dts": "^4.5.4",
-    "vite-plugin-lib-inject-css": "^2.1.1"
+    "vite-plugin-lib-inject-css": "^2.1.1",
+    "fs-extra": "^11.2.0"
   },
   "peerDependencies": {
     "lit": "^3.0.0"
