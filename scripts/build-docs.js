@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { build } from 'vite';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,6 +13,45 @@ async function buildDocs() {
     const outputPath = path.join(process.cwd(), 'output');
     await fs.ensureDir(outputPath);
     await fs.emptyDir(outputPath);
+    
+    console.log('🔨 Building TypeScript and SCSS files...');
+    
+    await build({
+      configFile: false, 
+      build: {
+        outDir: 'output',
+        lib: false, 
+        rollupOptions: {
+          input: path.resolve(process.cwd(), 'src/main.ts'),
+          output: {
+            entryFileNames: 'main.js',
+            chunkFileNames: '[name].js',
+            assetFileNames: (assetInfo) => {
+              if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+                return 'components.css';
+              }
+              return '[name].[ext]';
+            }
+          }
+        },
+        minify: false, 
+        sourcemap: false,
+        target: 'es2020'
+      },
+      css: {
+        preprocessorOptions: {
+          scss: {
+            charset: false
+          }
+        }
+      },
+      define: {
+        'process.env.NODE_ENV': '"production"'
+      },
+      esbuild: {
+        target: 'es2020'
+      }
+    });
     
     console.log('📄 Processing index.html...');
     let indexContent = await fs.readFile('index.html', 'utf8');
@@ -26,24 +66,18 @@ async function buildDocs() {
       '<script type="module" src="./demo.js"></script>'
     );
     
-    await fs.writeFile(path.join(outputPath, 'index.html'), indexContent);
-    
-    console.log('📄 Processing main.js...');
-    if (await fs.pathExists('main.js')) {
-      await fs.copy('main.js', path.join(outputPath, 'demo.js'));
+    if (await fs.pathExists(path.join(outputPath, 'components.css'))) {
+      indexContent = indexContent.replace(
+        '</head>',
+        '    <link rel="stylesheet" href="./components.css">\n</head>'
+      );
     }
     
-    console.log('📄 Processing src/main.ts...');
-    if (await fs.pathExists('src/main.ts')) {
-      let mainTsContent = await fs.readFile('src/main.ts', 'utf8');
-      
-      mainTsContent = mainTsContent
-        .replace(/import\s+.*?from\s+['"][^'"]*['"];?\s*/g, '') 
-        .replace(/export\s+/g, '') 
-        .replace(/:\s*\w+(\[\])?/g, '') 
-        .replace(/\s*as\s+\w+/g, ''); 
-      
-      await fs.writeFile(path.join(outputPath, 'main.js'), mainTsContent);
+    await fs.writeFile(path.join(outputPath, 'index.html'), indexContent);
+    
+    console.log('📄 Processing demo.js...');
+    if (await fs.pathExists('demo.js')) {
+      await fs.copy('demo.js', path.join(outputPath, 'demo.js'));
     }
     
     console.log('📄 Copying style.css...');
@@ -54,11 +88,13 @@ async function buildDocs() {
     const staticFiles = ['favicon.ico', 'robots.txt'];
     for (const file of staticFiles) {
       if (await fs.pathExists(file)) {
+        console.log(`📄 Copying ${file}...`);
         await fs.copy(file, path.join(outputPath, file));
       }
     }
     
     if (await fs.pathExists('public')) {
+      console.log('📁 Copying public folder...');
       const publicFiles = await fs.readdir('public');
       for (const file of publicFiles) {
         await fs.copy(
@@ -69,15 +105,28 @@ async function buildDocs() {
     }
     
     const files = await fs.readdir(outputPath);
+    const stats = await Promise.all(
+      files.map(async file => {
+        const stat = await fs.stat(path.join(outputPath, file));
+        return { name: file, size: Math.round(stat.size / 1024) };
+      })
+    );
     
     console.log('✅ Documentation build completed!');
     console.log(`📁 Output directory: ${outputPath}`);
     console.log(`📊 Files generated: ${files.length}`);
-    console.log(`📋 Files: ${files.join(', ')}`);
+    console.log('📋 Files:');
+    stats.forEach(({ name, size }) => {
+      console.log(`   ${name} (${size}KB)`);
+    });
     console.log(`📅 Build time: ${new Date().toLocaleString()}`);
     
   } catch (error) {
     console.error('❌ Build failed:', error);
+    console.error('Error details:', error.message);
+    if (error.stack) {
+      console.error('Stack trace:', error.stack);
+    }
     process.exit(1);
   }
 }
