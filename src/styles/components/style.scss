@@ -1,6 +1,11 @@
 @use '../constants/colors' as colors;
 @use '../constants/select' as select;
 
+seo-select,seo-select-search{
+  display: block;
+  width: fit-content;
+}
+
 .seo-select {
   font-size: select.$select-font-size;
   color: select.$select-font-color;
