@@ -370,6 +370,59 @@ body::before {
     color: #ef4444;
 }
 
+/* Feature highlight boxes */
+.feature-highlight {
+    background: rgba(50, 83, 222, 0.05);
+    border: 1px solid rgba(50, 83, 222, 0.2);
+    padding: 16px;
+    margin: 16px 0;
+    border-radius: 4px;
+}
+
+.feature-highlight h4 {
+    color: #e5e7eb;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.feature-highlight p {
+    color: #9ca3af;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+/* i18n info styling */
+.i18n-info {
+    background: rgba(50, 83, 222, 0.05);
+    padding: 12px;
+    margin-top: 12px;
+    border-radius: 4px;
+    border: 1px solid rgba(50, 83, 222, 0.2);
+}
+
+.i18n-info strong {
+    color: #e5e7eb;
+    font-size: 0.9rem;
+}
+
+.i18n-info ul {
+    margin: 8px 0 0 16px;
+    padding: 0;
+}
+
+.i18n-info li {
+    color: #9ca3af;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+}
+
+/* Enhanced focus styles */
+seo-select:focus-within,
+seo-select-search:focus-within {
+    outline: 2px solid #5f77ca;
+    outline-offset: 2px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {
@@ -505,32 +558,4 @@ code {
 
 .notification.show {
     transform: translateX(0);
-}
-
-/* Enhanced focus styles */
-seo-select:focus-within,
-seo-select-search:focus-within {
-    outline: 2px solid #5f77ca;
-    outline-offset: 2px;
-}
-
-/* Feature highlight boxes */
-.feature-highlight {
-    background: rgba(50, 83, 222, 0.05);
-    border: 1px solid rgba(50, 83, 222, 0.2);
-    padding: 16px;
-    margin: 16px 0;
-    border-radius: 4px;
-}
-
-.feature-highlight h4 {
-    color: #e5e7eb;
-    margin-bottom: 8px;
-    font-size: 0.95rem;
-}
-
-.feature-highlight p {
-    color: #9ca3af;
-    font-size: 0.85rem;
-    margin: 0;
 }

@@ -328,19 +328,6 @@
             });
         });
 
-        // Auto-cycle language demo every 8 seconds
-        let languageCycleIndex = 0;
-        const languages = ['ko', 'en', 'ja', 'zh'];
-
-        setInterval(() => {
-            const dynamicLangSelect = document.getElementById('dynamic-lang');
-            if (dynamicLangSelect && dynamicLangSelect.setLanguage) {
-                languageCycleIndex = (languageCycleIndex + 1) % languages.length;
-                const newLang = languages[languageCycleIndex];
-                dynamicLangSelect.setLanguage(newLang);
-            }
-        }, 8000);
-
         // Keyboard shortcuts for navigation
         document.addEventListener('keydown', (e) => {
             if (e.altKey && e.key >= '1' && e.key <= '5') {
