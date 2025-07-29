@@ -416,13 +416,6 @@ body::before {
     margin-bottom: 4px;
 }
 
-/* Enhanced focus styles */
-seo-select:focus-within,
-seo-select-search:focus-within {
-    outline: 2px solid #5f77ca;
-    outline-offset: 2px;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {
