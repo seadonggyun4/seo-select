@@ -28,7 +28,7 @@ $tag-padding: 0.2rem 0.3rem !default;
 $tag-gap: 0.5rem !default;
 $tag-border-radius: 25rem !default;
 $tag-border-width: 1px !default;
-$tag-font-size:1.2rem !default;
+$tag-font-size: 1rem !default;
 
 // 태그 제거 버튼
 $tag-remove-size: 1rem !default;
@@ -103,36 +103,36 @@ $arrow-transition: transform 0.2s ease !default;
 // ============================================
 
 // 다크 모드 배경색 - 더 밝은 회색으로 조정
-$dark-select-bg: #374151 !default;           
-$dark-dropdown-bg: #374151 !default;        
-$dark-tag-bg: #4b5563 !default;             
-$dark-search-input-bg: #374151 !default;    
+$dark-select-bg: #374151 !default;
+$dark-dropdown-bg: #374151 !default;
+$dark-tag-bg: #4b5563 !default;
+$dark-search-input-bg: #374151 !default;
 
 // 다크 모드 테두리 색상 - 더 밝은 색상으로 명확한 구분
-$dark-border-color: #6b7280 !default;        
-$dark-border-hover-color: #60a5fa !default;  
-$dark-border-focus-color: #60a5fa !default;  
+$dark-border-color: #6b7280 !default;
+$dark-border-hover-color: #60a5fa !default;
+$dark-border-focus-color: #60a5fa !default;
 
 // 다크 모드 텍스트 색상 - 높은 대비를 위해 더 밝게
-$dark-text-color: #f3f4f6 !default;          
-$dark-text-secondary-color: #d1d5db !default; 
-$dark-placeholder-color: #9ca3af !default;   
+$dark-text-color: #f3f4f6 !default;
+$dark-text-secondary-color: #d1d5db !default;
+$dark-placeholder-color: #9ca3af !default;
 
 // 다크 모드 옵션 색상 - 더 나은 가시성
-$dark-option-hover-bg: #4b5563 !default;     
-$dark-option-selected-bg: #3b82f6 !default; 
-$dark-option-focused-bg: #4b5563 !default;  
-$dark-option-disabled-color: #9ca3af !default; 
+$dark-option-hover-bg: #4b5563 !default;
+$dark-option-selected-bg: #3b82f6 !default;
+$dark-option-focused-bg: #4b5563 !default;
+$dark-option-disabled-color: #9ca3af !default;
 
 // 다크 모드 태그 색상 - 더 밝은 색상으로 가시성 향상
-$dark-tag-text-color: #f3f4f6 !default;      
-$dark-tag-border-color: #60a5fa !default;    
-$dark-tag-remove-hover-bg: #ef4444 !default; 
+$dark-tag-text-color: #f3f4f6 !default;
+$dark-tag-border-color: #60a5fa !default;
+$dark-tag-remove-hover-bg: #ef4444 !default;
 
 // 다크 모드 버튼 색상 - 더 나은 대비
-$dark-reset-button-color: #d1d5db !default;         
-$dark-reset-button-hover-color: #ef4444 !default;   
-$dark-multi-reset-button-bg: #6b7280 !default;      
+$dark-reset-button-color: #d1d5db !default;
+$dark-reset-button-hover-color: #ef4444 !default;
+$dark-multi-reset-button-bg: #6b7280 !default;
 
 // 다크 모드 그림자 - 더 진한 그림자로 깊이감 강화
 $dark-float-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2) !default;
