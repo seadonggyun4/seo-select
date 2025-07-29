@@ -2,6 +2,7 @@
 @use '../constants/select' as select;
 
 .seo-select {
+  font-size: select.$select-font-size;
   position: relative;
 
   // 테마별 기본 스타일
