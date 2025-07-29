@@ -329,6 +329,25 @@ seo-select,seo-select-search{
         }
       }
     }
+
+    &::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: colors.$primary-color;
+      border-radius: 5px;
+      border: none;
+    }
+
+    &::-webkit-scrollbar-corner {
+      background: transparent;
+    }
   }
 
   .reset-button {
