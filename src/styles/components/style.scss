@@ -1,13 +1,6 @@
 @use '../constants/colors' as colors;
 @use '../constants/select' as select;
 
-seo-select,
-seo-select-search {
-  display: block;
-  height: auto;
-  width: auto;
-}
-
 .seo-select {
   position: relative;
 

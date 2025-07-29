@@ -430,12 +430,6 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* Highlight effects */
-.demo-container:hover {
-    border-color: #667eea;
-    transition: border-color 0.3s ease;
-}
-
 /* Code-like text styling */
 code {
     background: #f1f5f9;
