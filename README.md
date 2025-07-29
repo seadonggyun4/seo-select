@@ -645,7 +645,7 @@ MIT License
 
 ## Changelog
 
-### 1.0.11
+### 1.0.12
 - Initial release
 - Basic select functionality
 - Search component with multilingual support
@@ -658,3 +658,4 @@ MIT License
 - Fix tag style and Optimize rendering options
 - Fix seo-select-search reset logic
 - Create demo page and fix style bugs
+- Fix Scroll Style
