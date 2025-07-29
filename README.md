@@ -38,26 +38,6 @@ import 'seo-select';
 import 'seo-select/components/seo-select-search';
 ```
 
-### Script Tags (Browser)
-
-```html
-<!-- Via CDN -->
-<script type="module" src="https://unpkg.com/seo-select@latest/dist/seo-select.js"></script>
-<script type="module" src="https://unpkg.com/seo-select@latest/dist/components/seo-select-search.js"></script>
-
-<!-- Local files -->
-<script type="module" src="./node_modules/seo-select/dist/seo-select.js"></script>
-<script type="module" src="./node_modules/seo-select/dist/components/seo-select-search.js"></script>
-```
-
-### CommonJS (Node.js)
-
-```javascript
-// For server-side rendering or Node.js environments
-require('seo-select');
-require('seo-select/components/seo-select-search');
-```
-
 ## Components Overview
 
 ### `seo-select` - Basic Select Component
