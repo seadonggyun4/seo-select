@@ -3,6 +3,8 @@
 
 A highly customizable and accessible select component with search functionality built with Lit. Supports virtual scrolling, multiple selection, internationalization, and modern theming.
 
+demo: https://seo-select.netlify.app/"
+
 ## Features
 
 - 🎨 **Multiple Themes**: Basic, float themes with dark mode support
@@ -663,7 +665,7 @@ MIT License
 
 ## Changelog
 
-### 1.0.10
+### 1.0.11
 - Initial release
 - Basic select functionality
 - Search component with multilingual support
@@ -675,3 +677,4 @@ MIT License
 - TypeScript definitions
 - Fix tag style and Optimize rendering options
 - Fix seo-select-search reset logic
+- Create demo page and fix style bugs

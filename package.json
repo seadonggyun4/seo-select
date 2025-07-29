@@ -1,6 +1,6 @@
 {
   "name": "seo-select",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "A customizable and accessible select component with search functionality built with Lit",
   "type": "module",
   "main": "./dist/index.js",
@@ -44,7 +44,7 @@
   "bugs": {
     "url": "https://github.com/seadonggyun4/seo-select/issues"
   },
-  "homepage": "https://seoui.netlify.app",
+  "homepage": "https://seo-select.netlify.app/",
   "scripts": {
     "build": "tsc -p tsconfig.build.json && vite build --mode production",
     "build:types": "tsc -p tsconfig.build.json --emitDeclarationOnly",
