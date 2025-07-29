@@ -3,7 +3,7 @@
 
 A highly customizable and accessible select component with search functionality built with Lit. Supports virtual scrolling, multiple selection, internationalization, and modern theming.
 
-demo: https://seo-select.netlify.app/"
+Demo Site: https://seo-select.netlify.app/
 
 ## Features
 
