@@ -659,3 +659,4 @@ MIT License
 - Fix seo-select-search reset logic
 - Create demo page and fix style bugs
 - Fix Scroll Style
+- Fixed bug in applying width responsiveness

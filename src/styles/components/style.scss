@@ -1,9 +1,10 @@
 @use '../constants/colors' as colors;
 @use '../constants/select' as select;
 
-seo-select,seo-select-search{
+seo-select,
+seo-select-search {
   display: block;
-  width: fit-content;
+  width: auto;
 }
 
 .seo-select {
