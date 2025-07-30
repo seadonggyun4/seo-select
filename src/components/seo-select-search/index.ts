@@ -120,7 +120,7 @@ export class SeoSelectSearch extends SeoSelect {
     const effectiveWidth = this.getEffectiveWidth(); // 부모 클래스의 public 메서드 사용
 
     return html`
-      <div class="${CSS_CLASSES.SELECT} ${CSS_CLASSES.MULTI_SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth}; height: ${this.height};">
+      <div class="${CSS_CLASSES.SELECT} ${CSS_CLASSES.MULTI_SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
         <div class="${CSS_CLASSES.SELECTED_CONTAINER} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" @click=${this.toggleDropdown}>
           <div class="${CSS_CLASSES.SELECTED_TAGS}">
             ${this._selectedValues.map(value => {
@@ -169,7 +169,7 @@ export class SeoSelectSearch extends SeoSelect {
     const effectiveWidth = this.getEffectiveWidth(); // 부모 클래스의 public 메서드 사용
 
     return html`
-      <div class="${CSS_CLASSES.SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth}; height: ${this.height};">
+      <div class="${CSS_CLASSES.SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
         <button type="button" class="${CSS_CLASSES.SELECTED} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" @click=${this.toggleDropdown}>
           ${this._labelText}
           ${showResetButton

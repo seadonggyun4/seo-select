@@ -93,7 +93,6 @@ export class SeoSelect extends LitElement {
     this._virtual = null;
     this._options = [];
     this.width = null;
-    this.height = DEFAULT_CONFIG.height;
     this.required = DEFAULT_CONFIG.required;
     this.optionItems = [];
     this.open = false;
@@ -139,6 +138,7 @@ export class SeoSelect extends LitElement {
   }
 
   connectedCallback(): void {
+    this.style.width = 'auto';
     super.connectedCallback();
     this.initializeOptionsFromPropsOrSlot();
     window.addEventListener(EVENT_NAMES.SELECT_OPEN, this.onOtherSelectOpened);
@@ -184,6 +184,7 @@ export class SeoSelect extends LitElement {
 
   updated(changed: Map<string, unknown>) {
     if (this._isUpdating) return;
+    this.style.width = 'auto';
     
     const needsOptionsUpdate = changed.has('optionItems') || 
                               changed.has('language') || 
@@ -328,7 +329,7 @@ export class SeoSelect extends LitElement {
     const effectiveWidth = this.getEffectiveWidth();
 
     return html`
-      <div class="${CSS_CLASSES.SELECT} ${CSS_CLASSES.MULTI_SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth}; height: ${this.height};">
+      <div class="${CSS_CLASSES.SELECT} ${CSS_CLASSES.MULTI_SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
         <div class="${CSS_CLASSES.SELECTED_CONTAINER} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" @click=${this.toggleDropdown}>
           <div class="${CSS_CLASSES.SELECTED_TAGS}">
             ${this._selectedValues.map(value => {
@@ -377,7 +378,7 @@ export class SeoSelect extends LitElement {
     const effectiveWidth = this.getEffectiveWidth();
 
     return html`
-      <div class="${CSS_CLASSES.SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth}; height: ${this.height};">
+      <div class="${CSS_CLASSES.SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
         <button type="button" class="${CSS_CLASSES.SELECTED} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" @click=${this.toggleDropdown}>
           ${this._labelText}
           ${showResetButton
