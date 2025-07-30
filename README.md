@@ -526,30 +526,58 @@ seo-select[dark] {
 
 ```jsx
 import { useEffect, useRef } from 'react';
-import 'seo-select';
+import { SeoSelect, SeoSelectSearch } from 'seo-select';
 
 function MyComponent() {
   const selectRef = useRef(null);
 
   useEffect(() => {
+    const select = new SeoSelectSearch();
+    select.optionItems = [
+      { value: 'react', label: 'React' },
+      { value: 'vue', label: 'Vue' },
+      { value: 'angular', label: 'Angular' }
+    ];
+    select.multiple = true;
+    select.theme = 'float';
+    
+    const container = selectRef.current;
+    container.appendChild(select);
+
     const handleSelect = (e) => {
       console.log('Selected:', e.detail);
     };
 
-    const selectElement = selectRef.current;
-    selectElement?.addEventListener('onSelect', handleSelect);
+    select.addEventListener('seo-select:select', handleSelect);
 
     return () => {
-      selectElement?.removeEventListener('onSelect', handleSelect);
+      select.removeEventListener('seo-select:select', handleSelect);
+      container.removeChild(select);
     };
   }, []);
 
   return (
-    <seo-select ref={selectRef} name="example">
-      <option value="1">Option 1</option>
-      <option value="2">Option 2</option>
-    </seo-select>
+    <div>
+      {/* HTML method */}
+      <seo-select name="framework1">
+        <option value="react">React</option>
+        <option value="vue">Vue</option>
+        <option value="angular">Angular</option>
+      </seo-select>
+
+      {/* Programming method */}
+      <div ref={selectRef}></div>
+    </div>
   );
+}
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'seo-select': any;
+      'seo-select-search': any;
+    }
+  }
 }
 ```
 
@@ -557,20 +585,47 @@ function MyComponent() {
 
 ```vue
 <template>
-  <seo-select 
-    name="example"
-    @onSelect="handleSelect"
-  >
-    <option value="1">Option 1</option>
-    <option value="2">Option 2</option>
-  </seo-select>
+  <div>
+    <!-- HTML method -->
+    <seo-select 
+      name="framework1"
+      @seo-select:select="handleSelect"
+    >
+      <option value="vue">Vue</option>
+      <option value="react">React</option>
+      <option value="angular">Angular</option>
+    </seo-select>
+
+    <!-- Programming method -->
+    <div ref="selectContainer"></div>
+  </div>
 </template>
 
 <script setup>
-import 'seo-select';
+import { onMounted, ref } from 'vue';
+import { SeoSelect, SeoSelectSearch } from 'seo-select';
+
+const selectContainer = ref(null);
+
+onMounted(() => {
+  const select = new SeoSelectSearch();
+  select.optionItems = [
+    { value: 'vue', label: 'Vue.js' },
+    { value: 'nuxt', label: 'Nuxt.js' },
+    { value: 'quasar', label: 'Quasar' }
+  ];
+  select.theme = 'rounded';
+  select.showReset = true;
+
+  selectContainer.value.appendChild(select);
+
+  select.addEventListener('seo-select:select', (e) => {
+    console.log('Vue - Selected:', e.detail);
+  });
+});
 
 const handleSelect = (event) => {
-  console.log('Selected:', event.detail);
+  console.log('HTML - Selected:', event.detail);
 };
 </script>
 ```
@@ -578,22 +633,50 @@ const handleSelect = (event) => {
 ### Angular Integration
 
 ```typescript
-// app.component.ts
-import { Component, OnInit } from '@angular/core';
-import 'seo-select';
+import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { SeoSelect, SeoSelectSearch } from 'seo-select';
 
 @Component({
-  selector: 'app-root',
+  selector: 'app-example',
   template: `
-    <seo-select name="example" (onSelect)="onSelect($event)">
-      <option value="1">Option 1</option>
-      <option value="2">Option 2</option>
+    <!-- HTML 방식 -->
+    <seo-select 
+      name="framework1" 
+      (seo-select:select)="handleSelect($event)"
+    >
+      <option value="angular">Angular</option>
+      <option value="react">React</option>
+      <option value="vue">Vue</option>
     </seo-select>
-  `
+
+    <!-- 프로그래밍 방식 -->
+    <div #selectContainer></div>
+  `,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA] 
 })
-export class AppComponent {
-  onSelect(event: CustomEvent) {
-    console.log('Selected:', event.detail);
+export class ExampleComponent implements OnInit {
+  @ViewChild('selectContainer', { static: true }) 
+  selectContainer!: ElementRef;
+
+  ngOnInit() {
+    const select = new SeoSelectSearch();
+    select.optionItems = [
+      { value: 'angular', label: 'Angular' },
+      { value: 'ionic', label: 'Ionic' },
+      { value: 'ngrx', label: 'NgRx' }
+    ];
+    select.multiple = true;
+    select.language = 'ko';
+
+    this.selectContainer.nativeElement.appendChild(select);
+
+    select.addEventListener('seo-select:select', (e: CustomEvent) => {
+      console.log('Programmatic - Selected:', e.detail);
+    });
+  }
+
+  handleSelect(event: CustomEvent) {
+    console.log('HTML - Selected:', event.detail);
   }
 }
 ```
