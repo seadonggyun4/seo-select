@@ -1,6 +1,6 @@
 {
   "name": "seo-select",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "A customizable and accessible select component with search functionality built with Lit",
   "type": "module",
   "main": "./dist/index.js",
@@ -33,7 +33,10 @@
     "search",
     "accessible",
     "virtual-scroll",
-    "typescript"
+    "typescript",
+    "react",
+    "vue",
+    "angular"
   ],
   "author": "seo dong gyun <seadonggyun@gmail.com>",
   "license": "MIT",
