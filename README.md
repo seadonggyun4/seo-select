@@ -639,7 +639,7 @@ import { SeoSelect, SeoSelectSearch } from 'seo-select';
 @Component({
   selector: 'app-example',
   template: `
-    <!-- HTML 방식 -->
+    <!-- HTML method -->
     <seo-select 
       name="framework1" 
       (seo-select:select)="handleSelect($event)"
@@ -649,7 +649,7 @@ import { SeoSelect, SeoSelectSearch } from 'seo-select';
       <option value="vue">Vue</option>
     </seo-select>
 
-    <!-- 프로그래밍 방식 -->
+    <!-- Programming method -->
     <div #selectContainer></div>
   `,
   schemas: [CUSTOM_ELEMENTS_SCHEMA] 
