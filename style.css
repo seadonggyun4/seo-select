@@ -81,9 +81,73 @@ body::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(50, 83, 222, 0.1), rgba(95, 119, 202, 0.1));
+    background: linear-gradient(
+        135deg,
+        rgba(138, 43, 226, 0.3),   /* 보라색 */
+        rgba(75, 0, 130, 0.2),     /* 남보라색 */
+        rgba(30, 144, 255, 0.3),   /* 파란색 */
+        rgba(123, 104, 238, 0.2),  /* 연보라색 */
+        rgba(65, 105, 225, 0.3)    /* 로얄블루 */
+    );
+    background-size: 400% 400%;
     border-radius: 8px;
     z-index: -1;
+    animation: gradientShift 6s ease-in-out infinite;
+    opacity: 0.8;
+}
+
+.header-demo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        circle at 30% 30%,
+        rgba(147, 0, 211, 0.4) 0%,
+        transparent 50%
+    ),
+    radial-gradient(
+        circle at 70% 70%,
+        rgba(0, 100, 255, 0.4) 0%,
+        transparent 50%
+    );
+    border-radius: 8px;
+    z-index: -1;
+    animation: shimmer 4s ease-in-out infinite alternate;
+    mix-blend-mode: overlay;
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+        transform: scale(1);
+    }
+    25% {
+        background-position: 100% 0%;
+        transform: scale(1.02);
+    }
+    50% {
+        background-position: 100% 100%;
+        transform: scale(1);
+    }
+    75% {
+        background-position: 0% 100%;
+        transform: scale(1.01);
+    }
+    100% {
+        background-position: 0% 50%;
+        transform: scale(1);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        opacity: 0.6;
+        filter: blur(1px) brightness(1.1);
+    }
+    100% {
+        opacity: 1;
+        filter: blur(0px) brightness(1.3);
+    }
 }
 
 .header-demo h4 {

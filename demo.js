@@ -378,10 +378,8 @@ if (headerDemo) {
 
 // Mobile Responsive Width Management for SEO Select Components
 (function() {
-
     const MOBILE_BREAKPOINT = 768;
-    
-    const originalWidths = new WeakMap();
+    const ORIGINAL_WIDTH_KEY = 'data-original-width';
     
     /**
      * 화면 크기가 모바일인지 확인
@@ -391,83 +389,100 @@ if (headerDemo) {
     }
     
     /**
-     * 모든 seo-select 컴포넌트를 찾아서 반환
+     * 컴포넌트의 원래 width 값을 저장
      */
-    function getAllSeoSelectComponents() {
-        return document.querySelectorAll('seo-select, seo-select-search');
-    }
-    
-    /**
-     * 컴포넌트의 원본 width 저장
-     */
-    function storeOriginalWidth(component) {
-        if (!originalWidths.has(component)) {
-            const computedStyle = window.getComputedStyle(component);
-            const attributeWidth = component.getAttribute('width');
-            const originalWidth = attributeWidth || computedStyle.width;
-            originalWidths.set(component, originalWidth);
+    function saveOriginalWidth(component) {
+        if (!component.hasAttribute(ORIGINAL_WIDTH_KEY)) {
+            const originalWidth = component.getAttribute('width') || '';
+            component.setAttribute(ORIGINAL_WIDTH_KEY, originalWidth);
         }
     }
     
     /**
-     * 컴포넌트의 원본 width 복원
+     * 컴포넌트의 원래 width 값을 복원
      */
     function restoreOriginalWidth(component) {
-        const originalWidth = originalWidths.get(component);
-        if (originalWidth) {
-            if (originalWidth !== '100%') {
+        const originalWidth = component.getAttribute(ORIGINAL_WIDTH_KEY);
+        if (originalWidth !== null) {
+            if (originalWidth === '') {
+                component.removeAttribute('width');
+            } else {
                 component.setAttribute('width', originalWidth);
-                component.style.width = originalWidth;
             }
         }
     }
     
     /**
-     * 모바일에서 width를 auto로 설정
-     */
-    function setMobileWidth(component) {
-        component.setAttribute('width', '100%');
-    }
-    
-    /**
-     * 모든 컴포넌트의 반응형 width 적용
+     * 모든 seo-select 컴포넌트를 찾아서 반응형 적용
      */
     function applyResponsiveWidth() {
-        const components = getAllSeoSelectComponents();
+        const components = document.querySelectorAll('seo-select, seo-select-search');
         
         components.forEach(component => {
-            storeOriginalWidth(component);
+            // 처음 발견된 컴포넌트라면 원래 width 저장
+            saveOriginalWidth(component);
             
             if (isMobile()) {
-                setMobileWidth(component);
+                component.setAttribute('width', '100%');
             } else {
+                // 데스크톱에서는 원래 width로 복원
                 restoreOriginalWidth(component);
             }
         });
     }
     
     /**
-     * 새로 추가된 컴포넌트 감지 및 처리
+     * 새로 추가된 컴포넌트 처리
      */
-    function handleNewComponents() {
+    function handleNewComponents(components) {
+        components.forEach(component => {
+            saveOriginalWidth(component);
+            
+            if (isMobile()) {
+                component.setAttribute('width', '100%');
+            }
+            // 데스크톱이면 원래 값 그대로 유지 (이미 원래 값이 설정되어 있음)
+        });
+    }
+    
+    /**
+     * 초기화 및 이벤트 리스너 설정
+     */
+    function init() {
+        // 초기 적용
+        applyResponsiveWidth();
+        
+        // 리사이즈 이벤트
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(applyResponsiveWidth, 100);
+        });
+        
+        // 오리엔테이션 변경
+        window.addEventListener('orientationchange', function() {
+            setTimeout(applyResponsiveWidth, 300);
+        });
+        
+        // 새로 추가되는 컴포넌트 감지
         const observer = new MutationObserver(function(mutations) {
-            let hasNewComponents = false;
+            const newComponents = [];
             
             mutations.forEach(function(mutation) {
                 mutation.addedNodes.forEach(function(node) {
                     if (node.nodeType === Node.ELEMENT_NODE) {
                         if (node.tagName === 'SEO-SELECT' || node.tagName === 'SEO-SELECT-SEARCH') {
-                            hasNewComponents = true;
-                        }
-                        else if (node.querySelectorAll && node.querySelectorAll('seo-select, seo-select-search').length > 0) {
-                            hasNewComponents = true;
+                            newComponents.push(node);
+                        } else if (node.querySelectorAll) {
+                            const selectComponents = node.querySelectorAll('seo-select, seo-select-search');
+                            newComponents.push(...selectComponents);
                         }
                     }
                 });
             });
             
-            if (hasNewComponents) {
-                setTimeout(applyResponsiveWidth, 100);
+            if (newComponents.length > 0) {
+                setTimeout(() => handleNewComponents(newComponents), 50);
             }
         });
         
@@ -475,55 +490,12 @@ if (headerDemo) {
             childList: true,
             subtree: true
         });
-        
-        return observer;
     }
     
-    /**
-     * 디바운스된 resize 핸들러
-     */
-    function createDebouncedResizeHandler() {
-        let resizeTimeout;
-        
-        return function() {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(applyResponsiveWidth, 100);
-        };
-    }
-    
-    /**
-     * 초기화 함수
-     */
-    function initMobileResponsive() {
-        applyResponsiveWidth();
-        
-        const debouncedResizeHandler = createDebouncedResizeHandler();
-        window.addEventListener('resize', debouncedResizeHandler);
-        
-        const observer = handleNewComponents();
-        
-        setTimeout(applyResponsiveWidth, 500);
-        
-        window.addEventListener('orientationchange', function() {
-            setTimeout(applyResponsiveWidth, 300);
-        });
-        
-        return {
-            observer,
-            destroy: function() {
-                window.removeEventListener('resize', debouncedResizeHandler);
-                window.removeEventListener('orientationchange', applyResponsiveWidth);
-                observer.disconnect();
-            }
-        };
-    }
-    
-    /**
-     * DOM이 준비되면 초기화
-     */
+    // DOM 준비되면 초기화
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initMobileResponsive);
+        document.addEventListener('DOMContentLoaded', init);
     } else {
-        initMobileResponsive();
+        init();
     }
 })();
