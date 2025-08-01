@@ -728,7 +728,7 @@ MIT License
 
 ## Changelog
 
-### 1.0.12
+### 1.0.15
 - Initial release
 - Basic select functionality
 - Search component with multilingual support
@@ -743,3 +743,4 @@ MIT License
 - Create demo page and fix style bugs
 - Fix Scroll Style
 - Fixed bug in applying width responsiveness
+- Add tab + shift logic to keyboard handler"
