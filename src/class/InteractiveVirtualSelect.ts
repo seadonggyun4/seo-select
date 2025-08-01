@@ -328,8 +328,27 @@ export class InteractiveVirtualSelect {
   // 키보드 입력 처리
   handleKeydown = (e: KeyboardEvent): void => {
     switch (e.key) {
-      case 'ArrowDown':
       case 'Tab': {
+        e.preventDefault();
+
+        if (e.shiftKey) {
+          // Shift + Tab => 뒤로 이동
+          if (this.data[0]?.value === 'no_match') return;
+          this.setFocusedIndex(this.focusedIndex - 1);
+        } else {
+          // Tab 단독 => 앞으로 이동
+          const nextIndex = this.focusedIndex + 1;
+          if (this.data[nextIndex]?.value === 'no_match') return;
+          if (nextIndex >= this.total) {
+            const maxScrollTop = this.container.scrollHeight - this.container.clientHeight;
+            this.container.scrollTop = maxScrollTop;
+          } else {
+            this.setFocusedIndex(nextIndex);
+          }
+        }
+        break;
+      }
+      case 'ArrowDown': {
         e.preventDefault();
         const nextIndex = this.focusedIndex + 1;
         if (this.data[nextIndex]?.value === 'no_match') return;
@@ -352,7 +371,6 @@ export class InteractiveVirtualSelect {
         if (opt) {
           this.onClick?.(opt, this.focusedIndex, e);
 
-          // 다중 선택 모드가 아닐 때만 activeIndex 설정
           if (!this.isMultiple) {
             this.activeIndex = this.focusedIndex;
           }
@@ -367,6 +385,7 @@ export class InteractiveVirtualSelect {
         break;
     }
   };
+
 
   // 포커스 인덱스 설정
   setFocusedIndex(index: number): void {
