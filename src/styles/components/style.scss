@@ -4,7 +4,13 @@
 seo-select,
 seo-select-search {
   display: block;
-  width: auto;
+  width: fit-content;
+
+  &:focus {
+    outline: none;
+    box-shadow: none;
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 .seo-select {
