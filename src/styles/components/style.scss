@@ -1,15 +1,18 @@
 @use '../constants/colors' as colors;
 @use '../constants/select' as select;
 
-seo-select,
-seo-select-search {
-  display: block;
-  width: fit-content;
-
-  &:focus {
-    outline: none;
-    box-shadow: none;
-    -webkit-tap-highlight-color: transparent;
+seo-select, seo-select-search {   
+  display: block;   
+  width: fit-content;    
+  
+  &:focus {     
+    outline: none;     
+    box-shadow: none;     
+    -webkit-tap-highlight-color: transparent;   
+  }
+  
+  @media (max-width: 768px) {
+    width: 100%;
   }
 }
 
