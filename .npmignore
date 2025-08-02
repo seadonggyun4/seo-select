@@ -6,3 +6,5 @@ tsconfig.json
 .vscode/
 .git/
 node_modules/
+output/
+public/
