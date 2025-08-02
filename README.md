@@ -728,7 +728,7 @@ MIT License
 
 ## Changelog
 
-### 1.0.18
+### 1.0.19
 - Initial release
 - Basic select functionality
 - Search component with multilingual support
@@ -745,3 +745,4 @@ MIT License
 - Fixed bug in applying width responsiveness
 - Add tab + shift logic to keyboard handler"
 - Fix style bug
+- Remove static image files from dist

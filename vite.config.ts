@@ -13,6 +13,7 @@ export default defineConfig({
       exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts']
     })
   ],
+  publicDir: false,
   build: {
     lib: {
       entry: {
