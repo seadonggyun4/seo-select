@@ -728,7 +728,7 @@ MIT License
 
 ## Changelog
 
-### 1.0.16
+### 1.0.17
 - Initial release
 - Basic select functionality
 - Search component with multilingual support
