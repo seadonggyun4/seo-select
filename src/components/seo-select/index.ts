@@ -138,7 +138,7 @@ export class SeoSelect extends LitElement {
   }
 
   connectedCallback(): void {
-    this.style.width = 'auto';
+    this.style.width = '';
     super.connectedCallback();
     this.initializeOptionsFromPropsOrSlot();
     window.addEventListener(EVENT_NAMES.SELECT_OPEN, this.onOtherSelectOpened);
@@ -184,7 +184,7 @@ export class SeoSelect extends LitElement {
 
   updated(changed: Map<string, unknown>) {
     if (this._isUpdating) return;
-    this.style.width = 'auto';
+    this.style.width = '';
     
     const needsOptionsUpdate = changed.has('optionItems') || 
                               changed.has('language') || 
