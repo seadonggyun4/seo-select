@@ -728,7 +728,7 @@ MIT License
 
 ## Changelog
 
-### 1.0.20
+### 1.0.21
 - Initial release
 - Basic select functionality
 - Search component with multilingual support
@@ -747,3 +747,4 @@ MIT License
 - Fix style bug
 - Remove static image files from dist
 - width style bug fix
+- refactor: separate event classes into dedicated modules
