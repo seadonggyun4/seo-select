@@ -6,10 +6,19 @@ import {
   SelectTheme,
   SearchLocalizedTexts,
   SEARCH_LOCALIZED_TEXTS,
-  EVENT_NAMES,
   CSS_CLASSES,
   ICONS
 } from '../../constants/constants.js';
+
+import {
+  triggerSelectEvent,
+  triggerDeselectEvent,
+  triggerResetEvent,
+  triggerChangeEvent,
+  triggerOpenEvent,
+  SeoSelectEventMap,
+  SeoSelectEventListener
+} from '../../event/index.js';
 
 interface OptionItem {
   value: string;
@@ -47,6 +56,28 @@ export class SeoSelectSearch extends SeoSelect {
     this.theme = 'float';
     this.dark = false;
     this.searchTexts = {};
+  }
+
+  /**
+   * 타입 안전한 이벤트 리스너 추가 메서드 (부모 클래스 메서드 오버라이드)
+   */
+  public override addSeoSelectEventListener<T extends keyof SeoSelectEventMap>(
+    type: T,
+    listener: SeoSelectEventListener<T>,
+    options?: AddEventListenerOptions
+  ): void {
+    super.addSeoSelectEventListener(type, listener, options);
+  }
+
+  /**
+   * 타입 안전한 이벤트 리스너 제거 메서드 (부모 클래스 메서드 오버라이드)
+   */
+  public override removeSeoSelectEventListener<T extends keyof SeoSelectEventMap>(
+    type: T,
+    listener: SeoSelectEventListener<T>,
+    options?: EventListenerOptions
+  ): void {
+    super.removeSeoSelectEventListener(type, listener, options);
   }
 
   // 검색 관련 다국어 텍스트를 가져오고 커스텀 텍스트로 오버라이드하는 헬퍼 메서드
@@ -117,7 +148,7 @@ export class SeoSelectSearch extends SeoSelect {
   private renderMultiSelectSearch() {
     const texts = this.getLocalizedText();
     const showResetButton = this.showReset && this._selectedValues.length > 0;
-    const effectiveWidth = this.getEffectiveWidth(); // 부모 클래스의 public 메서드 사용
+    const effectiveWidth = this.getEffectiveWidth();
 
     return html`
       <div class="${CSS_CLASSES.SELECT} ${CSS_CLASSES.MULTI_SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
@@ -166,7 +197,7 @@ export class SeoSelectSearch extends SeoSelect {
                           this._value !== null &&
                           firstOptionValue !== null &&
                           this._value !== firstOptionValue;
-    const effectiveWidth = this.getEffectiveWidth(); // 부모 클래스의 public 메서드 사용
+    const effectiveWidth = this.getEffectiveWidth();
 
     return html`
       <div class="${CSS_CLASSES.SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
@@ -269,13 +300,13 @@ export class SeoSelectSearch extends SeoSelect {
     this._virtual.setData(filtered, this.multiple ? undefined : this.getCurrentValue());
   }
 
-  // 부모 클래스의 removeTag 메서드를 오버라이드하여 검색 기능 추가
+  // 부모 클래스의 removeTag 메서드를 오버라이드하여 검색 기능 추가 및 분리된 이벤트 사용
   public override removeTag = (e: Event, valueToRemove: string): void => {
     e.stopPropagation();
     this._selectedValues = this._selectedValues.filter(value => value !== valueToRemove);
     this.updateFormValue();
 
-    const option = this._options.find(opt => opt.value === valueToRemove);
+    const option = this._optionsCache.get(valueToRemove) || this._options.find(opt => opt.value === valueToRemove);
 
     if (this.open) {
       this._virtual?.destroy();
@@ -297,18 +328,13 @@ export class SeoSelectSearch extends SeoSelect {
       }
     }
 
-    this.dispatchEvent(
-      new CustomEvent(EVENT_NAMES.DESELECT, {
-        detail: { value: valueToRemove, label: option?.textContent || '' },
-        bubbles: true,
-        composed: true,
-      })
-    );
+    // 분리된 이벤트 헬퍼 사용
+    triggerDeselectEvent(this, option?.textContent || '', valueToRemove);
 
     this._debouncedUpdate();
   };
 
-  // 부모 클래스의 resetToDefault 메서드를 오버라이드하여 검색 기능 추가
+  // 부모 클래스의 resetToDefault 메서드를 오버라이드하여 검색 기능 추가 및 분리된 이벤트 사용
   public override resetToDefault = (e: Event): void => {
     e.stopPropagation();
 
@@ -336,13 +362,8 @@ export class SeoSelectSearch extends SeoSelect {
         this._pendingActiveIndex = 0;
       }
 
-      this.dispatchEvent(
-        new CustomEvent(EVENT_NAMES.RESET, {
-          detail: { values: [], labels: [] },
-          bubbles: true,
-          composed: true,
-        })
-      );
+      // 분리된 이벤트 헬퍼 사용
+      triggerResetEvent(this, { values: [], labels: [] });
     } else {
       if (this._options.length > 0) {
         const firstOption = this._options[0];
@@ -368,18 +389,95 @@ export class SeoSelectSearch extends SeoSelect {
           }
         }
 
-        this.dispatchEvent(
-          new CustomEvent(EVENT_NAMES.RESET, {
-            detail: { value: firstOption.value, label: firstOption.textContent || '' },
-            bubbles: true,
-            composed: true,
-          })
-        );
+        // 분리된 이벤트 헬퍼 사용
+        triggerResetEvent(this, { value: firstOption.value, label: firstOption.textContent || '' });
       }
     }
     
     this._debouncedUpdate();
   };
+
+  // 드롭다운 열기 메서드 오버라이드 - 분리된 이벤트 사용
+  public override openDropdown(): void {
+    // 분리된 이벤트 헬퍼 사용
+    triggerOpenEvent(this);
+    this.open = true;
+    this._debouncedUpdate();
+
+    if (this.hasNoOptions()) {
+      this._isLoading = true;
+      this._debouncedUpdate();
+
+      this.loadOptionsAsync().then(() => {
+        this.initializeVirtualSelect();
+      }).catch(() => {
+        this._isLoading = false;
+        this._debouncedUpdate();
+      });
+    } else {
+      this.initializeVirtualSelect();
+    }
+  }
+
+  // 옵션 선택 메서드 오버라이드 - 분리된 이벤트 사용
+  public override selectOption(value: string, label: string): void {
+    if (this.multiple) {
+      this._selectedValues = [...this._selectedValues, value];
+      this.updateFormValue();
+      this._debouncedUpdate();
+
+      this._virtual?.destroy();
+      this._virtual = null;
+
+      const scrollEl = this.querySelector(`.${CSS_CLASSES.SCROLL}`) as HTMLDivElement;
+      if (scrollEl) {
+        const optionData = this.getAllOptionData();
+        if (optionData.length > 0) {
+          this._virtual = this._createVirtualSelect(optionData, scrollEl);
+          if (this._searchText) {
+            this._applyFilteredOptions();
+          }
+          requestAnimationFrame(() => {
+            this._virtual?.setActiveIndex(0);
+          });
+        }
+      }
+
+      // 분리된 이벤트 헬퍼 사용
+      triggerSelectEvent(this, label, value);
+
+    } else {
+      this._labelText = label;
+      this._setValue(value);
+      this.closeDropdown();
+
+      // 분리된 이벤트 헬퍼 사용
+      triggerSelectEvent(this, label, value);
+    }
+  }
+
+  // 값 설정 메서드 오버라이드 - 분리된 이벤트 사용
+  public override _setValue(newVal: string, emit: boolean = true): void {
+    if (this._value === newVal) return;
+
+    this._value = newVal;
+    const matched = this._optionsCache.get(newVal) || this._options.find((opt) => opt.value === newVal);
+    this._labelText = matched?.textContent ?? this._labelText ?? '';
+
+    this._internals.setFormValue(this._value || '');
+
+    const texts = this.getLocalizedText();
+    if (this.required && !this._value) {
+      this._internals.setValidity({ valueMissing: true }, texts.required);
+    } else {
+      this._internals.setValidity({});
+    }
+
+    this._debouncedUpdate();
+    
+    // 분리된 이벤트 헬퍼 사용
+    if (emit) triggerChangeEvent(this);
+  }
 
   public override closeDropdown(): void {
     super.closeDropdown();

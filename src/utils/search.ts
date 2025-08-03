@@ -6,7 +6,6 @@
  * - 중국어: 간체/번체 변환 및 병음 지원
  */
 
-// 일본어 히라가나 ↔ 가타카나 변환 맵
 const HIRAGANA_TO_KATAKANA: Record<string, string> = {
   'あ': 'ア', 'い': 'イ', 'う': 'ウ', 'え': 'エ', 'お': 'オ',
   'か': 'カ', 'き': 'キ', 'く': 'ク', 'け': 'ケ', 'こ': 'コ',
@@ -32,7 +31,6 @@ Object.entries(HIRAGANA_TO_KATAKANA).forEach(([hiragana, katakana]) => {
   KATAKANA_TO_HIRAGANA[katakana] = hiragana;
 });
 
-// 일본어 로마자 변환 맵 (기본적인 것만)
 const ROMAJI_TO_HIRAGANA: Record<string, string> = {
   'a': 'あ', 'i': 'い', 'u': 'う', 'e': 'え', 'o': 'お',
   'ka': 'か', 'ki': 'き', 'ku': 'く', 'ke': 'け', 'ko': 'こ',
@@ -51,7 +49,6 @@ const ROMAJI_TO_HIRAGANA: Record<string, string> = {
   'wa': 'わ', 'wo': 'を', 'n': 'ん'
 };
 
-// 중국어 간체/번체 변환 맵 (일부만 포함, 실제로는 더 많은 매핑이 필요)
 const SIMPLIFIED_TO_TRADITIONAL: Record<string, string> = {
   '爱': '愛', '国': '國', '学': '學', '会': '會', '说': '說',
   '时': '時', '实': '實', '现': '現', '发': '發', '来': '來',
@@ -69,7 +66,6 @@ Object.entries(SIMPLIFIED_TO_TRADITIONAL).forEach(([simplified, traditional]) =>
   TRADITIONAL_TO_SIMPLIFIED[traditional] = simplified;
 });
 
-// 중국어 기본 병음 매핑 (일부만 포함)
 const CHINESE_TO_PINYIN: Record<string, string> = {
   '你': 'ni', '好': 'hao', '我': 'wo', '是': 'shi', '的': 'de',
   '在': 'zai', '有': 'you', '不': 'bu', '人': 'ren', '了': 'le',
@@ -100,13 +96,11 @@ const getKoreanChosung = (str: string): string => {
   for (const char of str) {
     const code = char.charCodeAt(0);
 
-    // 한글 완성형
     if (code >= HANGUL_START && code <= HANGUL_END) {
       const offset = code - HANGUL_START;
       const chosungIndex = Math.floor(offset / (21 * 28));
       result += CHOSUNG_LIST[chosungIndex];
     }
-    // 자모 문자 (ㄱ~ㅎ)
     else if (CHOSUNG_UNICODE.includes(code)) {
       result += char;
     }
@@ -125,7 +119,6 @@ const normalizeJapanese = (str: string): string => {
   return str
     .split('')
     .map(char => {
-      // 가타카나를 히라가나로 변환
       if (KATAKANA_TO_HIRAGANA[char]) {
         return KATAKANA_TO_HIRAGANA[char];
       }
@@ -141,7 +134,6 @@ const normalizeChinese = (str: string): string => {
   return str
     .split('')
     .map(char => {
-      // 번체를 간체로 변환
       if (TRADITIONAL_TO_SIMPLIFIED[char]) {
         return TRADITIONAL_TO_SIMPLIFIED[char];
       }
@@ -160,7 +152,6 @@ const romajiToHiragana = (romaji: string): string => {
   while (i < romaji.length) {
     let found = false;
     
-    // 3글자부터 확인 (shi, tsu 등)
     for (let len = 3; len >= 1; len--) {
       if (i + len <= romaji.length) {
         const substr = romaji.substring(i, i + len);

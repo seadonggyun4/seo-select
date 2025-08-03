@@ -1,5 +1,5 @@
 import { LitElement, html } from 'lit';
-import { InteractiveVirtualSelect } from '../../class/InteractiveVirtualSelect.js';
+import { InteractiveVirtualSelect } from '../../core/InteractiveVirtualSelect.js';
 import '../../styles/components/style.scss';
 import {
   SupportedLanguage,
@@ -13,6 +13,15 @@ import {
   TIMING,
   ICONS
 } from '../../constants/constants.js';
+import {
+  triggerSelectEvent,
+  triggerDeselectEvent,
+  triggerResetEvent,
+  triggerChangeEvent,
+  triggerOpenEvent,
+  SeoSelectEventMap,
+  SeoSelectEventListener
+} from '../../event/index.js';
 
 interface VirtualSelectOption {
   value: string;
@@ -73,13 +82,12 @@ export class SeoSelect extends LitElement {
   declare _calculatedWidth: string | null;
 
   // 최적화를 위한 캐시 및 플래그
-  private _optionsCache: Map<string, HTMLOptionElement> = new Map();
+  public _optionsCache: Map<string, HTMLOptionElement> = new Map();
   private _localizedTextCache: LocalizedTexts | null = null;
   private _lastLanguage: string = '';
   private _lastTextsHash: string = '';
   private _widthCalculationCache: Map<string, number> = new Map();
   private _isUpdating: boolean = false;
-  private _pendingUpdate: Promise<void> | null = null;
   private _updateDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   private _handleKeydownBound: (e: KeyboardEvent) => void;
@@ -110,6 +118,28 @@ export class SeoSelect extends LitElement {
     this._handleKeydownBound = (e: KeyboardEvent) => this._virtual?.handleKeydown(e);
     this.tabIndex = 0;
     this._pendingActiveIndex = null;
+  }
+
+  /**
+   * 타입 안전한 이벤트 리스너 추가 메서드
+   */
+  public addSeoSelectEventListener<T extends keyof SeoSelectEventMap>(
+    type: T,
+    listener: SeoSelectEventListener<T>,
+    options?: AddEventListenerOptions
+  ): void {
+    this.addEventListener(type, listener as EventListener, options);
+  }
+
+  /**
+   * 타입 안전한 이벤트 리스너 제거 메서드
+   */
+  public removeSeoSelectEventListener<T extends keyof SeoSelectEventMap>(
+    type: T,
+    listener: SeoSelectEventListener<T>,
+    options?: EventListenerOptions
+  ): void {
+    this.removeEventListener(type, listener as EventListener, options);
   }
 
   // 최적화된 getLocalizedText - 캐싱 적용
@@ -420,13 +450,8 @@ export class SeoSelect extends LitElement {
       }
     }
 
-    this.dispatchEvent(
-      new CustomEvent(EVENT_NAMES.DESELECT, {
-        detail: { value: valueToRemove, label: option?.textContent || '' },
-        bubbles: true,
-        composed: true,
-      })
-    );
+    // 분리된 이벤트 헬퍼 사용
+    triggerDeselectEvent(this, option?.textContent || '', valueToRemove);
 
     this._debouncedUpdate();
   };
@@ -454,13 +479,8 @@ export class SeoSelect extends LitElement {
         this._pendingActiveIndex = 0;
       }
 
-      this.dispatchEvent(
-        new CustomEvent(EVENT_NAMES.RESET, {
-          detail: { values: [], labels: [] },
-          bubbles: true,
-          composed: true,
-        })
-      );
+      // 분리된 이벤트 헬퍼 사용
+      triggerResetEvent(this, { values: [], labels: [] });
     } else {
       if (this._options.length > 0) {
         const firstOption = this._options[0];
@@ -484,13 +504,8 @@ export class SeoSelect extends LitElement {
           }
         }
 
-        this.dispatchEvent(
-          new CustomEvent(EVENT_NAMES.RESET, {
-            detail: { value: firstOption.value, label: firstOption.textContent || '' },
-            bubbles: true,
-            composed: true,
-          })
-        );
+        // 분리된 이벤트 헬퍼 사용
+        triggerResetEvent(this, { value: firstOption.value, label: firstOption.textContent || '' });
       }
     }
     
@@ -575,7 +590,8 @@ export class SeoSelect extends LitElement {
   }
 
   public openDropdown(): void {
-    window.dispatchEvent(new CustomEvent(EVENT_NAMES.SELECT_OPEN, { detail: this }));
+    // 분리된 이벤트 헬퍼 사용
+    triggerOpenEvent(this);
     this.open = true;
     this._debouncedUpdate();
 
@@ -657,26 +673,16 @@ export class SeoSelect extends LitElement {
         }
       }
 
-      this.dispatchEvent(
-        new CustomEvent(EVENT_NAMES.SELECT, {
-          detail: { value, label },
-          bubbles: true,
-          composed: true,
-        })
-      );
+      // 분리된 이벤트 헬퍼 사용
+      triggerSelectEvent(this, label, value);
 
     } else {
       this._labelText = label;
       this._setValue(value);
       this.closeDropdown();
 
-      this.dispatchEvent(
-        new CustomEvent(EVENT_NAMES.SELECT, {
-          detail: { value, label },
-          bubbles: true,
-          composed: true,
-        })
-      );
+      // 분리된 이벤트 헬퍼 사용
+      triggerSelectEvent(this, label, value);
     }
   }
 
@@ -782,7 +788,9 @@ export class SeoSelect extends LitElement {
     }
 
     this._debouncedUpdate();
-    if (emit) this.dispatchEvent(new CustomEvent(EVENT_NAMES.CHANGE, { bubbles: true, composed: true }));
+    
+    // 분리된 이벤트 헬퍼 사용
+    if (emit) triggerChangeEvent(this);
   }
 
   get options(): HTMLOptionElement[] {
