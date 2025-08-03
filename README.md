@@ -1,7 +1,7 @@
 # seo-select
 <img width="300" height="300" alt="logo" src="https://github.com/user-attachments/assets/e567ea31-d046-45b3-80d1-9a1e32c7e002" />
 
-A highly customizable and accessible select component with search functionality built with Lit. Supports virtual scrolling, multiple selection, internationalization, and modern theming.
+A lightweight and extensible select component built with Lit, designed to work seamlessly across frameworks. Supports search, virtual scrolling, multiple selection, i18n, and flexible theming.
 
 Demo Site: https://seo-select.netlify.app/
 
@@ -657,7 +657,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
-### 2.0.1 (Latest)
+### 2.0.2 (Latest)
 - **📦 Source Distribution**: Now distributes unminified TypeScript source files instead of compiled JavaScript
 - **🛠️ Build Flexibility**: Developers can now use their own build tools and configurations
 - **⚡ Bundle Optimization**: Enables better tree-shaking and dead code elimination in user projects
