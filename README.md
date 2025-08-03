@@ -15,6 +15,7 @@ Demo Site: https://seo-select.netlify.app/
 - 📏 **Auto Width**: Automatic width calculation based on content
 - 🎯 **Multiple Selection**: Tag-based multi-select with individual remove buttons
 - 💡 **TypeScript**: Full TypeScript support with comprehensive type definitions
+- ⚡ **Modern Event System**: Type-safe event handling with enhanced performance
 
 ## Installation
 
@@ -32,6 +33,13 @@ import 'seo-select';
 
 // Import search-enabled select component
 import 'seo-select/components/seo-select-search';
+
+// Import event classes (optional, for advanced usage)
+import { 
+  SeoSelectEvent, 
+  triggerSelectEvent,
+  SeoSelectEventMap 
+} from 'seo-select/event';
 
 // Import both components
 import 'seo-select';
@@ -250,14 +258,65 @@ select.language = 'ko';
 
 document.body.appendChild(select);
 
-// Event handling
+// Event handling (New event system)
 select.addEventListener('onSelect', (e) => {
-  console.log('Selected:', e.detail);
+  // New event system: direct property access
+  console.log('Selected:', { label: e.label, value: e.value });
+  
+  // Backward compatibility: detail object still works
+  console.log('Selected (legacy):', e.detail);
 });
 
 select.addEventListener('onChange', (e) => {
   console.log('Value changed:', select.value);
 });
+
+// Type-safe event listeners (recommended for TypeScript)
+if (typeof select.addSeoSelectEventListener === 'function') {
+  select.addSeoSelectEventListener('onSelect', (event) => {
+    // TypeScript will infer the correct event type
+    console.log('Type-safe event:', event.label, event.value);
+  });
+}
+```
+
+## Event System
+
+### 🆕 Enhanced Event System (v1.0.21+)
+
+The component now features a modern, type-safe event system with backward compatibility:
+
+#### Event Classes
+
+| Event Class | Properties | Description |
+|-------------|------------|-------------|
+| `SeoSelectEvent` | `label: string`, `value: string` | Base selection event |
+| `SeoDeselectEvent` | `label: string`, `value: string` | Item deselection event |
+| `SeoResetEvent` | `label?`, `value?`, `labels?`, `values?` | Reset to default event |
+| `SeoChangeEvent` | - | Form value change event |
+
+#### Event Usage
+
+```typescript
+// New way: Direct property access
+element.addEventListener('onSelect', (event) => {
+  console.log(event.label, event.value); // Direct access
+});
+
+// Legacy way: Still supported
+element.addEventListener('onSelect', (event) => {
+  console.log(event.detail.label, event.detail.value); // Works as before
+});
+
+// Type-safe way (recommended)
+import type { SeoSelectEventListener } from 'seo-select/event';
+
+const handleSelect: SeoSelectEventListener<'onSelect'> = (event) => {
+  // TypeScript knows event.label and event.value exist
+  console.log(event.label, event.value);
+};
+
+element.addSeoSelectEventListener('onSelect', handleSelect);
 ```
 
 ## Component Properties
@@ -298,6 +357,10 @@ select.setTexts({ placeholder: 'Custom...' }); // Custom texts
 // Options management
 select.optionItems = newOptions;              // Set options programmatically
 
+// Event management (New)
+select.addSeoSelectEventListener('onSelect', handler);    // Type-safe listener
+select.removeSeoSelectEventListener('onSelect', handler); // Remove listener
+
 // Utility
 select.resetToDefaultValue();                 // Reset to default
 ```
@@ -315,14 +378,35 @@ select.setSearchTexts({
 const matches = select.testMultilingualSearch('search', 'target');
 ```
 
-## Events
+## Events Reference
 
-| Event Name | Detail | Description |
-|------------|--------|-------------|
-| `onSelect` | `{ value, label }` | Item selected |
-| `onDeselect` | `{ value, label }` | Item deselected (multiple mode) |
-| `onChange` | - | Value changed |
-| `onReset` | `{ value, label }` or `{ values, labels }` | Reset to default |
+### Event Types
+
+| Event Name | Timing | Properties | Description |
+|------------|--------|------------|-------------|
+| `onSelect` | Item selection | `{ label, value }` | User selects an option |
+| `onDeselect` | Item removal | `{ label, value }` | User removes selected option (multiple mode) |
+| `onChange` | Value change | - | Form value changes (standard HTML event) |
+| `onReset` | Reset action | `{ value, label }` or `{ values, labels }` | Component resets to default |
+
+### Event Timing Explanation
+
+```javascript
+// When user clicks an option:
+// 1. onSelect fires immediately (UI feedback)
+// 2. onChange fires after (form processing)
+
+// onSelect: "I chose React!"
+element.addEventListener('onSelect', (e) => {
+  showNotification(`Selected: ${e.label}`); // Immediate feedback
+});
+
+// onChange: "The form value is now 'react'"  
+element.addEventListener('onChange', (e) => {
+  validateForm(); // Form processing
+  syncDatabase(e.target.value); // Data persistence
+});
+```
 
 ## Styling and Customization
 
@@ -526,13 +610,13 @@ seo-select[dark] {
 
 ```jsx
 import { useEffect, useRef } from 'react';
-import { SeoSelect, SeoSelectSearch } from 'seo-select';
+import 'seo-select/components/seo-select-search';
 
 function MyComponent() {
   const selectRef = useRef(null);
 
   useEffect(() => {
-    const select = new SeoSelectSearch();
+    const select = document.createElement('seo-select-search');
     select.optionItems = [
       { value: 'react', label: 'React' },
       { value: 'vue', label: 'Vue' },
@@ -545,13 +629,19 @@ function MyComponent() {
     container.appendChild(select);
 
     const handleSelect = (e) => {
-      console.log('Selected:', e.detail);
+      // New event system: direct property access
+      console.log('Selected:', { label: e.label, value: e.value });
+      
+      // Legacy fallback
+      if (!e.label && e.detail) {
+        console.log('Selected (legacy):', e.detail);
+      }
     };
 
-    select.addEventListener('seo-select:select', handleSelect);
+    select.addEventListener('onSelect', handleSelect);
 
     return () => {
-      select.removeEventListener('seo-select:select', handleSelect);
+      select.removeEventListener('onSelect', handleSelect);
       container.removeChild(select);
     };
   }, []);
@@ -571,6 +661,7 @@ function MyComponent() {
   );
 }
 
+// TypeScript declarations
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -589,7 +680,7 @@ declare global {
     <!-- HTML method -->
     <seo-select 
       name="framework1"
-      @seo-select:select="handleSelect"
+      @onSelect="handleSelect"
     >
       <option value="vue">Vue</option>
       <option value="react">React</option>
@@ -603,29 +694,41 @@ declare global {
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { SeoSelect, SeoSelectSearch } from 'seo-select';
+import 'seo-select/components/seo-select-search';
 
 const selectContainer = ref(null);
 
 onMounted(() => {
-  const select = new SeoSelectSearch();
+  const select = document.createElement('seo-select-search');
   select.optionItems = [
     { value: 'vue', label: 'Vue.js' },
     { value: 'nuxt', label: 'Nuxt.js' },
     { value: 'quasar', label: 'Quasar' }
   ];
-  select.theme = 'rounded';
+  select.theme = 'float';
   select.showReset = true;
 
   selectContainer.value.appendChild(select);
 
-  select.addEventListener('seo-select:select', (e) => {
-    console.log('Vue - Selected:', e.detail);
+  select.addEventListener('onSelect', (e) => {
+    // New event system
+    console.log('Vue - Selected:', { label: e.label, value: e.value });
+    
+    // Legacy fallback
+    if (!e.label && e.detail) {
+      console.log('Vue - Selected (legacy):', e.detail);
+    }
   });
 });
 
 const handleSelect = (event) => {
-  console.log('HTML - Selected:', event.detail);
+  // New event system: direct property access
+  console.log('HTML - Selected:', { label: event.label, value: event.value });
+  
+  // Legacy fallback
+  if (!event.label && event.detail) {
+    console.log('HTML - Selected (legacy):', event.detail);
+  }
 };
 </script>
 ```
@@ -633,8 +736,8 @@ const handleSelect = (event) => {
 ### Angular Integration
 
 ```typescript
-import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
-import { SeoSelect, SeoSelectSearch } from 'seo-select';
+import { Component, OnInit, ElementRef, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import 'seo-select/components/seo-select-search';
 
 @Component({
   selector: 'app-example',
@@ -642,7 +745,7 @@ import { SeoSelect, SeoSelectSearch } from 'seo-select';
     <!-- HTML method -->
     <seo-select 
       name="framework1" 
-      (seo-select:select)="handleSelect($event)"
+      (onSelect)="handleSelect($event)"
     >
       <option value="angular">Angular</option>
       <option value="react">React</option>
@@ -659,7 +762,7 @@ export class ExampleComponent implements OnInit {
   selectContainer!: ElementRef;
 
   ngOnInit() {
-    const select = new SeoSelectSearch();
+    const select = document.createElement('seo-select-search');
     select.optionItems = [
       { value: 'angular', label: 'Angular' },
       { value: 'ionic', label: 'Ionic' },
@@ -670,13 +773,25 @@ export class ExampleComponent implements OnInit {
 
     this.selectContainer.nativeElement.appendChild(select);
 
-    select.addEventListener('seo-select:select', (e: CustomEvent) => {
-      console.log('Programmatic - Selected:', e.detail);
+    select.addEventListener('onSelect', (e: any) => {
+      // New event system
+      console.log('Programmatic - Selected:', { label: e.label, value: e.value });
+      
+      // Legacy fallback
+      if (!e.label && e.detail) {
+        console.log('Programmatic - Selected (legacy):', e.detail);
+      }
     });
   }
 
-  handleSelect(event: CustomEvent) {
-    console.log('HTML - Selected:', event.detail);
+  handleSelect(event: any) {
+    // New event system: direct property access
+    console.log('HTML - Selected:', { label: event.label, value: event.value });
+    
+    // Legacy fallback
+    if (!event.label && event.detail) {
+      console.log('HTML - Selected (legacy):', event.detail);
+    }
   }
 }
 ```
@@ -717,34 +832,719 @@ export class ExampleComponent implements OnInit {
 </seo-select-search>
 ```
 
+### Event System Migration (v1.0.21+)
+
+#### From Legacy Events to New Event System
+
+```javascript
+// Before: Legacy event handling
+element.addEventListener('onSelect', (e) => {
+  console.log(e.detail.label, e.detail.value);
+});
+
+// After: New event system (recommended)
+element.addEventListener('onSelect', (e) => {
+  // Direct property access (new way)
+  console.log(e.label, e.value);
+  
+  // Fallback for compatibility
+  if (!e.label && e.detail) {
+    console.log(e.detail.label, e.detail.value);
+  }
+});
+
+// Best: Type-safe event listeners (TypeScript)
+import type { SeoSelectEventListener } from 'seo-select/event';
+
+const handleSelect: SeoSelectEventListener<'onSelect'> = (event) => {
+  console.log(event.label, event.value); // Type-safe
+};
+
+element.addSeoSelectEventListener('onSelect', handleSelect);
+```
+
+#### Event Property Changes
+
+| Event | Legacy Access | New Access | Description |
+|-------|---------------|------------|-------------|
+| Selection | `e.detail.label` | `e.label` | Selected item label |
+| Selection | `e.detail.value` | `e.value` | Selected item value |
+| Reset (Multi) | `e.detail.values` | `e.values` | All reset values |
+| Reset (Multi) | `e.detail.labels` | `e.labels` | All reset labels |
+
+## Advanced Usage
+
+### Type-Safe Event Handling (TypeScript)
+
+```typescript
+import { SeoSelect } from 'seo-select';
+import type { 
+  SeoSelectEventMap, 
+  SeoSelectEventListener 
+} from 'seo-select/event';
+
+class FormHandler {
+  private select: SeoSelect;
+
+  constructor() {
+    this.select = new SeoSelect();
+    this.setupEventListeners();
+  }
+
+  private setupEventListeners() {
+    // Type-safe event listeners
+    this.select.addSeoSelectEventListener('onSelect', this.handleSelect);
+    this.select.addSeoSelectEventListener('onDeselect', this.handleDeselect);
+    this.select.addSeoSelectEventListener('onReset', this.handleReset);
+  }
+
+  private handleSelect: SeoSelectEventListener<'onSelect'> = (event) => {
+    // TypeScript knows event.label and event.value exist
+    this.logActivity(`Selected: ${event.label} (${event.value})`);
+    this.updateRecommendations(event.value);
+  };
+
+  private handleDeselect: SeoSelectEventListener<'onDeselect'> = (event) => {
+    this.logActivity(`Removed: ${event.label} (${event.value})`);
+  };
+
+  private handleReset: SeoSelectEventListener<'onReset'> = (event) => {
+    if (event.values) {
+      this.logActivity(`Reset multiple: ${event.values.length} items`);
+    } else {
+      this.logActivity(`Reset to: ${event.label}`);
+    }
+  };
+
+  private logActivity(message: string) {
+    console.log(`[${new Date().toISOString()}] ${message}`);
+  }
+
+  private updateRecommendations(selectedValue: string) {
+    // Implementation specific logic
+  }
+}
+```
+
+### Custom Event Helper Functions
+
+```typescript
+// Import event helpers for advanced usage
+import { 
+  triggerSelectEvent,
+  triggerDeselectEvent,
+  triggerResetEvent,
+  triggerChangeEvent 
+} from 'seo-select/event';
+
+// Custom component that programmatically triggers events
+class CustomSelectController {
+  private element: SeoSelect;
+
+  constructor(element: SeoSelect) {
+    this.element = element;
+  }
+
+  // Programmatically trigger selection
+  public selectItem(label: string, value: string) {
+    this.element.value = value;
+    triggerSelectEvent(this.element, label, value);
+  }
+
+  // Programmatically trigger reset
+  public resetSelection() {
+    const firstOption = this.element.options[0];
+    if (firstOption) {
+      this.element.value = firstOption.value;
+      triggerResetEvent(this.element, {
+        value: firstOption.value,
+        label: firstOption.textContent || ''
+      });
+    }
+  }
+
+  // Batch operations with proper event sequences
+  public batchSelect(items: Array<{label: string, value: string}>) {
+    if (this.element.multiple) {
+      const values = items.map(item => item.value);
+      this.element.selectedValues = values;
+      
+      // Trigger individual select events for each item
+      items.forEach(item => {
+        triggerSelectEvent(this.element, item.label, item.value);
+      });
+      
+      // Trigger final change event
+      triggerChangeEvent(this.element);
+    }
+  }
+}
+```
+
+### Performance Optimization
+
+```typescript
+import { SeoSelect, SeoSelectSearch } from 'seo-select';
+
+// Optimize for large datasets
+class OptimizedSelectSetup {
+  public static setupLargeDataset(
+    element: SeoSelectSearch,
+    data: Array<{value: string, label: string}>
+  ) {
+    // Use batch update for better performance
+    if (typeof element.batchUpdateOptions === 'function') {
+      element.batchUpdateOptions(data);
+    } else {
+      // Fallback to regular method
+      element.optionItems = data;
+    }
+
+    // Configure for optimal performance
+    element.theme = 'float'; // Better visual performance
+    
+    // Enable caching for repeated operations
+    if (typeof element.clearCaches === 'function') {
+      // Clear caches on significant data changes
+      element.clearCaches();
+    }
+  }
+
+  public static getPerformanceMetrics(element: SeoSelect) {
+    if (typeof element.getPerformanceMetrics === 'function') {
+      return element.getPerformanceMetrics();
+    }
+    return null;
+  }
+}
+
+// Usage example
+const searchSelect = new SeoSelectSearch();
+const largeDataset = Array.from({ length: 10000 }, (_, i) => ({
+  value: `item-${i}`,
+  label: `Item ${i} - Large Dataset`
+}));
+
+OptimizedSelectSetup.setupLargeDataset(searchSelect, largeDataset);
+
+// Monitor performance
+const metrics = OptimizedSelectSetup.getPerformanceMetrics(searchSelect);
+console.log('Performance metrics:', metrics);
+```
+
+### Internationalization and Localization
+
+```typescript
+import { SeoSelect } from 'seo-select';
+import type { SupportedLanguage, LocalizedTexts } from 'seo-select';
+
+class I18nSelectManager {
+  private selects: SeoSelect[] = [];
+
+  public addSelect(select: SeoSelect) {
+    this.selects.push(select);
+  }
+
+  public changeLanguage(language: SupportedLanguage) {
+    this.selects.forEach(select => {
+      select.setLanguage(language);
+    });
+  }
+
+  public setCustomTexts(customTexts: Partial<LocalizedTexts>) {
+    this.selects.forEach(select => {
+      select.setTexts(customTexts);
+    });
+  }
+
+  // Get supported languages
+  public getSupportedLanguages(): SupportedLanguage[] {
+    return SeoSelect.getSupportedLanguages();
+  }
+
+  // Get default texts for a language
+  public getDefaultTexts() {
+    return SeoSelect.getDefaultTexts();
+  }
+}
+
+// Usage
+const i18nManager = new I18nSelectManager();
+
+// Add multiple selects to manage
+document.querySelectorAll('seo-select').forEach(select => {
+  i18nManager.addSelect(select as SeoSelect);
+});
+
+// Change all selects to Korean
+i18nManager.changeLanguage('ko');
+
+// Apply custom texts to all selects
+i18nManager.setCustomTexts({
+  placeholder: '옵션을 선택하세요',
+  required: '이 필드는 필수입니다',
+  noDataText: '데이터가 없습니다'
+});
+```
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+#### Event Listeners Not Working
+
+```typescript
+// Problem: Events not firing
+element.addEventListener('onSelect', handler); // ❌ May not work
+
+// Solution 1: Use new event system
+element.addSeoSelectEventListener('onSelect', handler); // ✅ Recommended
+
+// Solution 2: Check for element readiness
+document.addEventListener('DOMContentLoaded', () => {
+  const element = document.querySelector('seo-select');
+  if (element) {
+    element.addEventListener('onSelect', handler); // ✅ Works
+  }
+});
+
+// Solution 3: Use event delegation
+document.addEventListener('onSelect', (e) => {
+  if (e.target.tagName === 'SEO-SELECT') {
+    handler(e); // ✅ Works for dynamic elements
+  }
+});
+```
+
+#### TypeScript Type Errors
+
+```typescript
+// Problem: TypeScript doesn't recognize seo-select elements
+// Solution: Add type declarations
+
+// In your types.d.ts or global.d.ts
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'seo-select': any;
+      'seo-select-search': any;
+    }
+  }
+}
+
+// Or use proper imports
+import type { SeoSelect, SeoSelectSearch } from 'seo-select';
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'seo-select': SeoSelect;
+    'seo-select-search': SeoSelectSearch;
+  }
+}
+```
+
+#### Performance Issues with Large Datasets
+
+```typescript
+// Problem: Slow rendering with many options
+// Solution: Use search component and optimize
+
+import { SeoSelectSearch } from 'seo-select/components/seo-select-search';
+
+// ✅ Good for large datasets
+const select = new SeoSelectSearch();
+select.optionItems = largeDataArray; // 1000+ items
+
+// ✅ Use batch operations
+if (typeof select.batchUpdateOptions === 'function') {
+  select.batchUpdateOptions(newLargeDataArray);
+}
+
+// ✅ Clear caches when needed
+if (typeof select.clearCaches === 'function') {
+  select.clearCaches();
+}
+```
+
+#### CSS Styling Not Applied
+
+```css
+/* Problem: Styles not taking effect */
+/* Solution: Use correct CSS variable names */
+
+seo-select {
+  /* ❌ Wrong variable name */
+  --select-color: red;
+  
+  /* ✅ Correct variable name */
+  --select-text-color: red;
+  
+  /* ✅ Check the documentation for exact variable names */
+  --select-border-color: #007bff;
+  --select-focus-color: #0056b3;
+}
+```
+
+#### Search Not Working with Multilingual Content
+
+```javascript
+// Problem: Search doesn't find multilingual options
+// Solution: Ensure proper text encoding and component setup
+
+// ✅ Use seo-select-search for multilingual content
+import 'seo-select/components/seo-select-search';
+
+// ✅ Set appropriate language
+const select = document.querySelector('seo-select-search');
+select.language = 'ko'; // For Korean initial consonant search
+
+// ✅ Test search functionality
+if (typeof select.testMultilingualSearch === 'function') {
+  const result = select.testMultilingualSearch('ㅎㄱ', '한국어');
+  console.log('Search works:', result); // Should be true
+}
+```
+
+#### Form Integration Issues
+
+```javascript
+// Problem: Form doesn't recognize select value
+// Solution: Ensure proper form association and naming
+
+// ✅ Set name attribute for form integration
+<seo-select name="country" required>
+  <option value="us">United States</option>
+</seo-select>
+
+// ✅ Check form data
+const form = document.querySelector('#myForm');
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const formData = new FormData(form);
+  
+  // Should include seo-select values
+  for (const [key, value] of formData.entries()) {
+    console.log(`${key}: ${value}`);
+  }
+});
+
+// ✅ Programmatic validation
+const select = document.querySelector('seo-select[name="country"]');
+if (select.required && !select.value) {
+  console.log('Required field is empty');
+}
+```
+
+#### Dynamic Content and Memory Leaks
+
+```javascript
+// Problem: Memory leaks when dynamically adding/removing selects
+// Solution: Proper cleanup and event management
+
+class DynamicSelectManager {
+  private selects = new Map<string, SeoSelect>();
+  private eventListeners = new Map<string, Array<() => void>>();
+
+  addSelect(id: string, select: SeoSelect) {
+    // Store reference
+    this.selects.set(id, select);
+    
+    // Add event listeners
+    const listeners: Array<() => void> = [];
+    
+    const handleSelect = (e: any) => {
+      console.log(`${id} selected:`, e.label || e.detail?.label);
+    };
+    
+    const handleChange = (e: any) => {
+      console.log(`${id} changed:`, e.target.value);
+    };
+
+    select.addEventListener('onSelect', handleSelect);
+    select.addEventListener('onChange', handleChange);
+    
+    // Store cleanup functions
+    listeners.push(
+      () => select.removeEventListener('onSelect', handleSelect),
+      () => select.removeEventListener('onChange', handleChange)
+    );
+    
+    this.eventListeners.set(id, listeners);
+  }
+
+  removeSelect(id: string) {
+    // Clean up event listeners
+    const listeners = this.eventListeners.get(id);
+    if (listeners) {
+      listeners.forEach(cleanup => cleanup());
+      this.eventListeners.delete(id);
+    }
+
+    // Clean up select
+    const select = this.selects.get(id);
+    if (select) {
+      // Clear caches if available
+      if (typeof select.clearCaches === 'function') {
+        select.clearCaches();
+      }
+      
+      // Remove from DOM if still connected
+      if (select.isConnected) {
+        select.remove();
+      }
+      
+      this.selects.delete(id);
+    }
+  }
+
+  cleanup() {
+    // Clean up all selects
+    for (const id of this.selects.keys()) {
+      this.removeSelect(id);
+    }
+  }
+}
+
+// Usage
+const manager = new DynamicSelectManager();
+
+// Add select
+const select = new SeoSelect();
+manager.addSelect('user-country', select);
+
+// Remove when done
+manager.removeSelect('user-country');
+
+// Clean up all on page unload
+window.addEventListener('beforeunload', () => {
+  manager.cleanup();
+});
+```
+
+## Best Practices
+
+### 1. Event Handling Best Practices
+
+```typescript
+// ✅ Use type-safe event listeners when possible
+select.addSeoSelectEventListener('onSelect', (event) => {
+  // Direct property access
+  processSelection(event.label, event.value);
+});
+
+// ✅ Provide fallback for legacy compatibility
+element.addEventListener('onSelect', (e) => {
+  const label = e.label || e.detail?.label || 'Unknown';
+  const value = e.value || e.detail?.value || '';
+  processSelection(label, value);
+});
+
+// ✅ Clean up event listeners
+const controller = new AbortController();
+element.addEventListener('onSelect', handler, {
+  signal: controller.signal
+});
+
+// Later...
+controller.abort(); // Automatically removes all listeners
+```
+
+### 2. Performance Best Practices
+
+```typescript
+// ✅ Use search component for large datasets
+const select = new SeoSelectSearch();
+
+// ✅ Batch update options instead of individual assignments
+select.batchUpdateOptions(largeOptionArray);
+
+// ✅ Use virtual scrolling (automatic with large datasets)
+// ✅ Clear caches when data changes significantly
+select.clearCaches();
+
+// ✅ Monitor performance in development
+const metrics = select.getPerformanceMetrics();
+console.log('Component performance:', metrics);
+```
+
+### 3. Accessibility Best Practices
+
+```html
+<!-- ✅ Always provide meaningful labels -->
+<label for="country-select">Choose your country</label>
+<seo-select id="country-select" name="country" required>
+  <option value="">Select a country</option>
+  <option value="us">United States</option>
+</seo-select>
+
+<!-- ✅ Use semantic HTML structure -->
+<fieldset>
+  <legend>Contact Preferences</legend>
+  <seo-select multiple name="contact-methods">
+    <option value="email">Email</option>
+    <option value="phone">Phone</option>
+    <option value="sms">SMS</option>
+  </seo-select>
+</fieldset>
+
+<!-- ✅ Provide helpful descriptions -->
+<seo-select name="timezone" aria-describedby="timezone-help">
+  <option value="utc">UTC</option>
+  <option value="est">EST</option>
+</seo-select>
+<div id="timezone-help">
+  Select your local timezone for accurate scheduling
+</div>
+```
+
+### 4. Internationalization Best Practices
+
+```typescript
+// ✅ Set up i18n early in application lifecycle
+const i18nManager = new I18nSelectManager();
+
+// ✅ Use consistent language codes
+const supportedLanguages = ['en', 'ko', 'ja', 'zh'] as const;
+
+// ✅ Provide fallback texts
+const customTexts = {
+  en: { placeholder: 'Select an option...', required: 'This field is required' },
+  ko: { placeholder: '옵션을 선택하세요...', required: '이 필드는 필수입니다' },
+  ja: { placeholder: 'オプションを選択...', required: 'この項目は必須です' },
+  zh: { placeholder: '选择选项...', required: '此字段为必填项' }
+};
+
+// ✅ Handle language changes gracefully
+function changeLanguage(newLanguage: string) {
+  i18nManager.changeLanguage(newLanguage);
+  i18nManager.setCustomTexts(customTexts[newLanguage] || customTexts.en);
+}
+```
+
+### 5. Form Integration Best Practices
+
+```typescript
+// ✅ Use proper form validation
+class FormValidator {
+  private static validateSelect(select: SeoSelect): boolean {
+    if (select.required) {
+      const value = select.multiple ? select.selectedValues : [select.value];
+      return value.length > 0 && value.every(v => v && v.trim());
+    }
+    return true;
+  }
+
+  public static validateForm(form: HTMLFormElement): boolean {
+    const selects = form.querySelectorAll('seo-select, seo-select-search');
+    
+    return Array.from(selects).every(select => {
+      const isValid = this.validateSelect(select as SeoSelect);
+      
+      if (!isValid) {
+        // Focus invalid field
+        select.focus();
+        
+        // Show validation message
+        const label = select.getAttribute('aria-label') || 
+                     select.getAttribute('name') || 
+                     'Field';
+        alert(`${label} is required`);
+      }
+      
+      return isValid;
+    });
+  }
+}
+
+// ✅ Handle form submission properly
+document.querySelector('#myForm')?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  
+  const form = e.target as HTMLFormElement;
+  
+  if (FormValidator.validateForm(form)) {
+    const formData = new FormData(form);
+    submitForm(formData);
+  }
+});
+```
+
 ## Repository
 
 - **GitHub**: [https://github.com/seadonggyun4/seo-select](https://github.com/seadonggyun4/seo-select)
 - **NPM**: [https://www.npmjs.com/package/seo-select](https://www.npmjs.com/package/seo-select)
+- **Demo**: [https://seo-select.netlify.app/](https://seo-select.netlify.app/)
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/seadonggyun4/seo-select.git
+cd seo-select
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Run type checking
+npm run type-check
+```
 
 ## License
 
-MIT License
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
 ### 1.0.21
-- Initial release
-- Basic select functionality
+- **🆕 Enhanced Event System**: Introduced type-safe event classes with direct property access
+- **🔧 Event Helper Functions**: Added `triggerSelectEvent`, `triggerDeselectEvent`, etc.
+- **📦 Modular Event Export**: Events now available as separate module (`seo-select/event`)
+- **🔄 Backward Compatibility**: Existing `detail`-based events still work
+- **⚡ Performance Improvements**: Better event handling and memory management
+- **🛠️ Developer Experience**: Type-safe event listeners with TypeScript support
+- **📚 Documentation**: Comprehensive README update with examples and best practices
+
+### 1.0.20 and Earlier
+- Initial release with basic select functionality
 - Search component with multilingual support
-- Multiple themes (basic, float)
-- Dark mode support
-- Internationalization (EN, KO, JA, ZH)
-- Virtual scrolling for performance
-- Full accessibility support
-- TypeScript definitions
-- Fix tag style and Optimize rendering options
-- Fix seo-select-search reset logic
-- Create demo page and fix style bugs
-- Fix Scroll Style
-- Fixed bug in applying width responsiveness
-- Add tab + shift logic to keyboard handler"
-- Fix style bug
-- Remove static image files from dist
-- width style bug fix
-- separate event classes into dedicated modules
+- Multiple themes (basic, float) and dark mode support
+- Internationalization support (EN, KO, JA, ZH)
+- Virtual scrolling for performance optimization
+- Full accessibility support with keyboard navigation
+- TypeScript definitions and comprehensive type safety
+- Various bug fixes and performance improvements:
+  - Fixed tag styling and optimized rendering
+  - Improved seo-select-search reset logic
+  - Enhanced responsive width handling
+  - Added advanced keyboard navigation (tab + shift)
+  - Removed static assets from distribution
+  - Fixed various styling inconsistencies
+
+## Support
+
+If you encounter any issues or have questions:
+
+1. Check the [Troubleshooting](#troubleshooting) section
+2. Search existing [GitHub Issues](https://github.com/seadonggyun4/seo-select/issues)
+3. Create a new issue with detailed reproduction steps
+4. Join our community discussions
+
+## Acknowledgments
+
+- Built with [Lit](https://lit.dev/) for modern web component architecture
+- Inspired by modern select components and accessibility standards
+- Thanks to all contributors and users providing feedback
+
+---
+
+**Made with ❤️ by [seadonggyun4](https://github.com/seadonggyun4)**
