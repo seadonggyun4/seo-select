@@ -19,13 +19,23 @@ import {
   triggerResetEvent,
   triggerChangeEvent,
   triggerOpenEvent,
-  SeoSelectEventMap,
   SeoSelectEventListener
 } from '../../event/index.js';
 
 interface VirtualSelectOption {
   value: string;
   label: string;
+}
+
+// 글로벌 타입 확장 - HTMLElementEventMap에 커스텀 이벤트 추가
+declare global {
+  interface HTMLElementEventMap {
+    [EVENT_NAMES.SELECT]: import('../../event/SeoSelectEvent.js').SeoSelectEvent;
+    [EVENT_NAMES.DESELECT]: import('../../event/SeoSelectEvent.js').SeoDeselectEvent;
+    [EVENT_NAMES.RESET]: import('../../event/SeoSelectEvent.js').SeoResetEvent;
+    [EVENT_NAMES.CHANGE]: import('../../event/SeoSelectEvent.js').SeoChangeEvent;
+    [EVENT_NAMES.SELECT_OPEN]: import('../../event/SeoSelectEvent.js').SeoOpenEvent;
+  }
 }
 
 export class SeoSelect extends LitElement {
@@ -121,24 +131,34 @@ export class SeoSelect extends LitElement {
   }
 
   /**
-   * 타입 안전한 이벤트 리스너 추가 메서드
+   * @deprecated 표준 addEventListener를 사용하세요
    */
-  public addSeoSelectEventListener<T extends keyof SeoSelectEventMap>(
+  public addSeoSelectEventListener<T extends keyof HTMLElementEventMap>(
     type: T,
     listener: SeoSelectEventListener<T>,
     options?: AddEventListenerOptions
   ): void {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`addSeoSelectEventListener is deprecated. Use standard addEventListener instead:
+Before: select.addSeoSelectEventListener('${type}', handler);
+After:  select.addEventListener('${type}', handler);`);
+    }
     this.addEventListener(type, listener as EventListener, options);
   }
 
   /**
-   * 타입 안전한 이벤트 리스너 제거 메서드
+   * @deprecated 표준 removeEventListener를 사용하세요
    */
-  public removeSeoSelectEventListener<T extends keyof SeoSelectEventMap>(
+  public removeSeoSelectEventListener<T extends keyof HTMLElementEventMap>(
     type: T,
     listener: SeoSelectEventListener<T>,
     options?: EventListenerOptions
   ): void {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`removeSeoSelectEventListener is deprecated. Use standard removeEventListener instead:
+Before: select.removeSeoSelectEventListener('${type}', handler);
+After:  select.removeEventListener('${type}', handler);`);
+    }
     this.removeEventListener(type, listener as EventListener, options);
   }
 
@@ -450,7 +470,7 @@ export class SeoSelect extends LitElement {
       }
     }
 
-    // 분리된 이벤트 헬퍼 사용
+    // 표준 이벤트 발생
     triggerDeselectEvent(this, option?.textContent || '', valueToRemove);
 
     this._debouncedUpdate();
@@ -479,7 +499,7 @@ export class SeoSelect extends LitElement {
         this._pendingActiveIndex = 0;
       }
 
-      // 분리된 이벤트 헬퍼 사용
+      // 표준 이벤트 발생
       triggerResetEvent(this, { values: [], labels: [] });
     } else {
       if (this._options.length > 0) {
@@ -504,7 +524,7 @@ export class SeoSelect extends LitElement {
           }
         }
 
-        // 분리된 이벤트 헬퍼 사용
+        // 표준 이벤트 발생
         triggerResetEvent(this, { value: firstOption.value, label: firstOption.textContent || '' });
       }
     }
@@ -590,7 +610,7 @@ export class SeoSelect extends LitElement {
   }
 
   public openDropdown(): void {
-    // 분리된 이벤트 헬퍼 사용
+    // 표준 이벤트 발생
     triggerOpenEvent(this);
     this.open = true;
     this._debouncedUpdate();
@@ -673,7 +693,7 @@ export class SeoSelect extends LitElement {
         }
       }
 
-      // 분리된 이벤트 헬퍼 사용
+      // 표준 이벤트 발생
       triggerSelectEvent(this, label, value);
 
     } else {
@@ -681,7 +701,7 @@ export class SeoSelect extends LitElement {
       this._setValue(value);
       this.closeDropdown();
 
-      // 분리된 이벤트 헬퍼 사용
+      // 표준 이벤트 발생
       triggerSelectEvent(this, label, value);
     }
   }
@@ -789,7 +809,7 @@ export class SeoSelect extends LitElement {
 
     this._debouncedUpdate();
     
-    // 분리된 이벤트 헬퍼 사용
+    // 표준 이벤트 발생
     if (emit) triggerChangeEvent(this);
   }
 
@@ -1000,6 +1020,32 @@ export class SeoSelect extends LitElement {
     this._localizedTextCache = null;
     this._lastLanguage = '';
     this._lastTextsHash = '';
+  }
+
+  // 타입 안전한 이벤트 리스너 헬퍼 메서드들 (표준 addEventListener 권장)
+  public onSelect(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.SELECT]) => void): void {
+    this.addEventListener(EVENT_NAMES.SELECT, handler as EventListener);
+  }
+
+  /**
+   * 선택 해제 이벤트 리스너 추가 (타입 안전)
+   */
+  public onDeselect(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.DESELECT]) => void): void {
+    this.addEventListener(EVENT_NAMES.DESELECT, handler as EventListener);
+  }
+
+  /**
+   * 리셋 이벤트 리스너 추가 (타입 안전)
+   */
+  public onReset(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.RESET]) => void): void {
+    this.addEventListener(EVENT_NAMES.RESET, handler as EventListener);
+  }
+
+  /**
+   * 변경 이벤트 리스너 추가 (타입 안전)
+   */
+  public onChange(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.CHANGE]) => void): void {
+    this.addEventListener(EVENT_NAMES.CHANGE, handler as EventListener);
   }
 
   static getSupportedLanguages(): SupportedLanguage[] {
