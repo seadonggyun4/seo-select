@@ -694,7 +694,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
-### 2.0.2 (Latest)
+### 2.0.4 (Latest)
 - **📦 Source Distribution**: Now distributes unminified TypeScript source files instead of compiled JavaScript
 - **🛠️ Build Flexibility**: Developers can now use their own build tools and configurations
 - **⚡ Bundle Optimization**: Enables better tree-shaking and dead code elimination in user projects
