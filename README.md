@@ -19,7 +19,7 @@ Demo Site: https://seo-select.netlify.app/
 
 ## Installation
 
-### 📦 For Modern Bundlers (Recommended)
+### For Modern Bundlers (Recommended)
 Perfect for TypeScript projects with optimal tree-shaking and debugging:
 
 ```bash
@@ -41,7 +41,7 @@ import type {
 } from 'seo-select/event';
 ```
 
-### 🔗 CDN via jsDelivr (Alternative)
+### CDN via jsDelivr (Alternative)
 ```html
 <!-- Basic select -->
 <script type="module" src="https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@v2.0.4/dist/index.js"></script>
@@ -666,18 +666,18 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## Changelog
 
 ### 2.0.4 (Latest)
-- **📦 Source Distribution**: Now distributes unminified TypeScript source files instead of compiled JavaScript
-- **🛠️ Build Flexibility**: Developers can now use their own build tools and configurations
-- **⚡ Bundle Optimization**: Enables better tree-shaking and dead code elimination in user projects
-- **🔧 Developer Experience**: Direct access to TypeScript source for debugging and customization
-- **📝 TypeScript First**: Full TypeScript source availability for enhanced development workflow
+- **Source Distribution**: Now distributes unminified TypeScript source files instead of compiled JavaScript
+- **Build Flexibility**: Developers can now use their own build tools and configurations
+- **Bundle Optimization**: Enables better tree-shaking and dead code elimination in user projects
+- **Developer Experience**: Direct access to TypeScript source for debugging and customization
+- **TypeScript First**: Full TypeScript source availability for enhanced development workflow
 
 ### 1.0.24 (Previous Stable)
-- **🆕 Enhanced Event System**: Standard `addEventListener` with built-in type-safe helpers
-- **🔧 Helper Methods**: `onSelect()`, `onDeselect()`, `onReset()`, `onChange()`, `onOpen()` always available
-- **📦 Improved DX**: Better TypeScript support and developer experience
-- **⚡ Performance**: Optimized event handling and memory management
-- **🔄 Backward Compatibility**: All existing code continues to work
+- **Enhanced Event System**: Standard `addEventListener` with built-in type-safe helpers
+- **Helper Methods**: `onSelect()`, `onDeselect()`, `onReset()`, `onChange()`, `onOpen()` always available
+- **Improved DX**: Better TypeScript support and developer experience
+- **Performance**: Optimized event handling and memory management
+- **Backward Compatibility**: All existing code continues to work
 
 ### Previous Versions
 - Virtual scrolling, multilingual search, themes, internationalization
