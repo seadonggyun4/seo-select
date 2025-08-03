@@ -53,6 +53,84 @@ const ORIENTATION_CHANGE_DELAY = 300;
 const NEW_COMPONENT_DELAY = 50;
 
 // ==========================================
+// Event Helper Functions (for new event system)
+// ==========================================
+
+/**
+ * 타입 안전한 이벤트 리스너 추가 헬퍼
+ */
+function addSeoSelectListener(element, eventType, handler) {
+    if (element && typeof element.addSeoSelectEventListener === 'function') {
+        // 새로운 이벤트 시스템 사용
+        element.addSeoSelectEventListener(eventType, handler);
+    } else {
+        // 폴백: 기존 방식
+        element.addEventListener(eventType, handler);
+    }
+}
+
+/**
+ * 다중 이벤트 리스너 추가 헬퍼
+ */
+function addMultipleEventListeners(element, eventHandlers) {
+    Object.entries(eventHandlers).forEach(([eventType, handler]) => {
+        addSeoSelectListener(element, eventType, handler);
+    });
+}
+
+/**
+ * 이벤트 로깅 헬퍼 (새로운 이벤트 속성 지원)
+ */
+function logSeoSelectEvent(eventLog, eventType, event) {
+    const time = new Date().toLocaleTimeString();
+    const logEntry = document.createElement('div');
+    
+    let message = '';
+    let color = '#6b7280';
+    
+    // 새로운 이벤트 시스템에서는 detail 대신 직접 속성 접근
+    const eventData = event.detail || event;
+    const label = event.label || eventData.label || '';
+    const value = event.value || eventData.value || '';
+    const values = event.values || eventData.values || [];
+    const labels = event.labels || eventData.labels || [];
+    
+    switch (eventType) {
+        case 'onSelect':
+            color = '#10b981';
+            message = `<span style="color: ${color};">Selected:</span> ${label} (value: ${value})`;
+            break;
+        case 'onDeselect':
+            color = '#ef4444';
+            message = `<span style="color: ${color};">Deselected:</span> ${label} (value: ${value})`;
+            break;
+        case 'onReset':
+            color = '#f59e0b';
+            if (values.length > 0) {
+                message = `<span style="color: ${color};">Reset:</span> Multiple items (${values.length} items)`;
+            } else {
+                message = `<span style="color: ${color};">Reset:</span> ${label || 'to default'}`;
+            }
+            break;
+        case 'onChange':
+            color = '#3b82f6';
+            message = `<span style="color: ${color};">Form change:</span> ${event.target?.value || value}`;
+            break;
+        default:
+            message = `<span style="color: ${color};">${eventType}:</span> ${JSON.stringify(eventData)}`;
+    }
+    
+    logEntry.innerHTML = `[${time}] ${message}`;
+    logEntry.style.borderBottom = '1px solid #374151';
+    logEntry.style.padding = '3px 0';
+    logEntry.style.fontSize = '13px';
+    logEntry.style.fontFamily = 'monospace';
+    
+    eventLog.appendChild(logEntry);
+    eventLog.scrollTop = eventLog.scrollHeight;
+}
+
+// ==========================================
 // Main JavaScript for SEO Select Documentation
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
@@ -104,7 +182,7 @@ function setupBasicUsage() {
     }
 }
 
-// Event Handling Setup
+// Event Handling Setup (Updated for new event system)
 function setupEventHandling() {
     const eventDemo = document.getElementById('event-demo');
     const eventLog = document.getElementById('event-log');
@@ -112,33 +190,86 @@ function setupEventHandling() {
     if (eventDemo && eventLog) {
         let eventCount = 0;
 
-        function logEvent(message) {
+        // Enhanced logging function
+        function logEvent(eventType, event) {
             eventCount++;
-            const time = new Date().toLocaleTimeString();
             const logEntry = document.createElement('div');
-            logEntry.innerHTML = `[${time}] #${eventCount} ${message}`;
-            logEntry.style.borderBottom = '1px solid #374151';
-            logEntry.style.padding = '3px 0';
+            logEntry.style.marginBottom = '4px';
+            
+            const countBadge = document.createElement('span');
+            countBadge.textContent = `#${eventCount}`;
+            countBadge.style.cssText = `
+                background: #374151;
+                color: #9ca3af;
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-size: 11px;
+                margin-right: 8px;
+                font-weight: bold;
+            `;
+            
+            const content = document.createElement('span');
+            logSeoSelectEvent(content, eventType, event);
+            
+            logEntry.appendChild(countBadge);
+            logEntry.appendChild(content);
             eventLog.appendChild(logEntry);
             eventLog.scrollTop = eventLog.scrollHeight;
         }
 
-        eventDemo.addEventListener('onSelect', (e) => {
-            const { value, label } = e.detail;
-            logEvent(`<span style="color: #10b981;">Selected:</span> ${label} (value: ${value})`);
+        // 새로운 이벤트 시스템 사용
+        addMultipleEventListeners(eventDemo, {
+            'onSelect': (event) => {
+                logEvent('onSelect', event);
+                console.log('Event Demo - Selected:', { 
+                    label: event.label || event.detail?.label, 
+                    value: event.value || event.detail?.value 
+                });
+            },
+            'onDeselect': (event) => {
+                logEvent('onDeselect', event);
+                console.log('Event Demo - Deselected:', { 
+                    label: event.label || event.detail?.label, 
+                    value: event.value || event.detail?.value 
+                });
+            },
+            'onReset': (event) => {
+                logEvent('onReset', event);
+                console.log('Event Demo - Reset:', event.detail || {
+                    label: event.label,
+                    value: event.value,
+                    values: event.values,
+                    labels: event.labels
+                });
+            },
+            'onChange': (event) => {
+                logEvent('onChange', event);
+                console.log('Event Demo - Form Change:', event.target?.value);
+            }
         });
 
-        eventDemo.addEventListener('onReset', (e) => {
-            logEvent(`<span style="color: #f59e0b;">Reset:</span> ${JSON.stringify(e.detail)}`);
+        // Clear log button
+        const clearBtn = document.createElement('button');
+        clearBtn.textContent = 'Clear Log';
+        clearBtn.style.cssText = `
+            margin-top: 8px;
+            padding: 4px 8px;
+            background: #374151;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        `;
+        clearBtn.addEventListener('click', () => {
+            eventLog.innerHTML = '';
+            eventCount = 0;
+            showNotification('Event log cleared');
         });
-
-        eventDemo.addEventListener('change', (e) => {
-            logEvent(`<span style="color: #3b82f6;">Form change:</span> ${e.target.value}`);
-        });
-
-        eventDemo.addEventListener('onDeselect', (e) => {
-            logEvent(`<span style="color: #ef4444;">Deselected:</span> ${JSON.stringify(e.detail)}`);
-        });
+        
+        if (eventLog.parentNode) {
+            eventLog.parentNode.appendChild(clearBtn);
+        }
     }
 }
 
@@ -150,33 +281,61 @@ function setupThemes() {
     }
 }
 
-// Multiple Selection Setup
+// Multiple Selection Setup (Updated for new event system)
 function setupMultipleSelection() {
     const multiSelect = document.querySelector('seo-select[name="skills"]');
     if (multiSelect) {
         multiSelect.selectedValues = DEFAULT_SELECTED_SKILLS;
 
-        multiSelect.addEventListener('onSelect', (e) => {
-            console.log('Skills - Additional selection:', e.detail);
-            console.log('Skills - All current selections:', multiSelect.selectedValues);
-        });
-
-        multiSelect.addEventListener('onDeselect', (e) => {
-            console.log('Skills - Deselected:', e.detail);
+        addMultipleEventListeners(multiSelect, {
+            'onSelect': (event) => {
+                const eventData = {
+                    label: event.label || event.detail?.label,
+                    value: event.value || event.detail?.value
+                };
+                console.log('Skills - Additional selection:', eventData);
+                console.log('Skills - All current selections:', multiSelect.selectedValues);
+                showNotification(`Added skill: ${eventData.label}`);
+            },
+            'onDeselect': (event) => {
+                const eventData = {
+                    label: event.label || event.detail?.label,
+                    value: event.value || event.detail?.value
+                };
+                console.log('Skills - Deselected:', eventData);
+                showNotification(`Removed skill: ${eventData.label}`);
+            },
+            'onReset': (event) => {
+                console.log('Skills - Reset:', event.detail || event);
+                showNotification('Skills reset to default');
+            }
         });
     }
 
     const multiSearchSelect = document.querySelector('seo-select-search[name="multilang-skills"]');
     if (multiSearchSelect) {
-        multiSearchSelect.addEventListener('onSelect', (e) => {
-            console.log('Multilang Skills - Selected:', e.detail);
-            console.log('Multilang Skills - All selections:', multiSearchSelect.selectedValues);
-            showNotification(`Selected: ${e.detail.label}`);
-        });
-
-        multiSearchSelect.addEventListener('onDeselect', (e) => {
-            console.log('Multilang Skills - Deselected:', e.detail);
-            showNotification(`Removed: ${e.detail.label}`);
+        addMultipleEventListeners(multiSearchSelect, {
+            'onSelect': (event) => {
+                const eventData = {
+                    label: event.label || event.detail?.label,
+                    value: event.value || event.detail?.value
+                };
+                console.log('Multilang Skills - Selected:', eventData);
+                console.log('Multilang Skills - All selections:', multiSearchSelect.selectedValues);
+                showNotification(`Selected: ${eventData.label}`);
+            },
+            'onDeselect': (event) => {
+                const eventData = {
+                    label: event.label || event.detail?.label,
+                    value: event.value || event.detail?.value
+                };
+                console.log('Multilang Skills - Deselected:', eventData);
+                showNotification(`Removed: ${eventData.label}`);
+            },
+            'onReset': (event) => {
+                console.log('Multilang Skills - Reset:', event.detail || event);
+                showNotification('Multilingual skills reset');
+            }
         });
     }
 }
@@ -322,14 +481,33 @@ function showNotification(message) {
     const notification = document.createElement('div');
     notification.className = 'notification';
     notification.textContent = message;
+    
+    // Enhanced notification styling
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+        z-index: 10000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        font-weight: 500;
+        font-size: 14px;
+        max-width: 300px;
+    `;
+    
     document.body.appendChild(notification);
 
     setTimeout(() => {
-        notification.classList.add('show');
+        notification.style.transform = 'translateX(0)';
     }, 100);
 
     setTimeout(() => {
-        notification.classList.remove('show');
+        notification.style.transform = 'translateX(100%)';
         setTimeout(() => {
             if (document.body.contains(notification)) {
                 document.body.removeChild(notification);
@@ -338,24 +516,80 @@ function showNotification(message) {
     }, NOTIFICATION_DURATION);
 }
 
-// Global event listeners for all seo-select components
+// Global event listeners for all seo-select components (Updated for new event system)
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('seo-select, seo-select-search').forEach(select => {
-        select.addEventListener('onSelect', (e) => {
-            console.log(`[${select.name || 'unnamed'}] Selected:`, e.detail);
+    const initializeGlobalListeners = () => {
+        document.querySelectorAll('seo-select, seo-select-search').forEach(select => {
+            const componentName = select.name || select.id || 'unnamed';
+            
+            // Skip if already initialized
+            if (select.dataset.eventListenersInitialized) {
+                return;
+            }
+            
+            addMultipleEventListeners(select, {
+                'onSelect': (event) => {
+                    const eventData = {
+                        label: event.label || event.detail?.label,
+                        value: event.value || event.detail?.value
+                    };
+                    console.log(`[${componentName}] Selected:`, eventData);
+                },
+                'onDeselect': (event) => {
+                    const eventData = {
+                        label: event.label || event.detail?.label,
+                        value: event.value || event.detail?.value
+                    };
+                    console.log(`[${componentName}] Deselected:`, eventData);
+                },
+                'onReset': (event) => {
+                    const eventData = event.detail || {
+                        label: event.label,
+                        value: event.value,
+                        values: event.values,
+                        labels: event.labels
+                    };
+                    console.log(`[${componentName}] Reset:`, eventData);
+                },
+                'onChange': (event) => {
+                    console.log(`[${componentName}] Change:`, event.target?.value);
+                }
+            });
+            
+            // Mark as initialized
+            select.dataset.eventListenersInitialized = 'true';
         });
-
-        select.addEventListener('onDeselect', (e) => {
-            console.log(`[${select.name || 'unnamed'}] Deselected:`, e.detail);
+    };
+    
+    // Initialize existing components
+    initializeGlobalListeners();
+    
+    // Watch for new components
+    const observer = new MutationObserver((mutations) => {
+        let hasNewComponents = false;
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    if (node.tagName === 'SEO-SELECT' || node.tagName === 'SEO-SELECT-SEARCH') {
+                        hasNewComponents = true;
+                    } else if (node.querySelectorAll) {
+                        const selectComponents = node.querySelectorAll('seo-select, seo-select-search');
+                        if (selectComponents.length > 0) {
+                            hasNewComponents = true;
+                        }
+                    }
+                }
+            });
         });
-
-        select.addEventListener('onReset', (e) => {
-            console.log(`[${select.name || 'unnamed'}] Reset:`, e.detail);
-        });
-
-        select.addEventListener('change', (e) => {
-            console.log(`[${select.name || 'unnamed'}] Change:`, e.target.value);
-        });
+        
+        if (hasNewComponents) {
+            setTimeout(initializeGlobalListeners, NEW_COMPONENT_DELAY);
+        }
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
     });
 });
 
@@ -371,7 +605,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Console welcome message
+// Console welcome message (Enhanced)
 console.log(`
 🎯 SEO Select Components Documentation  
 =========================================
@@ -379,6 +613,7 @@ Advanced multilingual select components with enterprise features
 
 🔍 Key Features:
 • Semantic HTML with SEO optimization
+• Enhanced event system with type safety
 • Multilingual search (Korean 초성, Japanese romaji, Chinese pinyin)
 • Theme system with dark mode support
 • Multiple selection with tag management
@@ -387,23 +622,34 @@ Advanced multilingual select components with enterprise features
 • Form integration with validation
 • Internationalization (i18n) support
 • Custom text configuration
-• Event-driven architecture
+• Event-driven architecture with improved performance
 
 💡 Navigation Tips:
 • Use Alt+1-5 for quick section switching
-• All interactions are logged in console
+• All interactions are logged in console with enhanced details
 • Try multilingual search: ㅎㄱ, にほんご, zhongwen
 • Check event logs for detailed debugging
+• New event system provides better type safety and performance
+
+🆕 Event System Updates:
+• Event classes with direct property access (event.label, event.value)
+• Backward compatibility with detail-based events
+• Enhanced event logging and debugging
+• Type-safe event listeners
 
 📚 This documentation demonstrates production-ready components suitable for enterprise applications.
 `);
 
-// Load demo data for header component
+// Load demo data for header component (Updated for new event system)
 const headerDemo = document.querySelector('seo-select-search[name="welcome"]');
 if (headerDemo) {
-    headerDemo.addEventListener('onSelect', (e) => {
-        showNotification(`Welcome! You selected: ${e.detail.label}`);
-        console.log('Header demo selection:', e.detail);
+    addSeoSelectListener(headerDemo, 'onSelect', (event) => {
+        const eventData = {
+            label: event.label || event.detail?.label,
+            value: event.value || event.detail?.value
+        };
+        showNotification(`Welcome! You selected: ${eventData.label}`);
+        console.log('Header demo selection:', eventData);
     });
 }
 
