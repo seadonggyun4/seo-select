@@ -50,14 +50,14 @@
   "homepage": "https://seo-select.netlify.app/",
   "scripts": {
     "build": "tsc -p tsconfig.build.json && vite build --mode production",
+    "build:docs": "node scripts/build-docs.js",
     "build:types": "tsc -p tsconfig.build.json --emitDeclarationOnly",
     "build:check": "tsc -p tsconfig.build.json --noEmit",
     "dev": "vite",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "prepublishOnly": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build:docs": "node scripts/build-docs.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "lit": "^3.0.0"
