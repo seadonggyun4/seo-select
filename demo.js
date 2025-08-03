@@ -1,6 +1,62 @@
+// ==========================================
+// Constants Declaration
+// ==========================================
+const PAGE_LOAD_TIME = 2000;
+const MOBILE_BREAKPOINT = 768;
+const ORIGINAL_WIDTH_KEY = 'data-original-width';
+
+// Language names mapping
+const LANGUAGE_NAMES = {
+    'ko': '한국어',
+    'en': 'English',
+    'ja': '日本語',
+    'zh': '中文'
+};
+
+// Sample multilingual languages for large dataset
+const SAMPLE_LANGUAGES = [
+    { prefix: '한국어', code: 'ko' },
+    { prefix: '日本語', code: 'ja' },
+    { prefix: '中文', code: 'zh' },
+    { prefix: 'English', code: 'en' },
+    { prefix: '混合語', code: 'mixed' }
+];
+
+// Default multilingual demo data
+const MULTILINGUAL_DEMO_DATA = [
+    { value: 'item1', label: '한국어 아이템 1' },
+    { value: 'item2', label: '日本語アイテム 2' },
+    { value: 'item3', label: '中文项目 3' },
+    { value: 'item4', label: 'English Item 4' },
+    { value: 'item5', label: '混合 Mixed アイテム 5' }
+];
+
+// Brand options for basic usage
+const BRAND_OPTIONS = [
+    { value: 'kia', label: 'Kia Motors' },
+    { value: 'hyundai', label: 'Hyundai Motor' },
+    { value: 'bmw', label: 'BMW' },
+    { value: 'benz', label: 'Mercedes-Benz' }
+];
+
+// Skills options for multiple selection demos
+const DEFAULT_SELECTED_SKILLS = ['js', 'ts', 'react'];
+const DEFAULT_DARK_MULTI_SKILLS = ['js', 'react'];
+
+// Notification display duration
+const NOTIFICATION_DURATION = 3000;
+const NOTIFICATION_FADE_DELAY = 300;
+
+// Resize debounce timeout
+const RESIZE_DEBOUNCE_TIMEOUT = 100;
+const ORIENTATION_CHANGE_DELAY = 300;
+const NEW_COMPONENT_DELAY = 50;
+
+// ==========================================
 // Main JavaScript for SEO Select Documentation
+// ==========================================
 document.addEventListener('DOMContentLoaded', function() {
-initializeDemo();
+    initializeDemo();
 });
 
 function initializeDemo() {
@@ -43,12 +99,7 @@ function setupBasicUsage() {
     // Setup array method select
     const arraySelect = document.querySelector('seo-select[name="brand-alt"]');
     if (arraySelect) {
-        arraySelect.optionItems = [
-            { value: 'kia', label: 'Kia Motors' },
-            { value: 'hyundai', label: 'Hyundai Motor' },
-            { value: 'bmw', label: 'BMW' },
-            { value: 'benz', label: 'Mercedes-Benz' }
-        ];
+        arraySelect.optionItems = BRAND_OPTIONS;
         arraySelect.value = 'hyundai';
     }
 }
@@ -93,17 +144,17 @@ function setupEventHandling() {
 
 // Theme Setup
 function setupThemes() {
-const darkMulti = document.querySelector('seo-select[name="dark-multi"]');
-if (darkMulti) {
-    darkMulti.selectedValues = ['js', 'react'];
-}
+    const darkMulti = document.querySelector('seo-select[name="dark-multi"]');
+    if (darkMulti) {
+        darkMulti.selectedValues = DEFAULT_DARK_MULTI_SKILLS;
+    }
 }
 
 // Multiple Selection Setup
 function setupMultipleSelection() {
     const multiSelect = document.querySelector('seo-select[name="skills"]');
     if (multiSelect) {
-        multiSelect.selectedValues = ['js', 'ts', 'react'];
+        multiSelect.selectedValues = DEFAULT_SELECTED_SKILLS;
 
         multiSelect.addEventListener('onSelect', (e) => {
             console.log('Skills - Additional selection:', e.detail);
@@ -190,17 +241,12 @@ function loadMultilingualData() {
         btn.disabled = true;
 
         setTimeout(() => {
-            select.optionItems = [
-                { value: 'item1', label: '한국어 아이템 1' },
-                { value: 'item2', label: '日本語アイテム 2' },
-                { value: 'item3', label: '中文项目 3' },
-                { value: 'item4', label: 'English Item 4' },
-                { value: 'item5', label: '混合 Mixed アイテム 5' },
-                ...Array.from({ length: 45 }, (_, i) => ({
-                    value: `item-${i + 6}`,
-                    label: `다국어 Multi-언어 Item ${i + 6}`
-                }))
-            ];
+            const additionalItems = Array.from({ length: 45 }, (_, i) => ({
+                value: `item-${i + 6}`,
+                label: `다국어 Multi-언어 Item ${i + 6}`
+            }));
+
+            select.optionItems = [...MULTILINGUAL_DEMO_DATA, ...additionalItems];
 
             btn.classList.remove('loading');
             btn.disabled = false;
@@ -209,7 +255,7 @@ function loadMultilingualData() {
 
             showNotification('Multilingual data loaded successfully!');
             console.log('Multilingual data loading complete - Search functionality activated');
-        }, 2000);
+        }, PAGE_LOAD_TIME);
     }
 }
 
@@ -222,16 +268,8 @@ function loadLargeDataset() {
         btn.disabled = true;
 
         setTimeout(() => {
-            const languages = [
-                { prefix: '한국어', code: 'ko' },
-                { prefix: '日本語', code: 'ja' },
-                { prefix: '中文', code: 'zh' },
-                { prefix: 'English', code: 'en' },
-                { prefix: '混合語', code: 'mixed' }
-            ];
-
             select.optionItems = Array.from({ length: 10000 }, (_, i) => {
-                const lang = languages[i % languages.length];
+                const lang = SAMPLE_LANGUAGES[i % SAMPLE_LANGUAGES.length];
                 const num = i.toString().padStart(4, '0');
 
                 return {
@@ -269,14 +307,7 @@ function setLanguage(lang) {
     if (dynamicLangSelect && dynamicLangSelect.setLanguage) {
         dynamicLangSelect.setLanguage(lang);
 
-        const langNames = {
-            'ko': '한국어',
-            'en': 'English',
-            'ja': '日本語',
-            'zh': '中文'
-        };
-
-        showNotification(`Language changed to ${langNames[lang]}`);
+        showNotification(`Language changed to ${LANGUAGE_NAMES[lang]}`);
         console.log(`Language changed to: ${lang}`);
     }
 }
@@ -303,8 +334,8 @@ function showNotification(message) {
             if (document.body.contains(notification)) {
                 document.body.removeChild(notification);
             }
-        }, 300);
-    }, 3000);
+        }, NOTIFICATION_FADE_DELAY);
+    }, NOTIFICATION_DURATION);
 }
 
 // Global event listeners for all seo-select components
@@ -378,19 +409,10 @@ if (headerDemo) {
 
 // Mobile Responsive Width Management for SEO Select Components
 (function() {
-    const MOBILE_BREAKPOINT = 768;
-    const ORIGINAL_WIDTH_KEY = 'data-original-width';
-    
-    /**
-     * 화면 크기가 모바일인지 확인
-     */
     function isMobile() {
         return window.innerWidth <= MOBILE_BREAKPOINT;
     }
     
-    /**
-     * 컴포넌트의 원래 width 값을 저장
-     */
     function saveOriginalWidth(component) {
         if (!component.hasAttribute(ORIGINAL_WIDTH_KEY)) {
             const originalWidth = component.getAttribute('width') || '';
@@ -398,9 +420,6 @@ if (headerDemo) {
         }
     }
     
-    /**
-     * 컴포넌트의 원래 width 값을 복원
-     */
     function restoreOriginalWidth(component) {
         const originalWidth = component.getAttribute(ORIGINAL_WIDTH_KEY);
         if (originalWidth !== null) {
@@ -412,28 +431,20 @@ if (headerDemo) {
         }
     }
     
-    /**
-     * 모든 seo-select 컴포넌트를 찾아서 반응형 적용
-     */
     function applyResponsiveWidth() {
         const components = document.querySelectorAll('seo-select, seo-select-search');
         
         components.forEach(component => {
-            // 처음 발견된 컴포넌트라면 원래 width 저장
             saveOriginalWidth(component);
             
             if (isMobile()) {
                 component.setAttribute('width', '100%');
             } else {
-                // 데스크톱에서는 원래 width로 복원
                 restoreOriginalWidth(component);
             }
         });
     }
     
-    /**
-     * 새로 추가된 컴포넌트 처리
-     */
     function handleNewComponents(components) {
         components.forEach(component => {
             saveOriginalWidth(component);
@@ -441,30 +452,22 @@ if (headerDemo) {
             if (isMobile()) {
                 component.setAttribute('width', '100%');
             }
-            // 데스크톱이면 원래 값 그대로 유지 (이미 원래 값이 설정되어 있음)
         });
     }
     
-    /**
-     * 초기화 및 이벤트 리스너 설정
-     */
     function init() {
-        // 초기 적용
         applyResponsiveWidth();
         
-        // 리사이즈 이벤트
         let resizeTimeout;
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(applyResponsiveWidth, 100);
+            resizeTimeout = setTimeout(applyResponsiveWidth, RESIZE_DEBOUNCE_TIMEOUT);
         });
         
-        // 오리엔테이션 변경
         window.addEventListener('orientationchange', function() {
-            setTimeout(applyResponsiveWidth, 300);
+            setTimeout(applyResponsiveWidth, ORIENTATION_CHANGE_DELAY);
         });
         
-        // 새로 추가되는 컴포넌트 감지
         const observer = new MutationObserver(function(mutations) {
             const newComponents = [];
             
@@ -482,7 +485,7 @@ if (headerDemo) {
             });
             
             if (newComponents.length > 0) {
-                setTimeout(() => handleNewComponents(newComponents), 50);
+                setTimeout(() => handleNewComponents(newComponents), NEW_COMPONENT_DELAY);
             }
         });
         
@@ -492,10 +495,32 @@ if (headerDemo) {
         });
     }
     
-    // DOM 준비되면 초기화
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
 })();
+
+// Page Loader Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const hasLoaded = sessionStorage.getItem('page-loaded');
+    const pageLoader = document.querySelector('.page-loder');
+    
+    if (hasLoaded) {
+        pageLoader.style.display = 'none';
+        return;
+    }
+
+    setTimeout(() => {
+        pageLoader.classList.add('hide');
+        
+        const handleAnimationEnd = () => {
+            pageLoader.classList.add('full-hide');
+            sessionStorage.setItem('page-loaded', 'true');
+            pageLoader.removeEventListener('animationend', handleAnimationEnd);
+        };
+        
+        pageLoader.addEventListener('animationend', handleAnimationEnd);
+    }, PAGE_LOAD_TIME);
+});
