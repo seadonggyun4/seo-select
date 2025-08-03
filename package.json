@@ -18,7 +18,12 @@
     "./components/seo-select-search": {
       "types": "./src/components/seo-select-search/index.ts",
       "import": "./src/components/seo-select-search/index.ts"
+    },
+    "./event": {
+      "types": "./src/event/index.ts",
+      "import": "./src/event/index.ts"
     }
+    
   },
   "files": [
     "src/**/*",
