@@ -747,4 +747,4 @@ MIT License
 - Fix style bug
 - Remove static image files from dist
 - width style bug fix
-- refactor: separate event classes into dedicated modules
+- separate event classes into dedicated modules
