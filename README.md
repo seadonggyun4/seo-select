@@ -728,7 +728,7 @@ MIT License
 
 ## Changelog
 
-### 1.0.19
+### 1.0.20
 - Initial release
 - Basic select functionality
 - Search component with multilingual support
@@ -746,3 +746,4 @@ MIT License
 - Add tab + shift logic to keyboard handler"
 - Fix style bug
 - Remove static image files from dist
+- width style bug fix
