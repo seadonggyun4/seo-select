@@ -1,4 +1,3 @@
-src/
 *.test.ts
 *.spec.ts
 vite.config.ts
@@ -8,3 +7,6 @@ tsconfig.json
 node_modules/
 output/
 public/
+dist/
+
+# src/ 
