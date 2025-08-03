@@ -1,8 +1,5 @@
 import { EVENT_NAMES } from '../constants/constants.js';
 
-/**
- * 기본 SeoSelect 이벤트 클래스
- */
 export class SeoSelectEvent extends Event {
   public readonly label: string;
   public readonly value: string;
@@ -14,9 +11,6 @@ export class SeoSelectEvent extends Event {
   }
 }
 
-/**
- * 선택 해제 이벤트
- */
 export class SeoDeselectEvent extends Event {
   public readonly label: string;
   public readonly value: string;
@@ -28,9 +22,6 @@ export class SeoDeselectEvent extends Event {
   }
 }
 
-/**
- * 리셋 이벤트 (단일/다중 선택 모두 지원)
- */
 export class SeoResetEvent extends Event {
   public readonly label?: string;
   public readonly value?: string;
@@ -51,18 +42,12 @@ export class SeoResetEvent extends Event {
   }
 }
 
-/**
- * 값 변경 이벤트
- */
 export class SeoChangeEvent extends Event {
   constructor() {
     super(EVENT_NAMES.CHANGE, { bubbles: true, composed: true });
   }
 }
 
-/**
- * 드롭다운 열기 이벤트 (내부용)
- */
 export class SeoOpenEvent extends Event {
   public readonly selectInstance: any;
 

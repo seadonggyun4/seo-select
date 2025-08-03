@@ -38,6 +38,9 @@ seo-select, seo-select-search {
     border: select.$select-border-width solid colors.pick(gray, 5);
     background: white;
     text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     cursor: pointer;
     transition: border-color select.$select-transition-duration select.$select-transition-easing;
 
@@ -202,7 +205,7 @@ seo-select, seo-select-search {
 
       input {
         text-indent: select.$search-input-text-indent;
-        width: -webkit-fill-available;
+        width: 100%;
         border: 1px solid colors.pick(gray, 5);
         padding: 0.5rem;
         outline: none;
@@ -309,8 +312,6 @@ seo-select, seo-select-search {
         overflow: hidden;
         line-height: select.$option-line-height;
         padding: select.$option-padding;
-        display: flex;
-        align-items: center;
 
         // 멀티셀렉트에서 선택된 항목 스타일
         &.selected {

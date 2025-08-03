@@ -7,7 +7,8 @@ import {
   SearchLocalizedTexts,
   SEARCH_LOCALIZED_TEXTS,
   CSS_CLASSES,
-  ICONS
+  ICONS,
+  EVENT_NAMES
 } from '../../constants/constants.js';
 
 import {
@@ -16,7 +17,6 @@ import {
   triggerResetEvent,
   triggerChangeEvent,
   triggerOpenEvent,
-  SeoSelectEventMap,
   SeoSelectEventListener
 } from '../../event/index.js';
 
@@ -29,6 +29,17 @@ interface OptionItem {
 interface VirtualSelectOption {
   value: string;
   label: string;
+}
+
+// 글로벌 타입 확장 - SeoSelectSearch도 동일한 이벤트 사용
+declare global {
+  interface HTMLElementEventMap {
+    [EVENT_NAMES.SELECT]: import('../../event/SeoSelectEvent.js').SeoSelectEvent;
+    [EVENT_NAMES.DESELECT]: import('../../event/SeoSelectEvent.js').SeoDeselectEvent;
+    [EVENT_NAMES.RESET]: import('../../event/SeoSelectEvent.js').SeoResetEvent;
+    [EVENT_NAMES.CHANGE]: import('../../event/SeoSelectEvent.js').SeoChangeEvent;
+    [EVENT_NAMES.SELECT_OPEN]: import('../../event/SeoSelectEvent.js').SeoOpenEvent;
+  }
 }
 
 export class SeoSelectSearch extends SeoSelect {
@@ -59,25 +70,112 @@ export class SeoSelectSearch extends SeoSelect {
   }
 
   /**
-   * 타입 안전한 이벤트 리스너 추가 메서드 (부모 클래스 메서드 오버라이드)
+   * @deprecated 표준 addEventListener를 사용하세요
    */
-  public override addSeoSelectEventListener<T extends keyof SeoSelectEventMap>(
+  public override addSeoSelectEventListener<T extends keyof HTMLElementEventMap>(
     type: T,
     listener: SeoSelectEventListener<T>,
     options?: AddEventListenerOptions
   ): void {
-    super.addSeoSelectEventListener(type, listener, options);
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`addSeoSelectEventListener is deprecated. Use standard addEventListener instead:
+Before: searchSelect.addSeoSelectEventListener('${type}', handler);
+After:  searchSelect.addEventListener('${type}', handler);`);
+    }
+    this.addEventListener(type, listener as EventListener, options);
   }
 
   /**
-   * 타입 안전한 이벤트 리스너 제거 메서드 (부모 클래스 메서드 오버라이드)
+   * @deprecated 표준 removeEventListener를 사용하세요
    */
-  public override removeSeoSelectEventListener<T extends keyof SeoSelectEventMap>(
+  public override removeSeoSelectEventListener<T extends keyof HTMLElementEventMap>(
     type: T,
     listener: SeoSelectEventListener<T>,
     options?: EventListenerOptions
   ): void {
-    super.removeSeoSelectEventListener(type, listener, options);
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`removeSeoSelectEventListener is deprecated. Use standard removeEventListener instead:
+Before: searchSelect.removeSeoSelectEventListener('${type}', handler);
+After:  searchSelect.removeEventListener('${type}', handler);`);
+    }
+    this.removeEventListener(type, listener as EventListener, options);
+  }
+
+  // 타입 안전한 이벤트 리스너 헬퍼 메서드들 (필수)
+  
+  /**
+   * 선택 이벤트 리스너 추가 (타입 안전)
+   * @example
+   * searchSelect.onSelect((event) => {
+   *   console.log('Selected:', event.label, event.value);
+   * });
+   */
+  public override onSelect(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.SELECT]) => void): void {
+    this.addEventListener(EVENT_NAMES.SELECT, handler as EventListener);
+  }
+
+  /**
+   * 선택 해제 이벤트 리스너 추가 (타입 안전)
+   * @example
+   * searchSelect.onDeselect((event) => {
+   *   console.log('Deselected:', event.label, event.value);
+   * });
+   */
+  public override onDeselect(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.DESELECT]) => void): void {
+    this.addEventListener(EVENT_NAMES.DESELECT, handler as EventListener);
+  }
+
+  /**
+   * 리셋 이벤트 리스너 추가 (타입 안전)
+   * @example
+   * searchSelect.onReset((event) => {
+   *   if (event.values && event.labels) {
+   *     console.log('Reset multiple:', event.values, event.labels);
+   *   } else {
+   *     console.log('Reset single:', event.value, event.label);
+   *   }
+   * });
+   */
+  public override onReset(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.RESET]) => void): void {
+    this.addEventListener(EVENT_NAMES.RESET, handler as EventListener);
+  }
+
+  /**
+   * 변경 이벤트 리스너 추가 (타입 안전)
+   * @example
+   * searchSelect.onChange((event) => {
+   *   console.log('Value changed');
+   * });
+   */
+  public override onChange(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.CHANGE]) => void): void {
+    this.addEventListener(EVENT_NAMES.CHANGE, handler as EventListener);
+  }
+
+  /**
+   * 검색 텍스트 변경 이벤트 리스너 추가 (검색 컴포넌트 전용)
+   * @example
+   * searchSelect.onSearchChange((searchText) => {
+   *   console.log('Search text changed:', searchText);
+   * });
+   */
+  public onSearchChange(handler: (searchText: string) => void): void {
+    // 내부적으로 input 이벤트를 처리하여 검색 텍스트 변경을 감지
+    this.addEventListener('search-text-change', ((event: CustomEvent) => {
+      handler(event.detail.searchText);
+    }) as EventListener);
+  }
+
+  /**
+   * 검색 결과 필터링 이벤트 리스너 추가 (검색 컴포넌트 전용)
+   * @example
+   * searchSelect.onSearchFilter((filteredOptions) => {
+   *   console.log('Filtered options:', filteredOptions);
+   * });
+   */
+  public onSearchFilter(handler: (filteredOptions: VirtualSelectOption[]) => void): void {
+    this.addEventListener('search-filter', ((event: CustomEvent) => {
+      handler(event.detail.filteredOptions);
+    }) as EventListener);
   }
 
   // 검색 관련 다국어 텍스트를 가져오고 커스텀 텍스트로 오버라이드하는 헬퍼 메서드
@@ -260,7 +358,17 @@ export class SeoSelectSearch extends SeoSelect {
 
   private _handleSearchInput = (e: Event): void => {
     const input = e.target as HTMLInputElement;
+    const previousSearchText = this._searchText;
     this._searchText = input.value;
+
+    // 검색 텍스트 변경 이벤트 발생
+    if (previousSearchText !== this._searchText) {
+      this.dispatchEvent(new CustomEvent('search-text-change', {
+        detail: { searchText: this._searchText, previousSearchText },
+        bubbles: true,
+        composed: true
+      }));
+    }
   };
 
   // null을 undefined로 변환하는 헬퍼 함수
@@ -276,8 +384,16 @@ export class SeoSelectSearch extends SeoSelect {
     const rawInput = this._searchText.trim();
     
     if (!rawInput) {
-      this._virtual.setData(this.getAllOptionData(), this.multiple ? undefined : this.getCurrentValue());
+      const allOptions = this.getAllOptionData();
+      this._virtual.setData(allOptions, this.multiple ? undefined : this.getCurrentValue());
       this._noMatchVisible = false;
+
+      // 검색 필터 이벤트 발생
+      this.dispatchEvent(new CustomEvent('search-filter', {
+        detail: { filteredOptions: allOptions, searchText: rawInput },
+        bubbles: true,
+        composed: true
+      }));
       return;
     }
 
@@ -290,17 +406,32 @@ export class SeoSelectSearch extends SeoSelect {
     });
 
     if (filtered.length === 0) {
+      const noMatchOption = [{ value: 'no_match', label: searchTexts.noMatchText, disabled: true }];
       this._virtual.setData(
-        [{ value: 'no_match', label: searchTexts.noMatchText, disabled: true }],
+        noMatchOption,
         this.multiple ? undefined : this.getCurrentValue(),
       );
+
+      // 검색 필터 이벤트 발생 (결과 없음)
+      this.dispatchEvent(new CustomEvent('search-filter', {
+        detail: { filteredOptions: [], searchText: rawInput, hasResults: false },
+        bubbles: true,
+        composed: true
+      }));
       return;
     }
 
     this._virtual.setData(filtered, this.multiple ? undefined : this.getCurrentValue());
+
+    // 검색 필터 이벤트 발생
+    this.dispatchEvent(new CustomEvent('search-filter', {
+      detail: { filteredOptions: filtered, searchText: rawInput, hasResults: true },
+      bubbles: true,
+      composed: true
+    }));
   }
 
-  // 부모 클래스의 removeTag 메서드를 오버라이드하여 검색 기능 추가 및 분리된 이벤트 사용
+  // 부모 클래스의 removeTag 메서드를 오버라이드하여 검색 기능 추가 및 표준 이벤트 사용
   public override removeTag = (e: Event, valueToRemove: string): void => {
     e.stopPropagation();
     this._selectedValues = this._selectedValues.filter(value => value !== valueToRemove);
@@ -328,13 +459,13 @@ export class SeoSelectSearch extends SeoSelect {
       }
     }
 
-    // 분리된 이벤트 헬퍼 사용
+    // 표준 이벤트 발생
     triggerDeselectEvent(this, option?.textContent || '', valueToRemove);
 
     this._debouncedUpdate();
   };
 
-  // 부모 클래스의 resetToDefault 메서드를 오버라이드하여 검색 기능 추가 및 분리된 이벤트 사용
+  // 부모 클래스의 resetToDefault 메서드를 오버라이드하여 검색 기능 추가 및 표준 이벤트 사용
   public override resetToDefault = (e: Event): void => {
     e.stopPropagation();
 
@@ -362,7 +493,7 @@ export class SeoSelectSearch extends SeoSelect {
         this._pendingActiveIndex = 0;
       }
 
-      // 분리된 이벤트 헬퍼 사용
+      // 표준 이벤트 발생
       triggerResetEvent(this, { values: [], labels: [] });
     } else {
       if (this._options.length > 0) {
@@ -389,7 +520,7 @@ export class SeoSelectSearch extends SeoSelect {
           }
         }
 
-        // 분리된 이벤트 헬퍼 사용
+        // 표준 이벤트 발생
         triggerResetEvent(this, { value: firstOption.value, label: firstOption.textContent || '' });
       }
     }
@@ -397,9 +528,9 @@ export class SeoSelectSearch extends SeoSelect {
     this._debouncedUpdate();
   };
 
-  // 드롭다운 열기 메서드 오버라이드 - 분리된 이벤트 사용
+  // 드롭다운 열기 메서드 오버라이드 - 표준 이벤트 사용
   public override openDropdown(): void {
-    // 분리된 이벤트 헬퍼 사용
+    // 표준 이벤트 발생
     triggerOpenEvent(this);
     this.open = true;
     this._debouncedUpdate();
@@ -419,7 +550,7 @@ export class SeoSelectSearch extends SeoSelect {
     }
   }
 
-  // 옵션 선택 메서드 오버라이드 - 분리된 이벤트 사용
+  // 옵션 선택 메서드 오버라이드 - 표준 이벤트 사용
   public override selectOption(value: string, label: string): void {
     if (this.multiple) {
       this._selectedValues = [...this._selectedValues, value];
@@ -443,7 +574,7 @@ export class SeoSelectSearch extends SeoSelect {
         }
       }
 
-      // 분리된 이벤트 헬퍼 사용
+      // 표준 이벤트 발생
       triggerSelectEvent(this, label, value);
 
     } else {
@@ -451,12 +582,12 @@ export class SeoSelectSearch extends SeoSelect {
       this._setValue(value);
       this.closeDropdown();
 
-      // 분리된 이벤트 헬퍼 사용
+      // 표준 이벤트 발생
       triggerSelectEvent(this, label, value);
     }
   }
 
-  // 값 설정 메서드 오버라이드 - 분리된 이벤트 사용
+  // 값 설정 메서드 오버라이드 - 표준 이벤트 사용
   public override _setValue(newVal: string, emit: boolean = true): void {
     if (this._value === newVal) return;
 
@@ -475,7 +606,7 @@ export class SeoSelectSearch extends SeoSelect {
 
     this._debouncedUpdate();
     
-    // 분리된 이벤트 헬퍼 사용
+    // 표준 이벤트 발생
     if (emit) triggerChangeEvent(this);
   }
 
@@ -532,6 +663,25 @@ export class SeoSelectSearch extends SeoSelect {
     this.requestUpdate();
   }
 
+  // 검색 텍스트 초기화 메서드
+  public clearSearchText(): void {
+    this._searchText = '';
+    this._applyFilteredOptions();
+    this.requestUpdate();
+  }
+
+  // 현재 검색 텍스트 반환
+  public getSearchText(): string {
+    return this._searchText;
+  }
+
+  // 검색 텍스트 설정
+  public setSearchText(searchText: string): void {
+    this._searchText = searchText;
+    this._applyFilteredOptions();
+    this.requestUpdate();
+  }
+
   // 검색 관련 다국어 텍스트를 반환하는 정적 메서드
   static getSearchLocalizedTexts(): Record<SupportedLanguage, SearchLocalizedTexts> {
     return SEARCH_LOCALIZED_TEXTS;
@@ -546,6 +696,25 @@ export class SeoSelectSearch extends SeoSelect {
   public testMultilingualSearch(searchText: string, targetText: string): boolean {
     return isMultilingualMatch(searchText, targetText);
   }
+
+  // 성능 모니터링을 위한 검색 관련 메트릭 (부모 클래스 확장)
+  public override getPerformanceMetrics(): {
+    optionCount: number;
+    cacheSize: number;
+    isUpdating: boolean;
+    hasCalculatedWidth: boolean;
+    searchText: string;
+    hasSearchResults: boolean;
+  } {
+    const baseMetrics = super.getPerformanceMetrics();
+    return {
+      ...baseMetrics,
+      searchText: this._searchText,
+      hasSearchResults: this._searchText ? this.getAllOptionData().length > 0 : true
+    };
+  }
 }
 
-customElements.define('seo-select-search', SeoSelectSearch);
+if (!customElements.get('seo-select-search')) {
+  customElements.define('seo-select-search', SeoSelectSearch);
+}
