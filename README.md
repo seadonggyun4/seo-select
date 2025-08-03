@@ -41,42 +41,13 @@ import type {
 } from 'seo-select/event';
 ```
 
-### 🌐 For CDN/No-Build Usage
-Quick setup without any build tools - just download and use:
-
-1. **Download**: [seo-select-dist-v2.0.2.zip](https://github.com/seadonggyun4/seo-select/releases/download/v2.0.2/seo-select-dist-v2.0.2.zip)
-2. **Extract** the zip file to your project
-3. **Use** directly in HTML:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <!-- Basic select component -->
-  <script type="module" src="./dist/index.js"></script>
-  
-  <!-- Or search-enabled select component -->
-  <!-- <script type="module" src="./dist/components/seo-select-search/index.js"></script> -->
-</head>
-<body>
-  <seo-select name="country" theme="float">
-    <option value="us">United States</option>
-    <option value="kr">South Korea</option>
-    <option value="jp">Japan</option>
-  </seo-select>
-</body>
-</html>
-```
-
 ### 🔗 CDN via jsDelivr (Alternative)
-Direct linking without download:
-
 ```html
 <!-- Basic select -->
-<script type="module" src="https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@v2.0.2/dist/index.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@v2.0.4/dist/index.js"></script>
 
 <!-- Search select -->
-<script type="module" src="https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@v2.0.2/dist/components/seo-select-search/index.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@v2.0.4/dist/components/seo-select-search/index.js"></script>
 ```
 
 ## Components Overview
