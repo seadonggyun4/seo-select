@@ -657,7 +657,14 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
-### 1.0.24 (Latest)
+### 2.0.1 (Latest)
+- **📦 Source Distribution**: Now distributes unminified TypeScript source files instead of compiled JavaScript
+- **🛠️ Build Flexibility**: Developers can now use their own build tools and configurations
+- **⚡ Bundle Optimization**: Enables better tree-shaking and dead code elimination in user projects
+- **🔧 Developer Experience**: Direct access to TypeScript source for debugging and customization
+- **📝 TypeScript First**: Full TypeScript source availability for enhanced development workflow
+
+### 1.0.24 (Previous Stable)
 - **🆕 Enhanced Event System**: Standard `addEventListener` with built-in type-safe helpers
 - **🔧 Helper Methods**: `onSelect()`, `onDeselect()`, `onReset()`, `onChange()`, `onOpen()` always available
 - **📦 Improved DX**: Better TypeScript support and developer experience
@@ -670,5 +677,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - Various performance optimizations and bug fixes
 
 ---
+
+**Migration Note**: Version 2.0.0 maintains full API compatibility with 1.x while changing the distribution format from compiled JavaScript to TypeScript source files.
 
 **Made with ❤️ by [seadonggyun4](https://github.com/seadonggyun4)**
