@@ -125,20 +125,28 @@ Extended component with real-time multilingual search including Korean initial c
 
 ```typescript
 // Standard way - works in all frameworks
-searchSelect.addEventListener('seo:select', (event) => {
+searchSelect.addEventListener('onSelect', (event) => {
   console.log('Selected:', event.label, event.value);
 });
 
-searchSelect.addEventListener('seo:deselect', (event) => {
+searchSelect.addEventListener('onDeselect', (event) => {
   console.log('Deselected:', event.label, event.value);
 });
 
-searchSelect.addEventListener('seo:reset', (event) => {
+searchSelect.addEventListener('onReset', (event) => {
   if (event.values && event.labels) {
     console.log('Reset multiple:', event.values, event.labels);
   } else {
     console.log('Reset single:', event.value, event.label);
   }
+});
+
+searchSelect.addEventListener('onChange', (event) => {
+  console.log('Value changed');
+});
+
+searchSelect.addEventListener('onOpen', (event) => {
+  console.log('Dropdown opened');
 });
 ```
 
@@ -160,6 +168,10 @@ searchSelect.onReset((event) => {
 
 searchSelect.onChange((event) => {
   console.log('Value changed');
+});
+
+searchSelect.onOpen((event) => {
+  console.log('Dropdown opened');
 });
 
 // Search-specific events (seo-select-search only)
@@ -190,7 +202,7 @@ select.language = 'ko';
 document.body.appendChild(select);
 
 // Event handling
-select.addEventListener('seo:select', (event) => {
+select.addEventListener('onSelect', (event) => {
   console.log('Selected:', event.label, event.value);
 });
 
@@ -225,10 +237,11 @@ select.onSelect((event) => {
 
 | Event Name | Properties | Description |
 |------------|------------|-------------|
-| `seo:select` | `{ label, value }` | User selects an option |
-| `seo:deselect` | `{ label, value }` | User removes selected option (multiple mode) |
-| `seo:change` | - | Form value changes |
-| `seo:reset` | `{ value, label }` or `{ values, labels }` | Component resets to default |
+| `onSelect` | `{ label, value }` | User selects an option |
+| `onDeselect` | `{ label, value }` | User removes selected option (multiple mode) |
+| `onChange` | - | Form value changes |
+| `onReset` | `{ value, label }` or `{ values, labels }` | Component resets to default |
+| `onOpen` | - | Dropdown opens |
 
 ## Methods
 
@@ -256,6 +269,7 @@ select.onSelect(handler);
 select.onDeselect(handler);
 select.onReset(handler);
 select.onChange(handler);
+select.onOpen(handler);
 
 // Search-specific (seo-select-search only)
 select.onSearchChange(handler);
@@ -442,7 +456,7 @@ function MyComponent() {
     if (!select) return;
 
     // Standard addEventListener
-    select.addEventListener('seo:select', (event) => {
+    select.addEventListener('onSelect', (event) => {
       console.log('Selected:', event.label, event.value);
     });
 
@@ -485,7 +499,7 @@ declare global {
   <seo-select-search 
     ref="selectRef"
     name="framework"
-    @seo:select="handleSelect"
+    @onSelect="handleSelect"
   >
     <option value="vue">Vue</option>
     <option value="react">React</option>
@@ -525,7 +539,7 @@ import 'seo-select/components/seo-select-search';
   template: `
     <seo-select-search 
       name="framework" 
-      (seo:select)="handleSelect($event)"
+      (onSelect)="handleSelect($event)"
       #selectElement>
       <option value="angular">Angular</option>
       <option value="react">React</option>
@@ -590,7 +604,7 @@ export class ExampleComponent implements OnInit {
 ### Event Handling
 ```typescript
 // ✅ Use standard addEventListener (works everywhere)
-select.addEventListener('seo:select', handler);
+select.addEventListener('onSelect', handler);
 
 // ✅ Or use built-in helper methods for better DX
 select.onSelect(handler);
@@ -643,9 +657,9 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
-### 1.0.23 (Latest)
+### 1.0.24 (Latest)
 - **🆕 Enhanced Event System**: Standard `addEventListener` with built-in type-safe helpers
-- **🔧 Helper Methods**: `onSelect()`, `onDeselect()`, `onReset()`, `onChange()` always available
+- **🔧 Helper Methods**: `onSelect()`, `onDeselect()`, `onReset()`, `onChange()`, `onOpen()` always available
 - **📦 Improved DX**: Better TypeScript support and developer experience
 - **⚡ Performance**: Optimized event handling and memory management
 - **🔄 Backward Compatibility**: All existing code continues to work
