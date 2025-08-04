@@ -22,13 +22,45 @@ if ! command -v git &> /dev/null; then
     exit 1
 fi
 
+if ! command -v jq &> /dev/null; then
+    echo "❌ jq is required but not installed. Please install it first."
+    echo "   - Ubuntu/Debian: sudo apt-get install jq"
+    echo "   - macOS: brew install jq"
+    exit 1
+fi
+
 # Git 상태 확인
 if [ -n "$(git status --porcelain)" ]; then
     echo "❌ Working directory is not clean. Please commit or stash changes."
     exit 1
 fi
 
-# 1. 빌드 (타입 체크 포함)
+# package.json 존재 확인
+if [ ! -f "package.json" ]; then
+    echo "❌ package.json not found!"
+    exit 1
+fi
+
+# 1. package.json 버전 업데이트
+CLEAN_VERSION=${VERSION#v}  # v 제거
+echo "📝 Updating package.json version to $CLEAN_VERSION..."
+
+# 현재 버전 확인
+CURRENT_VERSION=$(jq -r '.version' package.json)
+echo "  - Current version: $CURRENT_VERSION"
+echo "  - New version: $CLEAN_VERSION"
+
+# package.json 버전 업데이트
+jq ".version = \"$CLEAN_VERSION\"" package.json > package.json.tmp && mv package.json.tmp package.json
+
+if [ $? -ne 0 ]; then
+    echo "❌ Failed to update package.json version!"
+    exit 1
+fi
+
+echo "✅ package.json version updated successfully"
+
+# 2. 빌드 (타입 체크 포함)
 echo "🔍 Type checking..."
 npm run type-check
 if [ $? -ne 0 ]; then
@@ -43,7 +75,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 2. 빌드 결과 검증
+# 3. 빌드 결과 검증
 echo "✅ Verifying build output..."
 if [ ! -f "dist/index.js" ]; then
     echo "❌ ES module build not found!"
@@ -53,7 +85,7 @@ fi
 echo "📁 Build verification complete:"
 echo "  - ES Module: $(du -h dist/index.js | cut -f1)"
 
-# 3. 압축 파일 생성 (CDN용)
+# 4. 압축 파일 생성 (CDN용)
 echo "📁 Creating distribution archives..."
 ZIP_NAME="seo-select-dist-$VERSION.zip"
 TAR_NAME="seo-select-dist-$VERSION.tar.gz"
@@ -66,16 +98,25 @@ echo "  - Created: $ZIP_NAME ($(du -h $ZIP_NAME | cut -f1))"
 tar -czf $TAR_NAME dist/ --exclude="*.map"
 echo "  - Created: $TAR_NAME ($(du -h $TAR_NAME | cut -f1))"
 
-# 4. Git 태그 및 커밋
-echo "📝 Creating git tag..."
-CLEAN_VERSION=${VERSION#v}  # v 제거
-git add dist/
-git commit -m "build: update dist for $VERSION" || echo "No changes to commit"
+# 5. Git 태그 및 커밋
+echo "📝 Creating git commit and tag..."
+git add package.json dist/
+git commit -m "chore: bump version to $VERSION and update dist"
+
+if [ $? -ne 0 ]; then
+    echo "❌ Failed to create commit!"
+    exit 1
+fi
+
 git tag -a $VERSION -m "Release $VERSION"
 
-# 5. npm 배포 (소스코드 + dist)
+if [ $? -ne 0 ]; then
+    echo "❌ Failed to create git tag!"
+    exit 1
+fi
+
+# 6. npm 배포 (소스코드 + dist)
 echo "📤 Publishing to npm..."
-npm version $CLEAN_VERSION --no-git-tag-version  # 이미 태그 생성했으므로
 npm publish --dry-run  # 먼저 드라이런으로 확인
 if [ $? -eq 0 ]; then
     echo "🎯 Dry run successful, proceeding with actual publish..."
@@ -89,16 +130,16 @@ else
     exit 1
 fi
 
-# 6. GitHub 푸시
+# 7. GitHub 푸시
 echo "📤 Pushing to GitHub..."
 git push origin main
 git push origin $VERSION
 
-# 7. 파일 크기 및 성능 정보 수집
+# 8. 파일 크기 및 성능 정보 수집
 ES_SIZE=$(du -h dist/index.js | cut -f1)
 GZIP_ES_SIZE=$(gzip -c dist/index.js | wc -c | awk '{printf "%.1fK", $1/1024}')
 
-# 8. GitHub Release 생성
+# 9. GitHub Release 생성
 echo "🎉 Creating GitHub Release..."
 gh release create $VERSION \
   $ZIP_NAME \
@@ -153,13 +194,18 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 9. 정리
+# 10. 정리
 echo "🧹 Cleaning up temporary files..."
 rm $ZIP_NAME $TAR_NAME
 
-# 10. 배포 완료 안내
+# 11. 배포 완료 안내
 echo ""
 echo "✅ Release $VERSION completed successfully!"
+echo ""
+echo "📝 Changes made:"
+echo "  - Updated package.json version: $CURRENT_VERSION → $CLEAN_VERSION"
+echo "  - Created git commit and tag: $VERSION"
+echo "  - Published to npm: seo-select@$CLEAN_VERSION"
 echo ""
 echo "🎯 Distribution Summary:"
 echo "  📦 npm: https://www.npmjs.com/package/seo-select"  
