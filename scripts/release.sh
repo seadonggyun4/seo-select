@@ -215,7 +215,7 @@ git push origin $NEW_VERSION_TAG
 
 # 11. 파일 크기 정보 수집
 BUILD_SIZE=$(du -h min/index.js | cut -f1)
-CSS_SIZE=$(du -h min/seo-select.css | cut -f1)
+CSS_SIZE=$(du -h min/index.css | cut -f1)
 GZIP_SIZE=$(gzip -c min/index.js | wc -c | awk '{printf "%.1fK", $1/1024}')
 
 # 12. GitHub Release 생성
@@ -224,7 +224,7 @@ gh release create $NEW_VERSION_TAG \
   $ZIP_NAME \
   $TAR_NAME \
   min/index.js \
-  min/seo-select.css \
+  min/index.css \
   --title "🚀 $NEW_VERSION_TAG - Standalone & NPM Distribution" \
   --notes "
 ## 🎉 What's New in $NEW_VERSION_TAG
