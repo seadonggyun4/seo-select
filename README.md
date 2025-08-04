@@ -51,8 +51,8 @@ import type {
 
 ```html
 <!-- Import both JavaScript and CSS files -->
-<link rel="stylesheet" href="./dist/styles/components/style.css">
-<script type="module" src="./dist/index.js"></script>
+<link rel="stylesheet" href="./index.css">
+<script type="module" src="./index.js"></script>
 ```
 
 **Alternative**: Download pre-built files from [GitHub Releases](https://github.com/seadonggyun4/seo-select/releases)
