@@ -328,44 +328,52 @@ seo-select[dark] {
 ### Complete CSS Variables Reference
 
 <details>
-<summary><strong>📏 Layout & Sizing Variables</strong></summary>
+<summary><strong>📏 Basic Layout & Sizing Variables</strong></summary>
 
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
 | `--select-padding` | `0.5rem 0.8rem` | Internal padding of select box |
-| `--select-min-height` | `2.5rem` | Minimum height of select component |
+| `--select-min-height` | `35px` | Minimum height of select component |
 | `--select-border-width` | `1px` | Border thickness |
+| `--select-transition-duration` | `0.3s` | Animation transition duration |
+| `--select-transition-easing` | `ease` | Animation easing function |
+| `--select-font-size` | `12px` | Font size of select text |
+| `--select-font-color` | `#1f1b25` | Font color of select text |
+
+</details>
+
+<details>
+<summary><strong>🎨 Theme Styles</strong></summary>
+
+**Basic Theme:**
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+| `--select-basic-border-radius` | `0` | Border radius for basic theme |
+| `--select-basic-box-shadow` | `none` | Box shadow for basic theme |
+| `--select-basic-margin-bottom` | `0` | Bottom margin for basic theme |
+
+**Float Theme:**
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+| `--select-float-border-radius` | `5px` | Border radius for float theme |
+| `--select-float-box-shadow` | `0 2px 4px rgba(0, 0, 0, 0.1)` | Box shadow for float theme |
+| `--select-float-margin-bottom` | `0` | Bottom margin for float theme |
+
+</details>
+
+<details>
+<summary><strong>🏷️ Multiple Selection & Tags Variables</strong></summary>
+
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
 | `--select-multi-padding-right` | `3rem` | Right padding for multiple selection |
 | `--select-tags-gap` | `0.25rem` | Gap between tags in multiple mode |
 | `--select-tags-padding` | `0.25rem 0` | Padding around tags container |
 | `--select-tags-min-height` | `1.5rem` | Minimum height of tags area |
-
-</details>
-
-<details>
-<summary><strong>🎨 Theme & Visual Variables</strong></summary>
-
-| Variable | Default Value | Description |
-|----------|---------------|-------------|
-| `--select-transition-duration` | `0.3s` | Animation transition duration |
-| `--select-transition-easing` | `ease` | Animation easing function |
-| `--select-basic-border-radius` | `0` | Border radius for basic theme |
-| `--select-float-border-radius` | `5px` | Border radius for float theme |
-| `--select-basic-box-shadow` | `none` | Box shadow for basic theme |
-| `--select-float-box-shadow` | `0 2px 4px rgba(0, 0, 0, 0.1)` | Box shadow for float theme |
-
-</details>
-
-<details>
-<summary><strong>🏷️ Tags & Multiple Selection Variables</strong></summary>
-
-| Variable | Default Value | Description |
-|----------|---------------|-------------|
 | `--tag-padding` | `0.2rem 0.3rem` | Internal padding of tags |
 | `--tag-gap` | `0.5rem` | Gap between individual tags |
 | `--tag-border-radius` | `25rem` | Border radius of tags (pill shape) |
 | `--tag-border-width` | `1px` | Border thickness of tags |
-| `--tag-font-size` | `1.2rem` | Font size within tags |
 | `--tag-remove-size` | `1rem` | Size of tag remove button |
 | `--tag-remove-border-radius` | `50%` | Border radius of remove button |
 | `--tag-remove-transition` | `all 0.2s ease` | Transition for remove button |
@@ -373,20 +381,25 @@ seo-select[dark] {
 </details>
 
 <details>
-<summary><strong>📋 Dropdown & Options Variables</strong></summary>
+<summary><strong>📋 Dropdown Variables</strong></summary>
 
+**Basic Dropdown:**
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
 | `--dropdown-box-shadow` | `0 5px 10px rgba(0, 0, 0, 0.1)` | Box shadow of dropdown |
 | `--dropdown-border-width` | `1px` | Border thickness of dropdown |
 | `--dropdown-z-index` | `1000` | Z-index stacking order |
 | `--dropdown-basic-border-radius` | `0` | Border radius for basic theme dropdown |
+
+**Float Theme Dropdown:**
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
 | `--dropdown-float-border-radius` | `5px` | Border radius for float theme dropdown |
 | `--dropdown-float-box-shadow` | `0 8px 16px rgba(0, 0, 0, 0.15)` | Enhanced shadow for float theme |
 | `--dropdown-float-top` | `130%` | Dropdown position from select box |
-| `--option-padding` | `0 0.8rem` | Internal padding of option items |
-| `--option-line-height` | `300%` | Line height of option items |
-| `--option-check-mark-margin` | `0.5rem` | Margin of checkmark in options |
+| `--dropdown-float-animation-duration` | `0.2s` | Animation duration for float theme |
+| `--dropdown-float-animation-easing` | `ease-out` | Animation easing for float theme |
+| `--dropdown-float-slide-distance` | `-20px` | Slide distance for animation |
 
 </details>
 
@@ -403,7 +416,7 @@ seo-select[dark] {
 </details>
 
 <details>
-<summary><strong>⏳ Loading & Empty State Variables</strong></summary>
+<summary><strong>⏳ Loading State Variables</strong></summary>
 
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
@@ -413,14 +426,37 @@ seo-select[dark] {
 | `--loading-dot-size` | `0.5rem` | Size of individual loading dots |
 | `--loading-animation-duration` | `1.4s` | Duration of loading animation |
 | `--loading-text-font-size` | `0.9rem` | Font size of loading text |
+| `--loading-dot-delay-1` | `-0.32s` | Animation delay for first dot |
+| `--loading-dot-delay-2` | `-0.16s` | Animation delay for second dot |
+| `--loading-dot-delay-3` | `0s` | Animation delay for third dot |
+
+</details>
+
+<details>
+<summary><strong>📭 Empty State Variables</strong></summary>
+
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
 | `--no-data-container-padding` | `1rem 2rem` | Padding of "no data" container |
 | `--no-data-text-font-size` | `0.9rem` | Font size of "no data" text |
 
 </details>
 
 <details>
-<summary><strong>🔄 Reset Button & Controls Variables</strong></summary>
+<summary><strong>📃 Option Items Variables</strong></summary>
 
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+| `--option-padding` | `0 0.8rem` | Internal padding of option items |
+| `--option-line-height` | `300%` | Line height of option items |
+| `--option-check-mark-margin` | `0.5rem` | Margin of checkmark in options |
+
+</details>
+
+<details>
+<summary><strong>🔄 Reset Button Variables</strong></summary>
+
+**Single Select Reset:**
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
 | `--reset-button-right` | `3rem` | Right position of reset button |
@@ -428,11 +464,25 @@ seo-select[dark] {
 | `--reset-button-height` | `80%` | Height of reset button |
 | `--reset-button-font-size` | `0.9rem` | Font size of reset button |
 | `--reset-button-transition` | `all 0.2s ease` | Transition for reset button |
+
+**Multiple Select Reset:**
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
 | `--multi-reset-button-size` | `1.5rem` | Size of multi-select reset button |
 | `--multi-reset-button-position` | `-0.6rem` | Position adjustment for multi reset |
 | `--multi-reset-button-border-radius` | `50%` | Border radius of multi reset button |
+| `--multi-reset-button-font-size` | `0.9rem` | Font size of multi reset button |
+
+</details>
+
+<details>
+<summary><strong>↗️ Dropdown Arrow Variables</strong></summary>
+
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
 | `--arrow-right` | `0.8rem` | Right position of dropdown arrow |
 | `--arrow-font-size` | `0.9rem` | Font size of dropdown arrow |
+| `--arrow-margin-top` | `-0.1rem` | Top margin adjustment for arrow |
 | `--arrow-transition` | `transform 0.2s ease` | Transition for arrow rotation |
 
 </details>
@@ -440,26 +490,56 @@ seo-select[dark] {
 <details>
 <summary><strong>🌙 Dark Mode Color Variables</strong></summary>
 
+**Background Colors:**
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
 | `--dark-select-bg` | `#374151` | Background color in dark mode |
 | `--dark-dropdown-bg` | `#374151` | Dropdown background in dark mode |
 | `--dark-tag-bg` | `#4b5563` | Tag background in dark mode |
 | `--dark-search-input-bg` | `#374151` | Search input background in dark mode |
+
+**Border Colors:**
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
 | `--dark-border-color` | `#6b7280` | Border color in dark mode |
 | `--dark-border-hover-color` | `#60a5fa` | Border color on hover in dark mode |
 | `--dark-border-focus-color` | `#60a5fa` | Border color on focus in dark mode |
+
+**Text Colors:**
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
 | `--dark-text-color` | `#f3f4f6` | Primary text color in dark mode |
 | `--dark-text-secondary-color` | `#d1d5db` | Secondary text color in dark mode |
 | `--dark-placeholder-color` | `#9ca3af` | Placeholder color in dark mode |
+
+**Option Colors:**
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
 | `--dark-option-hover-bg` | `#4b5563` | Option background on hover |
 | `--dark-option-selected-bg` | `#3b82f6` | Selected option background |
 | `--dark-option-focused-bg` | `#4b5563` | Focused option background |
+| `--dark-option-disabled-color` | `#9ca3af` | Disabled option text color |
+
+**Tag Colors:**
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
 | `--dark-tag-text-color` | `#f3f4f6` | Tag text color in dark mode |
 | `--dark-tag-border-color` | `#60a5fa` | Tag border color in dark mode |
 | `--dark-tag-remove-hover-bg` | `#ef4444` | Tag remove button hover background |
+
+**Button Colors:**
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
 | `--dark-reset-button-color` | `#d1d5db` | Reset button color in dark mode |
 | `--dark-reset-button-hover-color` | `#ef4444` | Reset button hover color |
+| `--dark-multi-reset-button-bg` | `#6b7280` | Multi reset button background |
+
+**Shadow Effects:**
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+| `--dark-float-box-shadow` | `0 4px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2)` | Float theme shadow in dark mode |
+| `--dark-dropdown-box-shadow` | `0 10px 20px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3)` | Dropdown shadow in dark mode |
+| `--dark-search-input-focus-shadow` | `0 0 0 2px rgba(96, 165, 250, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3)` | Search input focus shadow |
 
 </details>
 
