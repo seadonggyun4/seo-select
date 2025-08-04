@@ -1,16 +1,13 @@
 {
   "name": "seo-select",
-  "version": "2.0.10",
+  "version": "2.0.11",
   "description": "A customizable and accessible select component with search functionality built with Lit",
   "type": "module",
-  
   "main": "./src/index.ts",
-  "module": "./src/index.ts", 
+  "module": "./src/index.ts",
   "types": "./src/index.ts",
-  
   "jsdelivr": "./dist/index.js",
   "unpkg": "./dist/index.js",
-  
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -30,13 +27,11 @@
     },
     "./dist": "./dist/index.js"
   },
-  
   "files": [
     "src/**/*",
     "README.md",
     "LICENSE"
   ],
-  
   "keywords": [
     "lit",
     "web-components",
@@ -52,21 +47,16 @@
     "cdn",
     "esm"
   ],
-  
   "author": "seo dong gyun <seadonggyun@gmail.com>",
   "license": "MIT",
-  
   "repository": {
     "type": "git",
     "url": "https://github.com/seadonggyun4/seo-select"
   },
-  
   "bugs": {
     "url": "https://github.com/seadonggyun4/seo-select/issues"
   },
-  
   "homepage": "https://seo-select.netlify.app/",
-  
   "scripts": {
     "build": "npm run clean && npm run build:types && npm run build:bundle && npm run inline:css",
     "build:bundle": "vite build --mode production",
@@ -75,24 +65,19 @@
     "build:docs": "node scripts/build-docs.js",
     "clean": "rm -rf dist",
     "inline:css": "node scripts/inline-css.js",
-    
     "release": "bash scripts/release.sh",
     "release:patch": "npm version patch && bash scripts/release.sh v$(node -p \"require('./package.json').version\")",
     "release:minor": "npm version minor && bash scripts/release.sh v$(node -p \"require('./package.json').version\")",
     "release:major": "npm version major && bash scripts/release.sh v$(node -p \"require('./package.json').version\")",
-    
     "dev": "vite",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1",
-    
     "prepublishOnly": "npm run build && npm run type-check"
   },
-  
   "dependencies": {
     "lit": "^3.0.0"
   },
-  
   "devDependencies": {
     "@types/node": "^24.1.0",
     "sass": "^1.89.2",
@@ -102,26 +87,21 @@
     "vite-plugin-lib-inject-css": "^2.1.1",
     "fs-extra": "^11.2.0"
   },
-  
   "peerDependencies": {
     "typescript": ">=4.0.0"
   },
-  
   "peerDependenciesMeta": {
     "typescript": {
       "optional": true
     }
   },
-  
   "engines": {
     "node": ">=18.0.0"
   },
-  
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
-  
   "browserslist": [
     "> 1%",
     "last 2 versions",
