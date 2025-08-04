@@ -299,7 +299,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
     return html`
       <div class="${CSS_CLASSES.SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
-        <button type="button" class="${CSS_CLASSES.SELECTED} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" @click=${this.toggleDropdown}>
+        <div class="${CSS_CLASSES.SELECTED} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" @click=${this.toggleDropdown}>
           ${this._labelText}
           ${showResetButton
             ? html`<button
@@ -311,7 +311,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
             : ''
           }
           <span class="${CSS_CLASSES.ARROW}">${this.open ? this.getChevronUpIcon() : this.getChevronDownIcon()}</span>
-        </button>
+        </div>
         ${this.renderSearchDropdown()}
       </div>
     `;
