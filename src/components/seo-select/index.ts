@@ -1042,6 +1042,13 @@ After:  select.removeEventListener('${type}', handler);`);
   }
 
   /**
+   * 드롭다운 열기 이벤트 리스너 추가 (타입 안전)
+   */
+  public onOpen(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.SELECT_OPEN]) => void): void {
+    this.addEventListener(EVENT_NAMES.SELECT_OPEN, handler as EventListener);
+  }
+
+  /**
    * 변경 이벤트 리스너 추가 (타입 안전)
    */
   public onChange(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.CHANGE]) => void): void {

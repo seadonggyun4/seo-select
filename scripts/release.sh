@@ -241,9 +241,21 @@ npm install seo-select@$NEW_VERSION
 \`\`\`
 
 \`\`\`javascript
-// Import components
+// Import basic select component
 import 'seo-select';
+
+// Import search-enabled select component
 import 'seo-select/components/seo-select-search';
+
+// Import event types (TypeScript)
+import type { 
+  SeoSelectEvent, 
+  SeoDeselectEvent,
+  SeoResetEvent 
+} from 'seo-select/event';
+
+// Import Style
+import 'seo-select/styles'
 \`\`\`
 
 #### 🌐 GitHub Release (Standalone - Direct Browser Usage)
@@ -257,19 +269,6 @@ import 'seo-select/components/seo-select-search';
 - **Standalone CSS**: $CSS_SIZE
 - **Target**: ES2020, Modern Browsers
 - **Dependencies**: Lit framework bundled
-
-### 🚀 Quick Start
-
-#### 📦 NPM Installation (For Bundlers)
-\`\`\`bash
-npm install seo-select@$NEW_VERSION
-\`\`\`
-
-\`\`\`html
-<!-- Your bundler will handle the dependencies -->
-<link rel=\"stylesheet\" href=\"./index.css\">
-<script type=\"module\" src=\"./index.js\"></script>
-\`\`\`
 
 #### 📥 GitHub Release Assets (Standalone)
 - **Full Package**: \`$ZIP_NAME\`

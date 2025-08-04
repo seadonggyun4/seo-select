@@ -56,8 +56,8 @@ import 'seo-select/styles'
 
 ```html
 <!-- Import both JavaScript and CSS files -->
-<link rel="stylesheet" href="./index.css">
-<script type="module" src="./index.js"></script>
+<link rel="stylesheet" href="./min/index.css">
+<script type="module" src="./min/index.js"></script>
 ```
 
 **Alternative**: Download pre-built files from [GitHub Releases](https://github.com/seadonggyun4/seo-select/releases)
@@ -331,6 +331,7 @@ seo-select[dark] {
 |----------|---------------|-------------|
 | `--select-padding` | `0.5rem 0.8rem` | Internal padding of select box |
 | `--select-min-height` | `35px` | Minimum height of select component |
+| `--select-min-width` | `150px` | Minimum width of select component |
 | `--select-border-width` | `1px` | Border thickness |
 | `--select-transition-duration` | `0.3s` | Animation transition duration |
 | `--select-transition-easing` | `ease` | Animation easing function |
