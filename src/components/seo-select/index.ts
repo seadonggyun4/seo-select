@@ -92,7 +92,7 @@ export class SeoSelect extends LitElement {
   declare _calculatedWidth: string | null;
 
   // FormData 지원을 위한 hidden input (웹 표준 준수)
-  private _hiddenInput: HTMLInputElement | null = null;
+  public _hiddenInput: HTMLInputElement | null = null;
 
   // 최적화를 위한 캐시 및 플래그
   public _optionsCache: Map<string, VirtualSelectOption> = new Map();
@@ -258,7 +258,7 @@ After:  select.removeEventListener('${type}', handler);`);
   /**
    * Form 값 가져오기
    */
-  private _getFormValue(): string {
+  public _getFormValue(): string {
     if (this.multiple) {
       return this._selectedValues.join(',');
     }
@@ -268,7 +268,7 @@ After:  select.removeEventListener('${type}', handler);`);
   /**
    * Hidden input 값 업데이트
    */
-  public _updateHiddenInput(): void {
+  private _updateHiddenInput(): void {
     if (this._hiddenInput) {
       this._hiddenInput.value = this._getFormValue();
     }
@@ -783,7 +783,7 @@ After:  select.removeEventListener('${type}', handler);`);
       }
     }
 
-    // Hidden input 값 업데이트
+    // Hidden input 값 업데이트 (순환 호출 방지)
     this._updateHiddenInput();
   }
 
@@ -873,7 +873,7 @@ After:  select.removeEventListener('${type}', handler);`);
       this._internals.setValidity({});
     }
 
-    // Hidden input 값 업데이트
+    // Hidden input 값 업데이트 (직접 호출)
     this._updateHiddenInput();
 
     this._debouncedUpdate();

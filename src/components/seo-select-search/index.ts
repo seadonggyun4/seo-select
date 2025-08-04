@@ -619,8 +619,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       this._internals.setValidity({});
     }
 
-    // Hidden input 값 업데이트 (부모 클래스에서 처리)
-    this._updateHiddenInput();
+    // Hidden input 값 업데이트 (직접 호출로 순환 방지)
+    if (this._hiddenInput) {
+      this._hiddenInput.value = this._getFormValue();
+    }
 
     this._debouncedUpdate();
     
@@ -771,10 +773,12 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     };
   }
 
-  // Hidden input 업데이트 메서드 (부모 클래스의 private 메서드를 호출하기 위한 wrapper)
-  public _updateHiddenInput(): void {
-    // 부모 클래스의 updateFormValue 메서드를 호출하여 hidden input 업데이트
-    this.updateFormValue();
+  // Form 값 가져오기 헬퍼 메서드
+  public _getFormValue(): string {
+    if (this.multiple) {
+      return this._selectedValues.join(',');
+    }
+    return this._value || '';
   }
 }
 
