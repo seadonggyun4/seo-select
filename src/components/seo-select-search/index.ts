@@ -152,6 +152,17 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
   }
 
   /**
+   * 드롭다운 열기 이벤트 리스너 추가 (타입 안전)
+   * @example
+   * searchSelect.onOpen((event) => {
+   *   console.log('Search dropdown opened');
+   * });
+   */
+  public override onOpen(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.SELECT_OPEN]) => void): void {
+    this.addEventListener(EVENT_NAMES.SELECT_OPEN, handler as EventListener);
+  }
+
+  /**
    * 검색 텍스트 변경 이벤트 리스너 추가 (검색 컴포넌트 전용)
    * @example
    * searchSelect.onSearchChange((searchText) => {

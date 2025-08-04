@@ -21,6 +21,7 @@ seo-select, seo-select-search {
   color: select.$select-font-color;
   position: relative;
   box-sizing: border-box;
+  min-width: select.$select-min-width;
 
   // 테마별 기본 스타일
   &.theme-basic {
