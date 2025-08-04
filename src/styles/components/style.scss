@@ -53,6 +53,10 @@ seo-select, seo-select-search {
     &:hover {
       border-color: colors.$primary-color;
     }
+
+    &:empty{
+      min-height: 2rem;
+    }
   }
 
   // Basic Theme 스타일
