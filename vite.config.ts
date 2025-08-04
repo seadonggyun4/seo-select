@@ -1,34 +1,26 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
-import dts from 'vite-plugin-dts';
 import { libInjectCss } from 'vite-plugin-lib-inject-css';
 
 export default defineConfig({
   plugins: [
     libInjectCss(),
-    dts({
-      insertTypesEntry: true,
-      rollupTypes: true,
-      include: ['src/**/*'],
-      exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts']
-    })
   ],
   publicDir: false,
   build: {
     lib: {
-      entry: {
-        index: resolve(__dirname, 'src/index.ts'),
-        'components/seo-select/index': resolve(__dirname, 'src/components/seo-select/index.ts'),
-        'components/seo-select-search/index': resolve(__dirname, 'src/components/seo-select-search/index.ts')
-      },
+      entry: resolve(__dirname, 'src/main.ts'),
       formats: ['es'],
-      fileName: (format, entryName) => `${entryName}.js`
+      fileName: () => 'index.js',
+      name: 'SeoSelect'
     },
     rollupOptions: {
       external: [],
       output: {
-        globals: {},
-        preserveModules: false,
+        inlineDynamicImports: true,
+        manualChunks: undefined,
+        entryFileNames: 'index.js',
+        chunkFileNames: 'index.js',
         assetFileNames: (assetInfo) => {
           if (assetInfo.name?.endsWith('.css')) {
             return 'styles/[name][extname]';
@@ -38,13 +30,13 @@ export default defineConfig({
       }
     },
     cssCodeSplit: false,
-    sourcemap: true,
-    minify: 'esbuild'
+    sourcemap: false, 
+    minify: true, 
+    chunkSizeWarningLimit: 2000
   },
   css: {
     preprocessorOptions: {
-      scss: {
-      }
+      scss: {}
     }
   }
 });

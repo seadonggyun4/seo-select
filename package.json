@@ -1,6 +1,6 @@
 {
   "name": "seo-select",
-  "version": "2.0.7",
+  "version": "2.0.9",
   "description": "A customizable and accessible select component with search functionality built with Lit",
   "type": "module",
   "main": "./src/index.ts",
@@ -73,9 +73,6 @@
     "vite-plugin-dts": "^4.5.4",
     "vite-plugin-lib-inject-css": "^2.1.1",
     "fs-extra": "^11.2.0"
-  },
-  "peerDependencies": {
-    "lit": "^3.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
