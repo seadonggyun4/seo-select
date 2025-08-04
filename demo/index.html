@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" integrity="sha512-oHDEc8Xed4hiW6CxD7qjbnI+B07vDdX7hEPTvn9pSZO1bcRqHp8mj9pyr+8RVC2GmtEfI2Bi9Ke9Ass0as+zpg==" crossOrigin="anonymous" referrerPolicy="no-referrer" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/style.scss">
 </head>
 <body>
     <div class="container">
@@ -186,7 +186,7 @@
                     <div class="demo-container">
                         <seo-select-search id="loading-demo" name="async-multilang" width="350px">
                         </seo-select-search>
-                        <button class="action-btn" onclick="loadMultilingualData()">Load Multilingual Data</button>
+                        <button class="action-btn" onclick="DemoActions.loadMultilingualData()">Load Multilingual Data</button>
                     </div>
                     <div class="demo-description">
                         <span>⏳</span>
@@ -201,7 +201,7 @@
                     </p>
                     <div class="demo-container">
                         <seo-select-search id="large-multilang-search" name="large-multilang" width="400px"></seo-select-search>
-                        <button class="action-btn" onclick="loadLargeDataset()">Load 10,000 Items</button>
+                        <button class="action-btn" onclick="DemoActions.loadLargeDataset()">Load 10,000 Items</button>
                     </div>
                     <div class="demo-description">
                         <span>🚀</span>
@@ -309,7 +309,7 @@
                             <option value="dark">Dark Mode</option>
                             <option value="auto">Auto Mode</option>
                         </seo-select>
-                        <button class="action-btn" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+                        <button class="action-btn" onclick="DemoActions.toggleDarkMode()">Toggle Dark Mode</button>
                     </div>
                     <div class="demo-description">
                         <span>🎨</span>
@@ -464,10 +464,10 @@
                             <option value="ml">Machine Learning</option>
                         </seo-select-search>
                         <div class="language-controls">
-                            <button class="lang-btn" onclick="setLanguage('ko')">한국어</button>
-                            <button class="lang-btn" onclick="setLanguage('en')">English</button>
-                            <button class="lang-btn" onclick="setLanguage('ja')">日本語</button>
-                            <button class="lang-btn" onclick="setLanguage('zh')">中文</button>
+                            <button class="lang-btn" onclick="DemoActions.setLanguage('ko')">한국어</button>
+                            <button class="lang-btn" onclick="DemoActions.setLanguage('en')">English</button>
+                            <button class="lang-btn" onclick="DemoActions.setLanguage('ja')">日本語</button>
+                            <button class="lang-btn" onclick="DemoActions.setLanguage('zh')">中文</button>
                         </div>
                         <div class="i18n-info">
                             <strong>🔄 Watch for changes:</strong>
@@ -607,7 +607,7 @@
         </div>
     </div>
 
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="../src/main.ts"></script>
     <script src="/demo.js"></script>
 </body>
 </html>
