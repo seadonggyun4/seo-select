@@ -25,11 +25,9 @@ export default defineConfig({
       fileName: (format, entryName) => `${entryName}.js`
     },
     rollupOptions: {
-      external: ['lit', 'lit/decorators.js'],
+      external: [],
       output: {
-        globals: {
-          lit: 'lit'
-        },
+        globals: {},
         preserveModules: false,
         assetFileNames: (assetInfo) => {
           if (assetInfo.name?.endsWith('.css')) {

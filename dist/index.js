@@ -1,7 +1,7 @@
-import { D as E, E as e, L as s, a as A, b as L, S as T } from "./index-DFU6-0W1.js";
-import { S as t, i as _ } from "./index-BJ925KOx.js";
+import { D as a, E as e, L as s, b as A, f as L, S as T } from "./index-ChBqhzDu.js";
+import { SeoSelectSearch as t, i as _ } from "./components/seo-select-search/index.js";
 export {
-  E as DEFAULT_CONFIG,
+  a as DEFAULT_CONFIG,
   e as EVENT_NAMES,
   s as LOCALIZED_TEXTS,
   A as SEARCH_LOCALIZED_TEXTS,

@@ -1,6 +1,5 @@
-import "lit";
-import { S as t } from "../../index-DFU6-0W1.js";
+import { S } from "../../index-ChBqhzDu.js";
 export {
-  t as SeoSelect
+  S as SeoSelect
 };
 //# sourceMappingURL=index.js.map
