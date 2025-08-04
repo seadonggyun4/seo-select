@@ -86,13 +86,16 @@ export class SeoSelect extends LitElement {
   declare _initialValue: string | null;
   declare _initialLabel: string | null;
   declare _virtual: InteractiveVirtualSelect | null;
-  declare _options: HTMLOptionElement[];
+  declare _options: VirtualSelectOption[]; // HTMLOptionElement[] 대신 VirtualSelectOption[] 사용
   declare _internals: ElementInternals;
   declare _pendingActiveIndex: number | null;
   declare _calculatedWidth: string | null;
 
+  // FormData 지원을 위한 hidden input (웹 표준 준수)
+  private _hiddenInput: HTMLInputElement | null = null;
+
   // 최적화를 위한 캐시 및 플래그
-  public _optionsCache: Map<string, HTMLOptionElement> = new Map();
+  public _optionsCache: Map<string, VirtualSelectOption> = new Map();
   private _localizedTextCache: LocalizedTexts | null = null;
   private _lastLanguage: string = '';
   private _lastTextsHash: string = '';
@@ -190,6 +193,10 @@ After:  select.removeEventListener('${type}', handler);`);
   connectedCallback(): void {
     this.style.width = this.width !== '100%' ? '' : '100%';
     super.connectedCallback();
+    
+    // FormData 지원을 위한 hidden input 생성
+    this._createHiddenInput();
+    
     this.initializeOptionsFromPropsOrSlot();
     window.addEventListener(EVENT_NAMES.SELECT_OPEN, this.onOtherSelectOpened);
     window.addEventListener('click', this.handleOutsideClick, true);
@@ -198,38 +205,72 @@ After:  select.removeEventListener('${type}', handler);`);
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    
-    // 이벤트 리스너 제거
     window.removeEventListener(EVENT_NAMES.SELECT_OPEN, this.onOtherSelectOpened);
     window.removeEventListener('click', this.handleOutsideClick);
     this.removeEventListener('keydown', this._handleKeydownBound);
-    
-    // Virtual select 정리
     this._virtual?.destroy();
     this._virtual = null;
 
-    // 모든 옵션 엘리먼트 완전 제거
-    const allOptions = Array.from(this.querySelectorAll('option')) as HTMLOptionElement[];
-    allOptions.forEach(opt => opt.remove());
+    // Hidden input 정리
+    this._removeHiddenInput();
 
-    // 캐시 및 상태 정리
-    this._options = [];
+    // 캐시 정리
     this._optionsCache.clear();
     this._widthCalculationCache.clear();
     this._localizedTextCache = null;
 
-    // 타이머 정리
     if (this._updateDebounceTimer) {
       clearTimeout(this._updateDebounceTimer);
-      this._updateDebounceTimer = null;
     }
 
-    // 상태 초기화
     if (this.multiple) {
       this._selectedValues = [];
     } else {
-      this._value = null;
-      this._labelText = '';
+      this.value = '';
+    }
+  }
+
+  /**
+   * FormData 지원을 위한 hidden input 생성 (웹 표준 준수)
+   */
+  private _createHiddenInput(): void {
+    if (!this.name) return;
+    
+    this._hiddenInput = document.createElement('input');
+    this._hiddenInput.type = 'hidden';
+    this._hiddenInput.name = this.name;
+    this._hiddenInput.value = this._getFormValue();
+    
+    // Shadow DOM이 아닌 Light DOM에 추가하여 form과 연동
+    this.appendChild(this._hiddenInput);
+  }
+
+  /**
+   * Hidden input 제거
+   */
+  private _removeHiddenInput(): void {
+    if (this._hiddenInput) {
+      this._hiddenInput.remove();
+      this._hiddenInput = null;
+    }
+  }
+
+  /**
+   * Form 값 가져오기
+   */
+  private _getFormValue(): string {
+    if (this.multiple) {
+      return this._selectedValues.join(',');
+    }
+    return this._value || '';
+  }
+
+  /**
+   * Hidden input 값 업데이트
+   */
+  public _updateHiddenInput(): void {
+    if (this._hiddenInput) {
+      this._hiddenInput.value = this._getFormValue();
     }
   }
 
@@ -264,99 +305,11 @@ After:  select.removeEventListener('${type}', handler);`);
     if (needsWidthUpdate) {
       this.calculateAutoWidth();
     }
-  }
 
-  // 완전 개선된 옵션 초기화 - Slot 이중 옵션 문제 해결
-  public initializeOptionsFromPropsOrSlot(): void {
-    if (this._isUpdating) return;
-    this._isUpdating = true;
-
-    try {
-      // 기존 캐시 정리
-      this._optionsCache.clear();
-      
-      // 기존 숨겨진 옵션들 완전 제거
-      this._options.forEach(opt => {
-        if (opt.hidden) {
-          opt.remove();
-        }
-      });
-
-      const slotOptions = Array.from(this.querySelectorAll('option:not([hidden])')) as HTMLOptionElement[];
-
-      if (slotOptions.length > 0) {
-        // Slot 방식: 기존 옵션들을 데이터로만 추출하고 DOM에서 제거
-        const optionData = slotOptions.map(opt => ({
-          value: opt.value,
-          label: opt.textContent || '',
-          selected: opt.selected
-        }));
-
-        // 기존 slot 옵션들을 DOM에서 완전 제거
-        slotOptions.forEach(opt => opt.remove());
-
-        // 새로운 hidden 옵션들을 생성 (form 연동용)
-        const fragment = document.createDocumentFragment();
-        this._options = optionData.map(data => {
-          const el = document.createElement('option');
-          el.value = data.value;
-          el.textContent = data.label;
-          el.selected = data.selected;
-          el.hidden = true; // form 연동용으로만 사용
-          this._optionsCache.set(data.value, el);
-          fragment.appendChild(el);
-          return el;
-        });
-        
-        this.appendChild(fragment);
-
-      } else if (Array.isArray(this.optionItems) && this.optionItems.length > 0) {
-        // Props 방식: optionItems에서 생성
-        const fragment = document.createDocumentFragment();
-        
-        this._options = this.optionItems.map(opt => {
-          const el = document.createElement('option');
-          el.value = opt.value;
-          el.textContent = opt.label;
-          el.hidden = true; // form 연동용으로만 사용
-          this._optionsCache.set(opt.value, el);
-          fragment.appendChild(el);
-          return el;
-        });
-        
-        this.appendChild(fragment);
-      } else {
-        this._options = [];
-      }
-
-      if (this._options.length > 0) {
-        this._isLoading = false;
-      }
-
-      // 선택된 값 처리
-      if (this.multiple) {
-        const selectedOptions = this._options.filter(opt => opt.selected);
-        this._selectedValues = selectedOptions.map(opt => opt.value);
-      } else {
-        const selected = this._options.find(opt => opt.selected);
-        if (selected) {
-          this._setValue(selected.value, false);
-        } else if (this._options.length > 0) {
-          this._setValue(this._options[0].value, false);
-        }
-      }
-
-      if (this._options.length > 0) {
-        this._initialValue = this._options[0].value;
-        this._initialLabel = this._options[0].textContent || '';
-      }
-
-      // 너비 계산을 비동기로 처리
-      this.calculateAutoWidth();
-      
-    } finally {
-      this._isUpdating = false;
-      this._debouncedUpdate();
+    // name 속성이 변경된 경우 hidden input 재생성
+    if (changed.has('name')) {
+      this._removeHiddenInput();
+      this._createHiddenInput();
     }
   }
 
@@ -368,7 +321,7 @@ After:  select.removeEventListener('${type}', handler);`);
     }
 
     // 캐시 키 생성
-    const optionTexts = this._options.map(opt => opt.textContent || '');
+    const optionTexts = this._options.map(opt => opt.label);
     const cacheKey = optionTexts.join('|') + `|${this.multiple}`;
     
     if (this._widthCalculationCache.has(cacheKey)) {
@@ -490,8 +443,8 @@ After:  select.removeEventListener('${type}', handler);`);
         <div class="${CSS_CLASSES.SELECTED_CONTAINER} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" @click=${this.toggleDropdown}>
           <div class="${CSS_CLASSES.SELECTED_TAGS}">
             ${this._selectedValues.map(value => {
-              const option = this._optionsCache.get(value) || this._options.find(opt => opt.value === value);
-              const label = option?.textContent || value;
+              const option = this._optionsCache.get(value);
+              const label = option?.label || value;
               return html`
                 <span class="${CSS_CLASSES.TAG}">
                   ${label}
@@ -559,7 +512,7 @@ After:  select.removeEventListener('${type}', handler);`);
     this._selectedValues = this._selectedValues.filter(value => value !== valueToRemove);
     this.updateFormValue();
 
-    const option = this._optionsCache.get(valueToRemove) || this._options.find(opt => opt.value === valueToRemove);
+    const option = this._optionsCache.get(valueToRemove);
 
     if (this.open) {
       this._virtual?.destroy();
@@ -578,7 +531,7 @@ After:  select.removeEventListener('${type}', handler);`);
     }
 
     // 표준 이벤트 발생
-    triggerDeselectEvent(this, option?.textContent || '', valueToRemove);
+    triggerDeselectEvent(this, option?.label || '', valueToRemove);
 
     this._debouncedUpdate();
   };
@@ -612,7 +565,7 @@ After:  select.removeEventListener('${type}', handler);`);
       if (this._options.length > 0) {
         const firstOption = this._options[0];
         this.value = firstOption.value;
-        this._labelText = firstOption.textContent || '';
+        this._labelText = firstOption.label;
 
         if (this.open && this._virtual) {
           requestAnimationFrame(() => {
@@ -632,7 +585,7 @@ After:  select.removeEventListener('${type}', handler);`);
         }
 
         // 표준 이벤트 발생
-        triggerResetEvent(this, { value: firstOption.value, label: firstOption.textContent || '' });
+        triggerResetEvent(this, { value: firstOption.value, label: firstOption.label });
       }
     }
     
@@ -646,6 +599,77 @@ After:  select.removeEventListener('${type}', handler);`);
 
   public hasNoOptions(): boolean {
     return this._options.length === 0;
+  }
+
+  /**
+   * 웹 표준 준수: slot 기반 옵션 초기화 (hidden option 요소 제거)
+   */
+  public initializeOptionsFromPropsOrSlot(): void {
+    if (this._isUpdating) return;
+    this._isUpdating = true;
+
+    try {
+      // 기존 캐시 정리
+      this._optionsCache.clear();
+
+      // DOM에서 option 요소들을 찾아서 데이터만 추출 후 제거
+      const optionEls = Array.from(this.querySelectorAll('option')) as HTMLOptionElement[];
+
+      if (optionEls.length > 0) {
+        // option 요소들에서 데이터 추출
+        this._options = optionEls.map(opt => {
+          const option: VirtualSelectOption = {
+            value: opt.value,
+            label: opt.textContent || opt.value
+          };
+          this._optionsCache.set(opt.value, option);
+          return option;
+        });
+
+        // 웹 표준 준수: DOM에서 option 요소들 완전 제거
+        optionEls.forEach(opt => opt.remove());
+        
+      } else if (Array.isArray(this.optionItems) && this.optionItems.length > 0) {
+        // optionItems prop에서 데이터 사용
+        this._options = this.optionItems.map(opt => {
+          const option: VirtualSelectOption = {
+            value: opt.value,
+            label: opt.label
+          };
+          this._optionsCache.set(opt.value, option);
+          return option;
+        });
+      } else {
+        this._options = [];
+      }
+
+      if (this._options.length > 0) {
+        this._isLoading = false;
+      }
+
+      // 선택된 값 처리 (이전의 option.selected 대신 초기값 설정)
+      if (this.multiple) {
+        // 멀티 선택에서는 빈 배열로 시작
+        this._selectedValues = [];
+      } else {
+        // 단일 선택에서는 첫 번째 옵션을 기본값으로
+        if (!this._value && this._options.length > 0) {
+          this._setValue(this._options[0].value, false);
+        }
+      }
+
+      if (this._options.length > 0) {
+        this._initialValue = this._options[0].value;
+        this._initialLabel = this._options[0].label;
+      }
+
+      // 너비 계산을 비동기로 처리
+      this.calculateAutoWidth();
+      
+    } finally {
+      this._isUpdating = false;
+      this._debouncedUpdate();
+    }
   }
 
   public openDropdown(): void {
@@ -758,6 +782,9 @@ After:  select.removeEventListener('${type}', handler);`);
         this._internals.setValidity({});
       }
     }
+
+    // Hidden input 값 업데이트
+    this._updateHiddenInput();
   }
 
   public handleOutsideClick = async (e: MouseEvent) => {
@@ -801,12 +828,12 @@ After:  select.removeEventListener('${type}', handler);`);
         .filter((opt) => !this._selectedValues.includes(opt.value))
         .map((opt) => ({
           value: opt.value,
-          label: opt.textContent ?? '',
+          label: opt.label,
         }));
     } else {
       return this._options.map((opt) => ({
         value: opt.value,
-        label: opt.textContent ?? '',
+        label: opt.label,
       }));
     }
   }
@@ -834,8 +861,8 @@ After:  select.removeEventListener('${type}', handler);`);
     if (this._value === newVal) return;
 
     this._value = newVal;
-    const matched = this._optionsCache.get(newVal) || this._options.find((opt) => opt.value === newVal);
-    this._labelText = matched?.textContent ?? this._labelText ?? '';
+    const matched = this._optionsCache.get(newVal);
+    this._labelText = matched?.label ?? this._labelText ?? '';
 
     this._internals.setFormValue(this._value || '');
 
@@ -846,184 +873,16 @@ After:  select.removeEventListener('${type}', handler);`);
       this._internals.setValidity({});
     }
 
+    // Hidden input 값 업데이트
+    this._updateHiddenInput();
+
     this._debouncedUpdate();
     
     // 표준 이벤트 발생
     if (emit) triggerChangeEvent(this);
   }
 
-  // 옵션 리스트 새 리스트로 업데이트 메서드 - 개선된 버전
-  public batchUpdateOptions(newOptions: VirtualSelectOption[]): void {
-    if (this._isUpdating) return;
-    
-    this._isUpdating = true;
-    
-    try {
-      // 모든 기존 옵션 완전 제거 (hidden 포함)
-      const allExistingOptions = Array.from(this.querySelectorAll('option')) as HTMLOptionElement[];
-      allExistingOptions.forEach(opt => opt.remove());
-      
-      this._options = [];
-      this._optionsCache.clear();
-      this._widthCalculationCache.clear();
-
-      // 새 옵션들을 DocumentFragment로 배치 생성
-      const fragment = document.createDocumentFragment();
-      
-      this._options = newOptions.map(opt => {
-        const el = document.createElement('option');
-        el.value = opt.value;
-        el.textContent = opt.label;
-        el.hidden = true; // form 연동용으로만 사용
-        this._optionsCache.set(opt.value, el);
-        fragment.appendChild(el);
-        return el;
-      });
-
-      this.appendChild(fragment);
-
-      // 초기값 설정
-      if (this._options.length > 0) {
-        this._initialValue = this._options[0].value;
-        this._initialLabel = this._options[0].textContent || '';
-        this._isLoading = false;
-        
-        if (!this.multiple && !this._value) {
-          this._setValue(this._options[0].value, false);
-        }
-      }
-
-      this.calculateAutoWidth();
-      
-    } finally {
-      this._isUpdating = false;
-      this._debouncedUpdate();
-    }
-  }
-
-  // 옵션 추가를 위한 최적화된 메서드
-  public addOption(option: VirtualSelectOption): void {
-    const el = document.createElement('option');
-    el.value = option.value;
-    el.textContent = option.label;
-    el.hidden = true;
-    
-    this._options.push(el);
-    this._optionsCache.set(option.value, el);
-    this.appendChild(el);
-    
-    // 캐시 무효화
-    this._widthCalculationCache.clear();
-    this.calculateAutoWidth();
-    this._debouncedUpdate();
-  }
-
-  // 옵션 제거를 위한 최적화된 메서드 - 개선된 버전
-  public removeOption(value: string): void {
-    const optionEl = this._optionsCache.get(value);
-    if (!optionEl) return;
-
-    // DOM에서 완전 제거
-    optionEl.remove();
-    
-    // 배열에서 제거
-    const index = this._options.findIndex(opt => opt.value === value);
-    if (index !== -1) {
-      this._options.splice(index, 1);
-    }
-    
-    // 캐시에서 제거
-    this._optionsCache.delete(value);
-    
-    // 선택된 값에서도 제거
-    if (this.multiple) {
-      this._selectedValues = this._selectedValues.filter(v => v !== value);
-      this.updateFormValue();
-    } else if (this._value === value) {
-      if (this._options.length > 0) {
-        this._setValue(this._options[0].value, true);
-      } else {
-        this._setValue('', true);
-      }
-    }
-    
-    this._widthCalculationCache.clear();
-    this.calculateAutoWidth();
-    this._debouncedUpdate();
-  }
-
-  // 옵션 검색을 위한 최적화된 메서드
-  public findOption(value: string): HTMLOptionElement | null {
-    return this._optionsCache.get(value) || null;
-  }
-
-  // 모든 옵션 클리어 - 개선된 버전
-  public clearOptions(): void {
-    // 모든 option 엘리먼트 제거 (hidden, visible 모두)
-    const allOptions = Array.from(this.querySelectorAll('option')) as HTMLOptionElement[];
-    allOptions.forEach(opt => opt.remove());
-    
-    this._options = [];
-    this._optionsCache.clear();
-    this._widthCalculationCache.clear();
-    
-    if (this.multiple) {
-      this._selectedValues = [];
-      this.updateFormValue();
-    } else {
-      this._setValue('', true);
-    }
-    
-    this._debouncedUpdate();
-  }
-
-  // 개발자를 위한 디버깅 메서드
-  public debugDOMState(): {
-    totalOptions: number;
-    hiddenOptions: number;
-    visibleOptions: number;
-    cacheSize: number;
-    internalOptionsCount: number;
-  } {
-    const allOptions = Array.from(this.querySelectorAll('option')) as HTMLOptionElement[];
-    const hiddenOptions = allOptions.filter(opt => opt.hidden);
-    const visibleOptions = allOptions.filter(opt => !opt.hidden);
-    
-    return {
-      totalOptions: allOptions.length,
-      hiddenOptions: hiddenOptions.length,
-      visibleOptions: visibleOptions.length,
-      cacheSize: this._optionsCache.size,
-      internalOptionsCount: this._options.length
-    };
-  }
-
-  // 성능 모니터링을 위한 메서드
-  public getPerformanceMetrics(): {
-    optionCount: number;
-    cacheSize: number;
-    isUpdating: boolean;
-    hasCalculatedWidth: boolean;
-  } {
-    return {
-      optionCount: this._options.length,
-      cacheSize: this._optionsCache.size,
-      isUpdating: this._isUpdating,
-      hasCalculatedWidth: this._calculatedWidth !== null
-    };
-  }
-
-  // 캐시 수동 정리 메서드
-  public clearCaches(): void {
-    this._optionsCache.clear();
-    this._widthCalculationCache.clear();
-    this._localizedTextCache = null;
-    this._lastLanguage = '';
-    this._lastTextsHash = '';
-  }
-
-  // Getter/Setter 및 기본 API
-  get options(): HTMLOptionElement[] {
+  get options(): VirtualSelectOption[] {
     return this._options;
   }
 
@@ -1087,6 +946,138 @@ After:  select.removeEventListener('${type}', handler);`);
     this.autoWidth = enabled;
     this.calculateAutoWidth();
     this._debouncedUpdate();
+  }
+
+  // 옵션 리스트 새 리스트로 업데이트 메서드 (웹 표준 준수)
+  public batchUpdateOptions(newOptions: VirtualSelectOption[]): void {
+    if (this._isUpdating) return;
+    
+    // 업데이트 중 플래그 설정
+    this._isUpdating = true;
+    
+    try {
+      // 기존 옵션 정리 (DOM에서는 이미 제거됨)
+      this._options = [];
+      this._optionsCache.clear();
+      this._widthCalculationCache.clear();
+
+      // 새 옵션들 설정
+      this._options = newOptions.map(opt => {
+        const option: VirtualSelectOption = {
+          value: opt.value,
+          label: opt.label
+        };
+        this._optionsCache.set(opt.value, option);
+        return option;
+      });
+
+      // 초기값 설정
+      if (this._options.length > 0) {
+        this._initialValue = this._options[0].value;
+        this._initialLabel = this._options[0].label;
+        this._isLoading = false;
+        
+        // 단일 선택 모드에서 기본값 설정
+        if (!this.multiple && !this._value) {
+          this._setValue(this._options[0].value, false);
+        }
+      }
+
+      // 너비 재계산
+      this.calculateAutoWidth();
+      
+    } finally {
+      this._isUpdating = false;
+      this._debouncedUpdate();
+    }
+  }
+
+  // 옵션 추가를 위한 최적화된 메서드 (웹 표준 준수)
+  public addOption(option: VirtualSelectOption): void {
+    const newOption: VirtualSelectOption = {
+      value: option.value,
+      label: option.label
+    };
+    
+    this._options.push(newOption);
+    this._optionsCache.set(option.value, newOption);
+    
+    // 캐시 무효화
+    this._widthCalculationCache.clear();
+    this.calculateAutoWidth();
+    this._debouncedUpdate();
+  }
+
+  // 옵션 제거를 위한 최적화된 메서드 (웹 표준 준수)
+  public removeOption(value: string): void {
+    const index = this._options.findIndex(opt => opt.value === value);
+    if (index === -1) return;
+
+    this._options.splice(index, 1);
+    this._optionsCache.delete(value);
+    
+    // 선택된 값에서도 제거
+    if (this.multiple) {
+      this._selectedValues = this._selectedValues.filter(v => v !== value);
+      this.updateFormValue();
+    } else if (this._value === value) {
+      // 현재 선택된 값이 제거되면 첫 번째 옵션으로 변경
+      if (this._options.length > 0) {
+        this._setValue(this._options[0].value, true);
+      } else {
+        this._setValue('', true);
+      }
+    }
+    
+    // 캐시 무효화
+    this._widthCalculationCache.clear();
+    this.calculateAutoWidth();
+    this._debouncedUpdate();
+  }
+
+  // 옵션 검색을 위한 최적화된 메서드
+  public findOption(value: string): VirtualSelectOption | null {
+    return this._optionsCache.get(value) || null;
+  }
+
+  // 모든 옵션 클리어 (웹 표준 준수)
+  public clearOptions(): void {
+    this._options = [];
+    this._optionsCache.clear();
+    this._widthCalculationCache.clear();
+    
+    if (this.multiple) {
+      this._selectedValues = [];
+      this.updateFormValue();
+    } else {
+      this._setValue('', true);
+    }
+    
+    this._debouncedUpdate();
+  }
+
+  // 성능 모니터링을 위한 메서드
+  public getPerformanceMetrics(): {
+    optionCount: number;
+    cacheSize: number;
+    isUpdating: boolean;
+    hasCalculatedWidth: boolean;
+  } {
+    return {
+      optionCount: this._options.length,
+      cacheSize: this._optionsCache.size,
+      isUpdating: this._isUpdating,
+      hasCalculatedWidth: this._calculatedWidth !== null
+    };
+  }
+
+  // 캐시 수동 정리 메서드
+  public clearCaches(): void {
+    this._optionsCache.clear();
+    this._widthCalculationCache.clear();
+    this._localizedTextCache = null;
+    this._lastLanguage = '';
+    this._lastTextsHash = '';
   }
 
   // 타입 안전한 이벤트 리스너 헬퍼 메서드들 (표준 addEventListener 권장)

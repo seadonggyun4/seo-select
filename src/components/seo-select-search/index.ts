@@ -264,8 +264,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         <div class="${CSS_CLASSES.SELECTED_CONTAINER} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" @click=${this.toggleDropdown}>
           <div class="${CSS_CLASSES.SELECTED_TAGS}">
             ${this._selectedValues.map(value => {
-              const option = this._options.find(opt => opt.value === value);
-              const label = option?.textContent || value;
+              // 수정: VirtualSelectOption 사용
+              const option = this._optionsCache.get(value);
+              const label = option?.label || value;
               return html`
                 <span class="${CSS_CLASSES.TAG}">
                   ${label}
@@ -301,6 +302,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   private renderSingleSelectSearch() {
     const texts = this.getLocalizedText();
+    // 수정: VirtualSelectOption 사용
     const firstOptionValue = this._options && this._options.length > 0 ? this._options[0].value : null;
     const showResetButton = this.showReset &&
                           this._value !== null &&
@@ -448,7 +450,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._selectedValues = this._selectedValues.filter(value => value !== valueToRemove);
     this.updateFormValue();
 
-    const option = this._optionsCache.get(valueToRemove) || this._options.find(opt => opt.value === valueToRemove);
+    // 수정: VirtualSelectOption 사용
+    const option = this._optionsCache.get(valueToRemove);
 
     if (this.open) {
       this._virtual?.destroy();
@@ -470,8 +473,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       }
     }
 
-    // 표준 이벤트 발생
-    triggerDeselectEvent(this, option?.textContent || '', valueToRemove);
+    // 표준 이벤트 발생 - VirtualSelectOption 사용
+    triggerDeselectEvent(this, option?.label || '', valueToRemove);
 
     this._debouncedUpdate();
   };
@@ -510,7 +513,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       if (this._options.length > 0) {
         const firstOption = this._options[0];
         this.value = firstOption.value;
-        this._labelText = firstOption.textContent || '';
+        this._labelText = firstOption.label; // 수정: VirtualSelectOption 사용
 
         // 드롭다운이 열려있는 경우 즉시 activeIndex와 focusedIndex를 첫 번째로 설정
         if (this.open && this._virtual) {
@@ -531,8 +534,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
           }
         }
 
-        // 표준 이벤트 발생
-        triggerResetEvent(this, { value: firstOption.value, label: firstOption.textContent || '' });
+        // 표준 이벤트 발생 - VirtualSelectOption 사용
+        triggerResetEvent(this, { value: firstOption.value, label: firstOption.label });
       }
     }
     
@@ -598,13 +601,14 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     }
   }
 
-  // 값 설정 메서드 오버라이드 - 표준 이벤트 사용
+  // 값 설정 메서드 오버라이드 - 표준 이벤트 사용 및 VirtualSelectOption 지원
   public override _setValue(newVal: string, emit: boolean = true): void {
     if (this._value === newVal) return;
 
     this._value = newVal;
-    const matched = this._optionsCache.get(newVal) || this._options.find((opt) => opt.value === newVal);
-    this._labelText = matched?.textContent ?? this._labelText ?? '';
+    // 수정: VirtualSelectOption 사용
+    const matched = this._optionsCache.get(newVal);
+    this._labelText = matched?.label ?? this._labelText ?? '';
 
     this._internals.setFormValue(this._value || '');
 
@@ -614,6 +618,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     } else {
       this._internals.setValidity({});
     }
+
+    // Hidden input 값 업데이트 (부모 클래스에서 처리)
+    this._updateHiddenInput();
 
     this._debouncedUpdate();
     
@@ -627,7 +634,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._noMatchVisible = false;
   }
 
-  // 자동 너비 계산 오버라이드 - 검색 입력창 고려
+  // 자동 너비 계산 오버라이드 - 검색 입력창 고려 및 VirtualSelectOption 지원
   public override calculateAutoWidth(): void {
     // width가 명시적으로 설정되지 않은 경우에만 계산
     if (this.width || this._options.length === 0) {
@@ -635,8 +642,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       return;
     }
 
-    // 모든 옵션 텍스트를 수집
-    const optionTexts = this._options.map(opt => opt.textContent || '');
+    // 수정: VirtualSelectOption 사용
+    const optionTexts = this._options.map(opt => opt.label || '');
     
     // placeholder 텍스트와 검색 placeholder도 고려
     const texts = this.getLocalizedText();
@@ -693,6 +700,45 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this.requestUpdate();
   }
 
+  // 웹 표준 준수: 옵션 일괄 업데이트 메서드 오버라이드
+  public override batchUpdateOptions(newOptions: VirtualSelectOption[]): void {
+    super.batchUpdateOptions(newOptions);
+    
+    // 검색 텍스트가 있는 경우 필터 재적용
+    if (this._searchText && this._virtual) {
+      this._applyFilteredOptions();
+    }
+  }
+
+  // 웹 표준 준수: 옵션 추가 메서드 오버라이드
+  public override addOption(option: VirtualSelectOption): void {
+    super.addOption(option);
+    
+    // 검색 텍스트가 있는 경우 필터 재적용
+    if (this._searchText && this._virtual) {
+      this._applyFilteredOptions();
+    }
+  }
+
+  // 웹 표준 준수: 옵션 제거 메서드 오버라이드
+  public override removeOption(value: string): void {
+    super.removeOption(value);
+    
+    // 검색 텍스트가 있는 경우 필터 재적용
+    if (this._searchText && this._virtual) {
+      this._applyFilteredOptions();
+    }
+  }
+
+  // 웹 표준 준수: 모든 옵션 클리어 메서드 오버라이드
+  public override clearOptions(): void {
+    super.clearOptions();
+    
+    // 검색 텍스트도 초기화
+    this._searchText = '';
+    this._noMatchVisible = false;
+  }
+
   // 검색 관련 다국어 텍스트를 반환하는 정적 메서드
   static getSearchLocalizedTexts(): Record<SupportedLanguage, SearchLocalizedTexts> {
     return SEARCH_LOCALIZED_TEXTS;
@@ -723,6 +769,12 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       searchText: this._searchText,
       hasSearchResults: this._searchText ? this.getAllOptionData().length > 0 : true
     };
+  }
+
+  // Hidden input 업데이트 메서드 (부모 클래스의 private 메서드를 호출하기 위한 wrapper)
+  public _updateHiddenInput(): void {
+    // 부모 클래스의 updateFormValue 메서드를 호출하여 hidden input 업데이트
+    this.updateFormValue();
   }
 }
 
