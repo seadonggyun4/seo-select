@@ -1,10 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { build, type BuildOptions } from 'vite';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 interface FileStats {
   name: string;
@@ -54,8 +50,8 @@ async function copyFile(src: string, dest: string): Promise<void> {
   }
 }
 
-async function buildDocs(): Promise<void> {
-  console.log('🚀 Building SEO Select Documentation...');
+async function buildDemo(): Promise<void> {
+  console.log('🚀 Building SEO Select Demo Website...');
   
   try {
     const outputPath = path.join(process.cwd(), 'output');
@@ -64,6 +60,7 @@ async function buildDocs(): Promise<void> {
     
     console.log('🔨 Building TypeScript and SCSS files...');
     
+    // Build main components (from src)
     const buildConfig: BuildOptions = {
       outDir: 'output',
       lib: false,
@@ -102,22 +99,75 @@ async function buildDocs(): Promise<void> {
         target: 'es2020'
       }
     });
+
+    // Build demo TypeScript and SCSS files
+    console.log('🎨 Building demo TypeScript and SCSS...');
+    
+    const demoBuildConfig: BuildOptions = {
+      outDir: 'output',
+      lib: false,
+      rollupOptions: {
+        input: {
+          demo: path.resolve(process.cwd(), 'demo/demo.ts'),
+          style: path.resolve(process.cwd(), 'demo/style.scss')
+        },
+        output: {
+          entryFileNames: '[name].js',
+          chunkFileNames: '[name].js',
+          assetFileNames: (assetInfo) => {
+            if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+              if (assetInfo.name.includes('style')) {
+                return 'style.css';
+              }
+              return '[name].css';
+            }
+            return '[name].[ext]';
+          }
+        }
+      },
+      minify: false,
+      sourcemap: false,
+      target: 'es2020'
+    };
+
+    await build({
+      configFile: false,
+      build: demoBuildConfig,
+      css: {
+        preprocessorOptions: {
+          scss: {
+            charset: false
+          }
+        }
+      },
+      define: {
+        'process.env.NODE_ENV': '"production"'
+      },
+      esbuild: {
+        target: 'es2020'
+      }
+    });
     
     console.log('📄 Processing index.html...');
-    let indexContent = await fs.readFile('index.html', 'utf8');
+    let indexContent = await fs.readFile('demo/index.html', 'utf8');
     
-    // Replace script references
+    // Replace script and style references
     indexContent = indexContent.replace(
       '<script type="module" src="/src/main.ts"></script>',
       '<script type="module" src="./main.js"></script>'
     );
     
     indexContent = indexContent.replace(
-      '<script type="module" src="/main.js"></script>',
-      '<script type="module" src="./demo.js"></script>'
+      '<script src="/demo.js"></script>',
+      '<script src="./demo.js"></script>'
+    );
+
+    indexContent = indexContent.replace(
+      '<link rel="stylesheet" href="/style.css">',
+      '<link rel="stylesheet" href="./style.css">'
     );
     
-    // Add CSS link if components.css exists
+    // Add components CSS link if exists
     if (await pathExists(path.join(outputPath, 'components.css'))) {
       indexContent = indexContent.replace(
         '</head>',
@@ -126,18 +176,6 @@ async function buildDocs(): Promise<void> {
     }
     
     await fs.writeFile(path.join(outputPath, 'index.html'), indexContent);
-    
-    // Copy demo.js if exists
-    console.log('📄 Processing demo.js...');
-    if (await pathExists('demo.js')) {
-      await copyFile('demo.js', path.join(outputPath, 'demo.js'));
-    }
-    
-    // Copy style.css if exists
-    console.log('📄 Copying style.css...');
-    if (await pathExists('style.css')) {
-      await copyFile('style.css', path.join(outputPath, 'style.css'));
-    }
     
     // Copy static files
     const staticFiles: string[] = ['favicon.ico', 'robots.txt'];
@@ -170,7 +208,7 @@ async function buildDocs(): Promise<void> {
     );
     
     // Display build results
-    console.log('✅ Documentation build completed!');
+    console.log('✅ Demo website build completed!');
     console.log(`📁 Output directory: ${outputPath}`);
     console.log(`📊 Files generated: ${files.length}`);
     console.log('📋 Files:');
@@ -194,7 +232,7 @@ async function buildDocs(): Promise<void> {
 }
 
 // Execute the build
-buildDocs().catch((error) => {
+buildDemo().catch((error) => {
   console.error('❌ Unexpected error:', error);
   process.exit(1);
 });
