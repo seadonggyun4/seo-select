@@ -10,6 +10,8 @@
 
 A lightweight and extensible select component built with Lit, designed to work seamlessly across frameworks. Supports search, virtual scrolling, multiple selection, i18n, and flexible theming.
 
+> 🔧 `seo-select` does not officially support TypeScript and React, Vue yet, but I’m doing my best to make it happen soon.
+
 Demo Site: https://seo-select.netlify.app/
 
 ## Features
@@ -45,6 +47,9 @@ import type {
   SeoDeselectEvent,
   SeoResetEvent 
 } from 'seo-select/event';
+
+// Import Style
+import 'seo-select/styles'
 ```
 
 ### For Direct Browser Usage
@@ -534,165 +539,6 @@ seo-select[dark] {
 | `--dark-search-input-focus-shadow` | `0 0 0 2px rgba(96, 165, 250, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3)` | Search input focus shadow |
 
 </details>
-
-## Framework Integration Examples
-
-### React Integration
-
-```jsx
-import { useEffect, useRef } from 'react';
-import 'seo-select/components/seo-select-search';
-
-function MyComponent() {
-  const selectRef = useRef(null);
-
-  useEffect(() => {
-    const select = selectRef.current;
-    if (!select) return;
-
-    // Standard addEventListener
-    select.addEventListener('onSelect', (event) => {
-      console.log('Selected:', event.label, event.value);
-    });
-
-    // Or use helper methods
-    select.onSelect((event) => {
-      console.log('Selected:', event.label, event.value);
-    });
-
-    return () => {
-      // Cleanup is automatic with modern event handling
-    };
-  }, []);
-
-  return (
-    <div>
-      <seo-select-search ref={selectRef} name="framework">
-        <option value="react">React</option>
-        <option value="vue">Vue</option>
-        <option value="angular">Angular</option>
-      </seo-select-search>
-    </div>
-  );
-}
-
-// TypeScript declarations
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'seo-select': any;
-      'seo-select-search': any;
-    }
-  }
-}
-```
-
-### Vue Integration
-
-```vue
-<template>
-  <seo-select-search 
-    ref="selectRef"
-    name="framework"
-    @onSelect="handleSelect"
-  >
-    <option value="vue">Vue</option>
-    <option value="react">React</option>
-    <option value="angular">Angular</option>
-  </seo-select-search>
-</template>
-
-<script setup>
-import { onMounted, ref } from 'vue';
-import 'seo-select/components/seo-select-search';
-
-const selectRef = ref(null);
-
-onMounted(() => {
-  const select = selectRef.value;
-  
-  // Use helper methods
-  select.onSelect((event) => {
-    console.log('Programmatic:', event.label, event.value);
-  });
-});
-
-const handleSelect = (event) => {
-  console.log('Template:', event.label, event.value);
-};
-</script>
-```
-
-### Angular Integration
-
-```typescript
-import { Component, OnInit, ElementRef, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import 'seo-select/components/seo-select-search';
-
-@Component({
-  selector: 'app-example',
-  template: `
-    <seo-select-search 
-      name="framework" 
-      (onSelect)="handleSelect($event)"
-      #selectElement>
-      <option value="angular">Angular</option>
-      <option value="react">React</option>
-      <option value="vue">Vue</option>
-    </seo-select-search>
-  `,
-  schemas: [CUSTOM_ELEMENTS_SCHEMA] 
-})
-export class ExampleComponent implements OnInit {
-  @ViewChild('selectElement', { static: true }) 
-  selectElement!: ElementRef;
-
-  ngOnInit() {
-    const select = this.selectElement.nativeElement;
-    
-    // Use helper methods
-    select.onSelect((event: any) => {
-      console.log('Programmatic:', event.label, event.value);
-    });
-  }
-
-  handleSelect(event: any) {
-    console.log('Template:', event.label, event.value);
-  }
-}
-```
-
-## Migration Guide
-
-### From Standard HTML Select
-
-```html
-<!-- Before: Standard HTML select -->
-<select name="country">
-  <option value="us">United States</option>
-</select>
-
-<!-- After: seo-select -->
-<script type="module">
-  import 'seo-select';
-</script>
-<seo-select name="country">
-  <option value="us">United States</option>
-</seo-select>
-```
-
-### Adding Search Functionality
-
-```html
-<!-- Change import and tag name -->
-<script type="module">
-  import 'seo-select/components/seo-select-search';
-</script>
-
-<seo-select-search name="country">
-  <option value="us">United States</option>
-</seo-select-search>
-```
 
 ## Best Practices
 
