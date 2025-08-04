@@ -1,6 +1,6 @@
 {
   "name": "seo-select",
-  "version": "2.0.9",
+  "version": "2.0.10",
   "description": "A customizable and accessible select component with search functionality built with Lit",
   "type": "module",
   "main": "./src/index.ts",
@@ -57,12 +57,10 @@
     "build:docs": "node scripts/build-docs.js",
     "build:types": "tsc -p tsconfig.build.json --emitDeclarationOnly",
     "build:check": "tsc -p tsconfig.build.json --noEmit",
-
     "release": "bash scripts/release.sh",
     "release:patch": "npm version patch && bash scripts/release.sh v$(node -p \"require('./package.json').version\")",
     "release:minor": "npm version minor && bash scripts/release.sh v$(node -p \"require('./package.json').version\")",
     "release:major": "npm version major && bash scripts/release.sh v$(node -p \"require('./package.json').version\")",
-    
     "dev": "vite",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
