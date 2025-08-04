@@ -10,7 +10,7 @@
 
 A lightweight and extensible select component built with Lit, designed to work seamlessly across frameworks. Supports search, virtual scrolling, multiple selection, i18n, and flexible theming.
 
-> 🔧 `seo-select` does not officially support TypeScript and React, Vue yet, but I’m doing my best to make it happen soon.
+> `seo-select` does not officially support TypeScript and React, Vue yet, but I’m doing my best to make it happen soon.
 
 Demo Site: https://seo-select.netlify.app/
 
