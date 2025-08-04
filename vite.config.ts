@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [],
   publicDir: false,
   build: {
+    outDir: 'dist',
     lib: {
       entry: resolve(__dirname, 'src/main.ts'),
       formats: ['es'],
