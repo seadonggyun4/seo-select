@@ -5,6 +5,8 @@ A lightweight and extensible select component built with Lit, designed to work s
 
 Demo Site: https://seo-select.netlify.app/
 
+![Hits](https://dev.wenivops.co.kr/services/weniv-hit-counter/api/v1/badge?url=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2Fseo-select%3FactiveTab%3Dreadme&label=count&style=flat-square&messageColor=green)
+
 ## Features
 
 - 🎨 **Multiple Themes**: Basic, float themes with dark mode support
