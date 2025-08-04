@@ -1,14 +1,16 @@
 #!/bin/bash
 
-VERSION=$1
+VERSION_INPUT=$1
 
-if [ -z "$VERSION" ]; then
-  echo "Usage: ./scripts/release.sh <version>"
-  echo "Example: ./scripts/release.sh v2.0.11"
+if [ -z "$VERSION_INPUT" ]; then
+  echo "Usage: ./scripts/release.sh <patch|minor|major|v1.2.3>"
+  echo "Examples:"
+  echo "  ./scripts/release.sh patch    # Auto increment patch version"
+  echo "  ./scripts/release.sh minor    # Auto increment minor version"
+  echo "  ./scripts/release.sh major    # Auto increment major version"
+  echo "  ./scripts/release.sh v2.0.11  # Specify exact version"
   exit 1
 fi
-
-echo "🚀 Starting release process for $VERSION..."
 
 # 0. 환경 검증
 echo "🔍 Checking environment..."
@@ -41,12 +43,57 @@ if [ ! -f "package.json" ]; then
     exit 1
 fi
 
-# 1. package.json 버전 업데이트
-CLEAN_VERSION=${VERSION#v}  # v 제거
-echo "📝 Updating package.json version to $CLEAN_VERSION..."
-
-# 현재 버전 확인
+# 1. 버전 계산
 CURRENT_VERSION=$(jq -r '.version' package.json)
+echo "📝 Current version: $CURRENT_VERSION"
+
+if [[ $VERSION_INPUT =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    # 직접 버전 지정 (v1.2.3 형태)
+    VERSION=$VERSION_INPUT
+    CLEAN_VERSION=${VERSION#v}  # v 제거
+elif [ "$VERSION_INPUT" = "patch" ] || [ "$VERSION_INPUT" = "minor" ] || [ "$VERSION_INPUT" = "major" ]; then
+    # semver 방식으로 버전 업
+    IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+    MAJOR=${VERSION_PARTS[0]}
+    MINOR=${VERSION_PARTS[1]}
+    PATCH=${VERSION_PARTS[2]}
+    
+    case $VERSION_INPUT in
+        "patch")
+            PATCH=$((PATCH + 1))
+            ;;
+        "minor")
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            ;;
+        "major")
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            ;;
+    esac
+    
+    CLEAN_VERSION="$MAJOR.$MINOR.$PATCH"
+    VERSION="v$CLEAN_VERSION"
+else
+    echo "❌ Invalid version input: $VERSION_INPUT"
+    echo "    Use: patch, minor, major, or v1.2.3 format"
+    exit 1
+fi
+
+echo "🚀 Starting release process for $VERSION (from $CURRENT_VERSION)..."
+
+# 태그가 이미 존재하는지 확인
+if git tag -l | grep -q "^$VERSION$"; then
+    echo "❌ Tag $VERSION already exists!"
+    echo "   To force release, delete the tag first:"
+    echo "   git tag -d $VERSION"
+    echo "   git push origin :refs/tags/$VERSION"
+    exit 1
+fi
+
+# 2. package.json 버전 업데이트
+echo "📝 Updating package.json version to $CLEAN_VERSION..."
 echo "  - Current version: $CURRENT_VERSION"
 echo "  - New version: $CLEAN_VERSION"
 
@@ -60,7 +107,7 @@ fi
 
 echo "✅ package.json version updated successfully"
 
-# 2. 빌드 (타입 체크 포함)
+# 3. 빌드 (타입 체크 포함)
 echo "🔍 Type checking..."
 npm run type-check
 if [ $? -ne 0 ]; then
@@ -75,7 +122,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 3. 빌드 결과 검증
+# 4. 빌드 결과 검증
 echo "✅ Verifying build output..."
 if [ ! -f "dist/index.js" ]; then
     echo "❌ ES module build not found!"
@@ -85,7 +132,7 @@ fi
 echo "📁 Build verification complete:"
 echo "  - ES Module: $(du -h dist/index.js | cut -f1)"
 
-# 4. 압축 파일 생성 (CDN용)
+# 5. 압축 파일 생성 (CDN용)
 echo "📁 Creating distribution archives..."
 ZIP_NAME="seo-select-dist-$VERSION.zip"
 TAR_NAME="seo-select-dist-$VERSION.tar.gz"
@@ -98,7 +145,7 @@ echo "  - Created: $ZIP_NAME ($(du -h $ZIP_NAME | cut -f1))"
 tar -czf $TAR_NAME dist/ --exclude="*.map"
 echo "  - Created: $TAR_NAME ($(du -h $TAR_NAME | cut -f1))"
 
-# 5. Git 태그 및 커밋
+# 6. Git 태그 및 커밋
 echo "📝 Creating git commit and tag..."
 git add package.json dist/
 git commit -m "chore: bump version to $VERSION and update dist"
@@ -115,7 +162,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 6. npm 배포 (소스코드 + dist)
+# 7. npm 배포 (소스코드 + dist)
 echo "📤 Publishing to npm..."
 npm publish --dry-run  # 먼저 드라이런으로 확인
 if [ $? -eq 0 ]; then
@@ -130,16 +177,16 @@ else
     exit 1
 fi
 
-# 7. GitHub 푸시
+# 8. GitHub 푸시
 echo "📤 Pushing to GitHub..."
 git push origin main
 git push origin $VERSION
 
-# 8. 파일 크기 및 성능 정보 수집
+# 9. 파일 크기 및 성능 정보 수집
 ES_SIZE=$(du -h dist/index.js | cut -f1)
 GZIP_ES_SIZE=$(gzip -c dist/index.js | wc -c | awk '{printf "%.1fK", $1/1024}')
 
-# 9. GitHub Release 생성
+# 10. GitHub Release 생성
 echo "🎉 Creating GitHub Release..."
 gh release create $VERSION \
   $ZIP_NAME \
@@ -194,11 +241,11 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 10. 정리
+# 11. 정리
 echo "🧹 Cleaning up temporary files..."
 rm $ZIP_NAME $TAR_NAME
 
-# 11. 배포 완료 안내
+# 12. 배포 완료 안내
 echo ""
 echo "✅ Release $VERSION completed successfully!"
 echo ""
