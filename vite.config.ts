@@ -19,11 +19,11 @@ export default defineConfig({
         manualChunks: undefined,
         entryFileNames: 'index.js',
         chunkFileNames: '[name].js',
-        assetFileNames: 'styles.css'
+        assetFileNames: '[name][extname]'
       }
     },
     cssCodeSplit: false,
-    sourcemap: true,
+    sourcemap: false,
     minify: true,
     chunkSizeWarningLimit: 2000,
     target: 'es2020'
