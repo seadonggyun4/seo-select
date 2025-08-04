@@ -1,16 +1,27 @@
 #!/bin/bash
 
-VERSION_INPUT=$1
+# 버전 타입 파라미터 (patch, minor, major)
+VERSION_TYPE=$1
 
-if [ -z "$VERSION_INPUT" ]; then
-  echo "Usage: ./scripts/release.sh <patch|minor|major|v1.2.3>"
+if [ -z "$VERSION_TYPE" ]; then
+  echo "Usage: ./scripts/auto-release.sh <version-type>"
+  echo "  version-type: patch | minor | major"
+  echo ""
   echo "Examples:"
-  echo "  ./scripts/release.sh patch    # Auto increment patch version"
-  echo "  ./scripts/release.sh minor    # Auto increment minor version"
-  echo "  ./scripts/release.sh major    # Auto increment major version"
-  echo "  ./scripts/release.sh v2.0.11  # Specify exact version"
+  echo "  ./scripts/auto-release.sh patch   # 2.0.13 → 2.0.14"
+  echo "  ./scripts/auto-release.sh minor   # 2.0.13 → 2.1.0"
+  echo "  ./scripts/auto-release.sh major   # 2.0.13 → 3.0.0"
   exit 1
 fi
+
+# 유효한 버전 타입 검증
+if [[ ! "$VERSION_TYPE" =~ ^(patch|minor|major)$ ]]; then
+  echo "❌ Invalid version type: $VERSION_TYPE"
+  echo "   Valid options: patch, minor, major"
+  exit 1
+fi
+
+echo "🚀 Starting auto release process with $VERSION_TYPE version bump..."
 
 # 0. 환경 검증
 echo "🔍 Checking environment..."
@@ -31,6 +42,11 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
+if ! command -v node &> /dev/null; then
+    echo "❌ Node.js is required but not installed."
+    exit 1
+fi
+
 # Git 상태 확인
 if [ -n "$(git status --porcelain)" ]; then
     echo "❌ Working directory is not clean. Please commit or stash changes."
@@ -43,62 +59,56 @@ if [ ! -f "package.json" ]; then
     exit 1
 fi
 
-# 1. 버전 계산
+# 1. 현재 버전 확인 및 새 버전 계산
 CURRENT_VERSION=$(jq -r '.version' package.json)
-echo "📝 Current version: $CURRENT_VERSION"
+echo "📋 Current version: $CURRENT_VERSION"
 
-if [[ $VERSION_INPUT =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    # 직접 버전 지정 (v1.2.3 형태)
-    VERSION=$VERSION_INPUT
-    CLEAN_VERSION=${VERSION#v}  # v 제거
-elif [ "$VERSION_INPUT" = "patch" ] || [ "$VERSION_INPUT" = "minor" ] || [ "$VERSION_INPUT" = "major" ]; then
-    # semver 방식으로 버전 업
-    IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
-    MAJOR=${VERSION_PARTS[0]}
-    MINOR=${VERSION_PARTS[1]}
-    PATCH=${VERSION_PARTS[2]}
+# 새 버전 계산 함수
+calculate_new_version() {
+    local current=$1
+    local type=$2
     
-    case $VERSION_INPUT in
+    # 버전을 major.minor.patch로 분할
+    IFS='.' read -ra VERSION_PARTS <<< "$current"
+    local major=${VERSION_PARTS[0]}
+    local minor=${VERSION_PARTS[1]}
+    local patch=${VERSION_PARTS[2]}
+    
+    case $type in
         "patch")
-            PATCH=$((PATCH + 1))
+            patch=$((patch + 1))
             ;;
         "minor")
-            MINOR=$((MINOR + 1))
-            PATCH=0
+            minor=$((minor + 1))
+            patch=0
             ;;
         "major")
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            PATCH=0
+            major=$((major + 1))
+            minor=0
+            patch=0
             ;;
     esac
     
-    CLEAN_VERSION="$MAJOR.$MINOR.$PATCH"
-    VERSION="v$CLEAN_VERSION"
-else
-    echo "❌ Invalid version input: $VERSION_INPUT"
-    echo "    Use: patch, minor, major, or v1.2.3 format"
-    exit 1
-fi
+    echo "$major.$minor.$patch"
+}
 
-echo "🚀 Starting release process for $VERSION (from $CURRENT_VERSION)..."
+NEW_VERSION=$(calculate_new_version $CURRENT_VERSION $VERSION_TYPE)
+NEW_VERSION_TAG="v$NEW_VERSION"
 
-# 태그가 이미 존재하는지 확인
-if git tag -l | grep -q "^$VERSION$"; then
-    echo "❌ Tag $VERSION already exists!"
-    echo "   To force release, delete the tag first:"
-    echo "   git tag -d $VERSION"
-    echo "   git push origin :refs/tags/$VERSION"
+echo "📝 New version will be: $NEW_VERSION ($NEW_VERSION_TAG)"
+
+# 사용자 확인
+echo ""
+read -p "🤔 Do you want to proceed with this version bump? (y/N): " -n 1 -r
+echo ""
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "❌ Release cancelled by user."
     exit 1
 fi
 
 # 2. package.json 버전 업데이트
-echo "📝 Updating package.json version to $CLEAN_VERSION..."
-echo "  - Current version: $CURRENT_VERSION"
-echo "  - New version: $CLEAN_VERSION"
-
-# package.json 버전 업데이트
-jq ".version = \"$CLEAN_VERSION\"" package.json > package.json.tmp && mv package.json.tmp package.json
+echo "📝 Updating package.json version to $NEW_VERSION..."
+jq ".version = \"$NEW_VERSION\"" package.json > package.json.tmp && mv package.json.tmp package.json
 
 if [ $? -ne 0 ]; then
     echo "❌ Failed to update package.json version!"
@@ -134,8 +144,8 @@ echo "  - ES Module: $(du -h dist/index.js | cut -f1)"
 
 # 5. 압축 파일 생성 (CDN용)
 echo "📁 Creating distribution archives..."
-ZIP_NAME="seo-select-dist-$VERSION.zip"
-TAR_NAME="seo-select-dist-$VERSION.tar.gz"
+ZIP_NAME="seo-select-dist-$NEW_VERSION_TAG.zip"
+TAR_NAME="seo-select-dist-$NEW_VERSION_TAG.tar.gz"
 
 # ZIP 파일 생성
 zip -r $ZIP_NAME dist/ -x "*.map"
@@ -148,14 +158,14 @@ echo "  - Created: $TAR_NAME ($(du -h $TAR_NAME | cut -f1))"
 # 6. Git 태그 및 커밋
 echo "📝 Creating git commit and tag..."
 git add package.json dist/
-git commit -m "chore: bump version to $VERSION and update dist"
+git commit -m "chore: bump version to $NEW_VERSION_TAG and update dist"
 
 if [ $? -ne 0 ]; then
     echo "❌ Failed to create commit!"
     exit 1
 fi
 
-git tag -a $VERSION -m "Release $VERSION"
+git tag -a $NEW_VERSION_TAG -m "Release $NEW_VERSION_TAG"
 
 if [ $? -ne 0 ]; then
     echo "❌ Failed to create git tag!"
@@ -180,7 +190,7 @@ fi
 # 8. GitHub 푸시
 echo "📤 Pushing to GitHub..."
 git push origin main
-git push origin $VERSION
+git push origin $NEW_VERSION_TAG
 
 # 9. 파일 크기 및 성능 정보 수집
 ES_SIZE=$(du -h dist/index.js | cut -f1)
@@ -188,13 +198,13 @@ GZIP_ES_SIZE=$(gzip -c dist/index.js | wc -c | awk '{printf "%.1fK", $1/1024}')
 
 # 10. GitHub Release 생성
 echo "🎉 Creating GitHub Release..."
-gh release create $VERSION \
+gh release create $NEW_VERSION_TAG \
   $ZIP_NAME \
   $TAR_NAME \
   dist/index.js \
-  --title "🚀 $VERSION - Enhanced CDN & npm Distribution" \
+  --title "🚀 $NEW_VERSION_TAG - Enhanced CDN & npm Distribution" \
   --notes "
-## 🎉 What's New in $VERSION
+## 🎉 What's New in $NEW_VERSION_TAG
 
 ### 📦 Distribution Options
 - **npm**: Source code distribution for bundler integration
@@ -208,7 +218,7 @@ gh release create $VERSION \
 
 #### 📦 npm (Recommended for bundlers)
 \`\`\`bash
-npm install seo-select@$CLEAN_VERSION
+npm install seo-select@$NEW_VERSION
 \`\`\`
 
 \`\`\`javascript
@@ -219,7 +229,7 @@ import { SeoSelect } from 'seo-select';
 #### 🌐 CDN (ES Modules)
 \`\`\`html
 <script type=\"module\">
-  import { SeoSelect } from 'https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@$VERSION/dist/index.js';
+  import { SeoSelect } from 'https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@$NEW_VERSION_TAG/dist/index.js';
   // Ready to use!
 </script>
 \`\`\`
@@ -229,8 +239,8 @@ import { SeoSelect } from 'seo-select';
 - **Compressed**: \`$TAR_NAME\`
 
 ### 🔗 CDN Links
-- **jsDelivr ES (GitHub)**: https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@$VERSION/dist/index.js
-- **GitHub Raw ES**: https://github.com/seadonggyun4/seo-select/releases/download/$VERSION/index.js
+- **jsDelivr ES (GitHub)**: https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@$NEW_VERSION_TAG/dist/index.js
+- **GitHub Raw ES**: https://github.com/seadonggyun4/seo-select/releases/download/$NEW_VERSION_TAG/index.js
 
 ---
 [📖 Full Documentation](https://github.com/seadonggyun4/seo-select#readme) | [🐛 Report Issues](https://github.com/seadonggyun4/seo-select/issues)
@@ -247,16 +257,16 @@ rm $ZIP_NAME $TAR_NAME
 
 # 12. 배포 완료 안내
 echo ""
-echo "✅ Release $VERSION completed successfully!"
+echo "✅ Release $NEW_VERSION_TAG completed successfully!"
 echo ""
 echo "📝 Changes made:"
-echo "  - Updated package.json version: $CURRENT_VERSION → $CLEAN_VERSION"
-echo "  - Created git commit and tag: $VERSION"
-echo "  - Published to npm: seo-select@$CLEAN_VERSION"
+echo "  - Updated package.json version: $CURRENT_VERSION → $NEW_VERSION"
+echo "  - Created git commit and tag: $NEW_VERSION_TAG"
+echo "  - Published to npm: seo-select@$NEW_VERSION"
 echo ""
 echo "🎯 Distribution Summary:"
 echo "  📦 npm: https://www.npmjs.com/package/seo-select"  
-echo "  🌐 CDN (ES): https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@$VERSION/dist/index.js"
-echo "  📋 GitHub: https://github.com/seadonggyun4/seo-select/releases/tag/$VERSION"
+echo "  🌐 CDN (ES): https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@$NEW_VERSION_TAG/dist/index.js"
+echo "  📋 GitHub: https://github.com/seadonggyun4/seo-select/releases/tag/$NEW_VERSION_TAG"
 echo ""
 echo "🎉 Happy coding! 🚀"
