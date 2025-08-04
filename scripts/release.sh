@@ -50,14 +50,8 @@ if [ ! -f "dist/index.js" ]; then
     exit 1
 fi
 
-if [ ! -f "dist/seo-select.umd.js" ]; then
-    echo "❌ UMD build not found!"
-    exit 1
-fi
-
 echo "📁 Build verification complete:"
 echo "  - ES Module: $(du -h dist/index.js | cut -f1)"
-echo "  - UMD Bundle: $(du -h dist/seo-select.umd.js | cut -f1)"
 
 # 3. 압축 파일 생성 (CDN용)
 echo "📁 Creating distribution archives..."
@@ -102,9 +96,7 @@ git push origin $VERSION
 
 # 7. 파일 크기 및 성능 정보 수집
 ES_SIZE=$(du -h dist/index.js | cut -f1)
-UMD_SIZE=$(du -h dist/seo-select.umd.js | cut -f1)
 GZIP_ES_SIZE=$(gzip -c dist/index.js | wc -c | awk '{printf "%.1fK", $1/1024}')
-GZIP_UMD_SIZE=$(gzip -c dist/seo-select.umd.js | wc -c | awk '{printf "%.1fK", $1/1024}')
 
 # 8. GitHub Release 생성
 echo "🎉 Creating GitHub Release..."
@@ -112,7 +104,6 @@ gh release create $VERSION \
   $ZIP_NAME \
   $TAR_NAME \
   dist/index.js \
-  dist/seo-select.umd.js \
   --title "🚀 $VERSION - Enhanced CDN & npm Distribution" \
   --notes "
 ## 🎉 What's New in $VERSION
@@ -122,9 +113,8 @@ gh release create $VERSION \
 - **CDN**: Pre-built bundles for direct browser usage
 - **Downloads**: Offline distribution packages
 
-### 📊 Bundle Sizes
+### 📊 Bundle Size
 - **ES Module**: $ES_SIZE (gzipped: $GZIP_ES_SIZE)
-- **UMD Bundle**: $UMD_SIZE (gzipped: $GZIP_UMD_SIZE)
 
 ### 🚀 Quick Start
 
@@ -141,17 +131,8 @@ import { SeoSelect } from 'seo-select';
 #### 🌐 CDN (ES Modules)
 \`\`\`html
 <script type=\"module\">
-  import { SeoSelect } from 'https://cdn.jsdelivr.net/npm/seo-select@$CLEAN_VERSION/dist/index.js';
+  import { SeoSelect } from 'https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@$VERSION/dist/index.js';
   // Ready to use!
-</script>
-\`\`\`
-
-#### 🌐 CDN (UMD - Global)
-\`\`\`html
-<script src=\"https://cdn.jsdelivr.net/npm/seo-select@$CLEAN_VERSION/dist/seo-select.umd.js\"></script>
-<script>
-  // Available as window.SeoSelect
-  const select = new SeoSelect();
 </script>
 \`\`\`
 
@@ -161,9 +142,7 @@ import { SeoSelect } from 'seo-select';
 
 ### 🔗 CDN Links
 - **jsDelivr ES (GitHub)**: https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@$VERSION/dist/index.js
-- **jsDelivr UMD (GitHub)**: https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@$VERSION/dist/seo-select.umd.js
 - **GitHub Raw ES**: https://github.com/seadonggyun4/seo-select/releases/download/$VERSION/index.js
-- **GitHub Raw UMD**: https://github.com/seadonggyun4/seo-select/releases/download/$VERSION/seo-select.umd.js
 
 ---
 [📖 Full Documentation](https://github.com/seadonggyun4/seo-select#readme) | [🐛 Report Issues](https://github.com/seadonggyun4/seo-select/issues)
@@ -185,7 +164,6 @@ echo ""
 echo "🎯 Distribution Summary:"
 echo "  📦 npm: https://www.npmjs.com/package/seo-select"  
 echo "  🌐 CDN (ES): https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@$VERSION/dist/index.js"
-echo "  🌐 CDN (UMD): https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@$VERSION/dist/seo-select.umd.js"
 echo "  📋 GitHub: https://github.com/seadonggyun4/seo-select/releases/tag/$VERSION"
 echo ""
 echo "🎉 Happy coding! 🚀"
