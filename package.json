@@ -55,7 +55,7 @@
   "homepage": "https://seo-select.netlify.app/",
   "scripts": {
     "build": "npm run clean && vite build --mode production",
-    "build:docs": "node scripts/build-docs.js",
+    "build:demo": "tsx scripts/build-demo.ts",
     "clean": "rm -rf dist",
     "release": "bash scripts/release.sh",
     "release:patch": "bash scripts/release.sh patch",
@@ -73,6 +73,7 @@
   "devDependencies": {
     "@types/node": "^24.1.0",
     "sass": "^1.89.2",
+    "tsx": "^4.19.2",
     "typescript": "~5.8.3",
     "vite": "^7.0.6"
   },
