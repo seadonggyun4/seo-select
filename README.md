@@ -44,10 +44,10 @@ import type {
 ### CDN via jsDelivr (Alternative)
 ```html
 <!-- Basic select -->
-<script type="module" src="https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@v2.0.4/dist/index.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@@v2.0/dist/index.js"></script>
 
 <!-- Search select -->
-<script type="module" src="https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@v2.0.4/dist/components/seo-select-search/index.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@@v2.0/dist/components/seo-select-search/index.js"></script>
 ```
 
 ## Components Overview
@@ -665,7 +665,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
-### 2.0.5 (Latest)
+### 2.0.6 (Latest)
 - **Source Distribution**: Now distributes unminified TypeScript source files instead of compiled JavaScript
 - **Build Flexibility**: Developers can now use their own build tools and configurations
 - **Bundle Optimization**: Enables better tree-shaking and dead code elimination in user projects
