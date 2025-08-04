@@ -26,16 +26,25 @@ function inlineCss() {
     cssContent = fs.readFileSync(cssFile, 'utf8')
       .replace(/\\/g, '\\\\')     // 백슬래시 이스케이프
       .replace(/`/g, '\\`')       // 백틱 이스케이프
-      .replace(/\$/g, '\\$');
+      .replace(/\$/g, '\\$')      // 달러 기호 이스케이프
+      .replace(/\r?\n/g, '');     // 줄바꿈 제거
+    
     console.log(`📄 CSS file found (${cssContent.length} chars), inlining styles...`);
   }
 
   // CSS import 구문 제거 (더 포괄적인 패턴)
   const originalLength = jsContent.length;
   jsContent = jsContent
+    // 기본적인 CSS import 패턴들
     .replace(/import\s+['"][^'"]*\.s?css['"];?\s*/g, '')
     .replace(/import\s+['"][^'"]*\/styles\/[^'"]*\.s?css['"];?\s*/g, '')
-    .replace(/import\s+['"][\.\/]*styles[^'"]*\.s?css['"];?\s*/g, '');
+    .replace(/import\s+['"][\.\/]*styles[^'"]*\.s?css['"];?\s*/g, '')
+    // 더 구체적인 패턴들 (상대 경로 포함)
+    .replace(/import\s+['"][\.\/]*[^'"]*\.s?css['"];?\s*/g, '')
+    // 줄바꿈과 공백을 포함한 패턴
+    .replace(/import\s+['"][^'"]*\.s?css['"];\s*\n?/g, '')
+    // 맨 앞에 있는 CSS import (파일 시작 부분)
+    .replace(/^import\s+['"][^'"]*\.s?css['"];?\s*\n?/gm, '');
   
   const removedImports = originalLength - jsContent.length;
   if (removedImports > 0) {
