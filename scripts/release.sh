@@ -153,7 +153,7 @@ if [ ! -f "min/index.js" ]; then
     exit 1
 fi
 
-if [ ! -f "min/seo-select.css" ]; then
+if [ ! -f "min/index.css" ]; then
     echo "❌ Minified CSS file not found!"
     exit 1
 fi
@@ -161,7 +161,7 @@ fi
 echo "📁 Build verification complete:"
 echo "  - NPM built file: $(du -h dist/index.js | cut -f1)"
 echo "  - Minified JS: $(du -h min/index.js | cut -f1)"
-echo "  - Minified CSS: $(du -h min/seo-select.css | cut -f1)"
+echo "  - Minified CSS: $(du -h min/index.css | cut -f1)"
 
 # 7. 압축 파일 생성 (GitHub Release용)
 echo "📁 Creating distribution archives..."
@@ -276,7 +276,7 @@ npm install seo-select@$NEW_VERSION
 #### 📥 GitHub Release Assets (Standalone)
 - **Full Package**: \`$ZIP_NAME\`
 - **Compressed**: \`$TAR_NAME\`
-- **Individual Files**: \`index.js\` (with Lit bundled), \`seo-select.css\`
+- **Individual Files**: \`index.js\` (with Lit bundled), \`index.css\`
 
 #### 🌐 Direct Browser Usage (Standalone)
 \`\`\`html
@@ -284,7 +284,7 @@ npm install seo-select@$NEW_VERSION
 <html>
 <head>
   <!-- Download from GitHub Release and host locally -->
-  <link rel=\"stylesheet\" href=\"./min/seo-select.css\">
+  <link rel=\"stylesheet\" href=\"./min/index.css\">
   <script type=\"module\" src=\"./min/index.js\"></script>
 </head>
 <body>
@@ -348,7 +348,7 @@ echo ""
 echo "🎯 Distribution Summary:"
 echo "  📦 NPM (For Bundlers): https://www.npmjs.com/package/seo-select"  
 echo "  📋 GitHub Release (Standalone): https://github.com/seadonggyun4/seo-select/releases/tag/$NEW_VERSION_TAG"
-echo "  📁 Standalone Assets: index.js ($BUILD_SIZE), seo-select.css ($CSS_SIZE)"
+echo "  📁 Standalone Assets: index.js ($BUILD_SIZE), index.css ($CSS_SIZE)"
 echo ""
 echo "💡 Usage:"
 echo "  - For bundlers: npm install seo-select@$NEW_VERSION"
