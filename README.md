@@ -43,14 +43,12 @@ import type {
 } from 'seo-select/event';
 ```
 
-### CDN via jsDelivr (Alternative)
+<!-- ### CDN via jsDelivr (Alternative)
 ```html
-<!-- Basic select -->
 <script type="module" src="https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@v2.0/dist/index.js"></script>
 
-<!-- Search select -->
 <script type="module" src="https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@v2.0/dist/components/seo-select-search/index.js"></script>
-```
+``` -->
 
 ## Components Overview
 
