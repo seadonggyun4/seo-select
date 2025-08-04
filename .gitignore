@@ -7,10 +7,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependency directories
 node_modules
+
+# Build outputs
+dist
 dist-ssr
-*.local
 output
+
+# Environment and local files
+*.local
 
 # Editor directories and files
 .vscode/*
@@ -23,4 +29,12 @@ output
 *.sln
 *.sw?
 
+# Archive files (release artifacts)
 *.zip
+*.tar.gz
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Package manager lock files (optional - 팀 정책에 따라)
+package-lock.json
