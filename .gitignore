@@ -36,5 +36,5 @@ output
 # TypeScript build info
 *.tsbuildinfo
 
-# Package manager lock files (optional - 팀 정책에 따라)
+# Package manager lock files
 package-lock.json

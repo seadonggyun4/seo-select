@@ -48,12 +48,22 @@ import type {
 } from 'seo-select/event';
 ```
 
-<!-- ### CDN via jsDelivr (Alternative)
-```html
-<script type="module" src="https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@v2.0/dist/index.js"></script>
+### For Direct Browser Usage
+If you prefer pre-built minified files without a bundler:
 
-<script type="module" src="https://cdn.jsdelivr.net/gh/seadonggyun4/seo-select@v2.0/dist/components/seo-select-search/index.js"></script>
-``` -->
+**Download from GitHub Releases**: [https://github.com/seadonggyun4/seo-select/releases](https://github.com/seadonggyun4/seo-select/releases)
+
+```html
+<!-- Import both JavaScript and CSS files -->
+<link rel="stylesheet" href="./path/to/seo-select/dist/seo-select.css">
+<script type="module" src="./path/to/seo-select/dist/index.js"></script>
+```
+
+The GitHub releases provide:
+- **Minified build files**: Separate JS and CSS files for optimal loading
+- **ZIP/TAR archives**: Complete distribution packages  
+- **Offline usage**: Perfect for local development or CDN-free environments
+- **Manual control**: Import CSS and JS separately as needed
 
 ## Components Overview
 
