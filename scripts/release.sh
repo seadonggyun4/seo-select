@@ -133,7 +133,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 5. 미니파이 빌드 (GitHub Release용)
+# 5. 미니파이 빌드 (GitHub Release용) - npm publish 전에 실행
 echo "📦 Building minified version for GitHub Release..."
 npm run build:min
 if [ $? -ne 0 ]; then
@@ -158,12 +158,17 @@ if [ ! -f "min/index.css" ]; then
     exit 1
 fi
 
+# 파일 크기 정보 수집 (파일이 존재하는 시점에서)
+BUILD_SIZE=$(du -h min/index.js | cut -f1)
+CSS_SIZE=$(du -h min/index.css | cut -f1)
+GZIP_SIZE=$(gzip -c min/index.js | wc -c | awk '{printf "%.1fK", $1/1024}')
+
 echo "📁 Build verification complete:"
 echo "  - NPM built file: $(du -h dist/index.js | cut -f1)"
-echo "  - Minified JS: $(du -h min/index.js | cut -f1)"
-echo "  - Minified CSS: $(du -h min/index.css | cut -f1)"
+echo "  - Minified JS: $BUILD_SIZE"
+echo "  - Minified CSS: $CSS_SIZE"
 
-# 7. 압축 파일 생성 (GitHub Release용)
+# 7. 압축 파일 생성 (GitHub Release용) - min 폴더가 존재하는 시점에서
 echo "📁 Creating distribution archives..."
 ZIP_NAME="seo-select-standalone-$NEW_VERSION_TAG.zip"
 TAR_NAME="seo-select-standalone-$NEW_VERSION_TAG.tar.gz"
@@ -176,7 +181,7 @@ echo "  - Created: $ZIP_NAME ($(du -h $ZIP_NAME | cut -f1))"
 tar -czf $TAR_NAME min/
 echo "  - Created: $TAR_NAME ($(du -h $TAR_NAME | cut -f1))"
 
-# 8. npm 배포 (빌드된 파일)
+# 8. npm 배포 (빌드된 파일) - prepublishOnly가 clean을 실행하므로 압축 파일 생성 후에 실행
 echo "📤 Publishing built files to npm..."
 npm publish --dry-run  # 먼저 드라이런으로 확인
 if [ $? -eq 0 ]; then
@@ -213,18 +218,11 @@ echo "📤 Pushing to GitHub..."
 git push origin main
 git push origin $NEW_VERSION_TAG
 
-# 11. 파일 크기 정보 수집
-BUILD_SIZE=$(du -h min/index.js | cut -f1)
-CSS_SIZE=$(du -h min/index.css | cut -f1)
-GZIP_SIZE=$(gzip -c min/index.js | wc -c | awk '{printf "%.1fK", $1/1024}')
-
-# 12. GitHub Release 생성
+# 11. GitHub Release 생성 (압축 파일만 업로드)
 echo "🎉 Creating GitHub Release..."
 gh release create $NEW_VERSION_TAG \
   $ZIP_NAME \
   $TAR_NAME \
-  min/index.js \
-  min/index.css \
   --title "🚀 $NEW_VERSION_TAG - Standalone & NPM Distribution" \
   --notes "
 ## 🎉 What's New in $NEW_VERSION_TAG
@@ -258,7 +256,7 @@ import 'seo-select/components/seo-select-search';
 - **Standalone JS**: $BUILD_SIZE (gzipped: $GZIP_SIZE)
 - **Standalone CSS**: $CSS_SIZE
 - **Target**: ES2020, Modern Browsers
-- **Dependencies**: Lit $BUILD_VERSION bundled
+- **Dependencies**: Lit framework bundled
 
 ### 🚀 Quick Start
 
@@ -269,14 +267,13 @@ npm install seo-select@$NEW_VERSION
 
 \`\`\`html
 <!-- Your bundler will handle the dependencies -->
-<link rel="stylesheet" href="./index.css">
-<script type="module" src="./index.js"></script>
+<link rel=\"stylesheet\" href=\"./index.css\">
+<script type=\"module\" src=\"./index.js\"></script>
 \`\`\`
 
 #### 📥 GitHub Release Assets (Standalone)
 - **Full Package**: \`$ZIP_NAME\`
 - **Compressed**: \`$TAR_NAME\`
-- **Individual Files**: \`index.js\` (with Lit bundled), \`index.css\`
 
 #### 🌐 Direct Browser Usage (Standalone)
 \`\`\`html
@@ -331,11 +328,11 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 13. 정리
+# 12. 정리
 echo "🧹 Cleaning up temporary files..."
-rm $ZIP_NAME $TAR_NAME
+rm -f $ZIP_NAME $TAR_NAME
 
-# 14. 배포 완료 안내
+# 13. 배포 완료 안내
 echo ""
 echo "✅ Release $NEW_VERSION_TAG completed successfully!"
 echo ""
