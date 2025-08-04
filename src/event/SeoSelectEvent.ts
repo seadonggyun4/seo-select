@@ -28,17 +28,26 @@ export class SeoResetEvent extends Event {
   public readonly labels?: string[];
   public readonly values?: string[];
 
-  constructor(data: { 
-    label?: string; 
-    value?: string; 
-    labels?: string[]; 
-    values?: string[] 
+  constructor(data: {
+    label?: string;
+    value?: string;
+    labels?: string[];
+    values?: string[];
   }) {
     super(EVENT_NAMES.RESET, { bubbles: true, composed: true });
-    this.label = data.label;
-    this.value = data.value;
-    this.labels = data.labels;
-    this.values = data.values;
+    
+    if (data.label !== undefined) {
+      this.label = data.label;
+    }
+    if (data.value !== undefined) {
+      this.value = data.value;
+    }
+    if (data.labels !== undefined) {
+      this.labels = data.labels;
+    }
+    if (data.values !== undefined) {
+      this.values = data.values;
+    }
   }
 }
 
