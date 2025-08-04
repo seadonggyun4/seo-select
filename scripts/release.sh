@@ -199,65 +199,87 @@ GZIP_SIZE=$(gzip -c dist/index.js | wc -c | awk '{printf "%.1fK", $1/1024}')
 
 # 11. GitHub Release 생성
 echo "🎉 Creating GitHub Release..."
+# 11. GitHub Release 생성
+echo "🎉 Creating GitHub Release..."
 gh release create $NEW_VERSION_TAG \
   $ZIP_NAME \
   $TAR_NAME \
   dist/index.js \
-  --title "🚀 $NEW_VERSION_TAG - Source Distribution & Build Assets" \
+  dist/styles/components/style.css \
+  --title "🚀 $NEW_VERSION_TAG - Pre-built Distribution Assets" \
   --notes "
 ## 🎉 What's New in $NEW_VERSION_TAG
 
 ### 📦 Distribution Strategy
-This release provides both source code distribution and pre-built assets:
+This release provides both NPM package with pre-built files and alternative GitHub Release assets:
 
 #### 📦 NPM Distribution (Recommended)
-- **Source Code Only**: Unminified TypeScript source files
-- **Build Flexibility**: Use your own build tools and configurations  
-- **Bundle Optimization**: Better tree-shaking and dead code elimination
-- **Developer Experience**: Direct TypeScript source access for debugging
+- **Pre-built Files**: Optimized and minified for production use
+- **Ready-to-use**: No additional build step required
+- **Modern Bundle**: Built with Vite for optimal performance
+- **Full Package**: Includes both JavaScript and CSS files
 
-#### 🌐 GitHub Release Distribution
-- **Pre-built Assets**: Minified and optimized for direct usage
-- **Offline Usage**: Download and host locally
-- **Quick Testing**: Ready-to-use built files
+\`\`\`bash
+npm install seo-select@$NEW_VERSION
+\`\`\`
+
+\`\`\`html
+<!-- Files available in node_modules after npm install -->
+<link rel=\"stylesheet\" href=\"./node_modules/seo-select/dist/styles/components/style.css\">
+<script type=\"module\" src=\"./node_modules/seo-select/dist/index.js\"></script>
+\`\`\`
+
+#### 🌐 GitHub Release Alternative
+- **Offline Usage**: Download and host locally without npm
+- **CDN-free Environment**: Perfect for local development
+- **Manual Control**: Import CSS and JS separately as needed
 
 ### 📊 Build Information
 - **Built File Size**: $BUILD_SIZE (gzipped: $GZIP_SIZE)
 - **Target**: ES2020, Modern Browsers
+- **Build Tool**: Vite (optimized bundle)
 
 ### 🚀 Quick Start
 
-#### 📦 NPM Installation (Source Distribution)
+#### 📦 NPM Installation (Recommended)
 \`\`\`bash
 npm install seo-select@$NEW_VERSION
 \`\`\`
 
 \`\`\`javascript
-// Your bundler will compile TypeScript source
-import { SeoSelect } from 'seo-select';
+// Import components
+import 'seo-select';
 import 'seo-select/components/seo-select-search';
 \`\`\`
 
-#### 📥 GitHub Release Assets (Pre-built)
+#### 📥 GitHub Release Assets (Alternative)
 - **Full Package**: \`$ZIP_NAME\`
 - **Compressed**: \`$TAR_NAME\`
-- **Single File**: \`index.js\` (minified, ready-to-use)
+- **Individual Files**: \`index.js\`, \`style.css\`
 
-#### 🌐 Direct File Usage
+#### 🌐 Direct File Usage (GitHub Release)
 \`\`\`html
 <!-- Download from GitHub Release and host locally -->
+<link rel=\"stylesheet\" href=\"./dist/styles/components/style.css\">
 <script type=\"module\" src=\"./dist/index.js\"></script>
 \`\`\`
 
 ### 🔧 Migration Notes
-- NPM package now contains TypeScript source files instead of compiled JavaScript
-- For immediate usage without build tools, use GitHub Release assets
-- All APIs remain backward compatible
+- NPM package now includes pre-built, optimized files
+- No build step required for most use cases
+- Better performance and compatibility across environments
+- GitHub Release provides alternative for offline/CDN-free usage
 
 ### 🎯 Recommended Usage
-- **For Development/Production**: Use NPM package with your bundler
-- **For Quick Testing/Prototyping**: Use GitHub Release built files
-- **For Offline/Local Hosting**: Download release archives
+- **Primary**: Use NPM package for standard development workflow
+- **Alternative**: Use GitHub Release for offline or CDN-free environments
+- **Testing**: Both options provide the same functionality
+
+### ⚡ Performance Improvements
+- Optimized bundle size with Vite
+- Modern JavaScript features with ES2020 target
+- Enhanced tree-shaking capabilities
+- Improved loading performance
 
 ---
 [📖 Full Documentation](https://github.com/seadonggyun4/seo-select#readme) | [🐛 Report Issues](https://github.com/seadonggyun4/seo-select/issues)

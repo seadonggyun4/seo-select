@@ -21,13 +21,12 @@ Demo Site: https://seo-select.netlify.app/
 - 🚀 **Virtual Scrolling**: High performance with large datasets
 - 📏 **Auto Width**: Automatic width calculation based on content
 - 🎯 **Multiple Selection**: Tag-based multi-select with individual remove buttons
-- 💡 **TypeScript**: Full TypeScript support with comprehensive type definitions
+- 💡 **Lightweight Web Component**: Built with native Web Components for minimal size and seamless integration across any framework.
 - ⚡ **Modern Event System**: Standard addEventListener with type-safe helpers
 
 ## Installation
 
 ### For Modern Bundlers (Recommended)
-Perfect for TypeScript projects with optimal tree-shaking and debugging:
 
 ```bash
 npm install seo-select
@@ -49,21 +48,14 @@ import type {
 ```
 
 ### For Direct Browser Usage
-If you prefer pre-built minified files without a bundler:
-
-**Download from GitHub Releases**: [https://github.com/seadonggyun4/seo-select/releases](https://github.com/seadonggyun4/seo-select/releases)
 
 ```html
 <!-- Import both JavaScript and CSS files -->
-<link rel="stylesheet" href="./path/to/seo-select/dist/seo-select.css">
-<script type="module" src="./path/to/seo-select/dist/index.js"></script>
+<link rel="stylesheet" href="./dist/styles/components/style.css">
+<script type="module" src="./dist/index.js"></script>
 ```
 
-The GitHub releases provide:
-- **Minified build files**: Separate JS and CSS files for optimal loading
-- **ZIP/TAR archives**: Complete distribution packages  
-- **Offline usage**: Perfect for local development or CDN-free environments
-- **Manual control**: Import CSS and JS separately as needed
+**Alternative**: Download pre-built files from [GitHub Releases](https://github.com/seadonggyun4/seo-select/releases)
 
 ## Components Overview
 
@@ -760,12 +752,12 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
-### Version 2.x (Latest)
-- **Source Distribution**: Now distributes unminified TypeScript source files instead of compiled JavaScript
-- **Build Flexibility**: Developers can now use their own build tools and configurations
-- **Bundle Optimization**: Enables better tree-shaking and dead code elimination in user projects
-- **Developer Experience**: Direct access to TypeScript source for debugging and customization
-- **TypeScript First**: Full TypeScript source availability for enhanced development workflow
+### Version 2.1.x (Latest)
+- **Built Distribution**: Now distributes pre-built files optimized for production use
+- **Improved Performance**: Ready-to-use minified JavaScript and CSS files
+- **Better Compatibility**: Works out-of-the-box across different bundlers and environments
+- **Enhanced Developer Experience**: No additional build step required for most use cases
+- **Vite Build Integration**: Built using Vite for optimal bundle size and modern JavaScript features
 
 ### Version 1.x (Previous Stable)
 - **Enhanced Event System**: Standard `addEventListener` with built-in type-safe helpers
@@ -776,4 +768,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Migration Note**: Version 2.x maintains full API compatibility with 1.x while changing the distribution format from compiled JavaScript to TypeScript source files.
+**Migration Note**: Version 2.x maintains full API compatibility with 1.x while changing the distribution format from source TypeScript files to pre-built, optimized JavaScript and CSS files.
