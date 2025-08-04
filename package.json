@@ -22,6 +22,9 @@
     "./event": {
       "types": "./dist/event/index.d.ts",
       "import": "./dist/event/index.js"
+    },
+    "./styles": {
+      "import": "./dist/styles/components/style.css"
     }
   },
   "files": [
