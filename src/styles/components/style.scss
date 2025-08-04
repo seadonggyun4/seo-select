@@ -20,6 +20,7 @@ seo-select, seo-select-search {
   font-size: select.$select-font-size;
   color: select.$select-font-color;
   position: relative;
+  box-sizing: border-box;
 
   // 테마별 기본 스타일
   &.theme-basic {
@@ -34,7 +35,6 @@ seo-select, seo-select-search {
     position: relative;
     padding: select.$select-padding;
     width: 100%;
-    min-height: select.$select-min-height;
     border: select.$select-border-width solid colors.pick(gray, 5);
     background: white;
     text-align: left;
@@ -118,7 +118,6 @@ seo-select, seo-select-search {
   &.multi-select {
     .selected-container {
       position: relative;
-      min-height: select.$select-min-height;
       padding: select.$select-padding;
       width: 100%;
       border: select.$select-border-width solid colors.pick(gray, 5);
@@ -605,6 +604,47 @@ seo-select, seo-select-search {
         box-shadow: select.$dark-dropdown-box-shadow;
       }
     }
+  }
+
+  // ============================================
+  // Reset Css
+  // ============================================
+  button {
+    all: unset;
+    display: inline-block;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+    text-decoration: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+  }
+
+  input {
+    all: unset;
+    display: inline-block;
+    width: 100%;
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+  }
+
+  & *{
+    box-sizing: border-box;
   }
 }
 
