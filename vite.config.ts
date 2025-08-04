@@ -15,25 +15,21 @@ export default defineConfig({
       name: 'SeoSelect' // UMD 글로벌 변수명
     },
     rollupOptions: {
-      external: [], // CDN용이므로 모든 의존성 번들링
+      // CDN용이므로 모든 의존성을 번들에 포함
+      external: [], 
       output: {
         inlineDynamicImports: true,
         manualChunks: undefined,
-        entryFileNames: (chunkInfo) => {
-          const format = chunkInfo.facadeModuleId?.includes('umd') ? 'umd' : 'es';
-          return format === 'umd' ? 'seo-select.umd.js' : 'index.js';
-        },
+        entryFileNames: 'index.js',
         chunkFileNames: '[name].js',
         assetFileNames: (assetInfo) => {
           if (assetInfo.name?.endsWith('.css')) {
-            return 'styles.css'; // 단일 CSS 파일명으로 단순화
+            return 'styles.css';
           }
           return 'assets/[name][extname]';
         },
-        // UMD용 글로벌 설정
-        globals: {
-          // 외부 라이브러리가 있다면 여기에 추가
-        }
+        // 모든 의존성을 단일 파일로 번들링 강제
+        format: 'es'
       }
     },
     cssCodeSplit: false,
