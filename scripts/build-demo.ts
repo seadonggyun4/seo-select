@@ -1,6 +1,10 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { build, type BuildOptions } from 'vite';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 interface FileStats {
   name: string;
@@ -58,22 +62,22 @@ async function buildDemo(): Promise<void> {
     await ensureDir(outputPath);
     await emptyDir(outputPath);
     
-    console.log('🔨 Building TypeScript and SCSS files...');
+    console.log('🔨 Building main components (src/main.ts)...');
     
-    // Build main components (from src)
-    const buildConfig: BuildOptions = {
+    // Build main components first (src/main.ts → main.js)
+    const mainBuildConfig: BuildOptions = {
       outDir: 'output',
       lib: false,
       rollupOptions: {
         input: path.resolve(process.cwd(), 'src/main.ts'),
         output: {
           entryFileNames: 'main.js',
-          chunkFileNames: '[name].js',
+          chunkFileNames: 'main-[name].js',
           assetFileNames: (assetInfo) => {
             if (assetInfo.name && assetInfo.name.endsWith('.css')) {
               return 'components.css';
             }
-            return '[name].[ext]';
+            return 'main-[name].[ext]';
           }
         }
       },
@@ -84,7 +88,7 @@ async function buildDemo(): Promise<void> {
 
     await build({
       configFile: false,
-      build: buildConfig,
+      build: mainBuildConfig,
       css: {
         preprocessorOptions: {
           scss: {
@@ -100,11 +104,13 @@ async function buildDemo(): Promise<void> {
       }
     });
 
-    // Build demo TypeScript and SCSS files
     console.log('🎨 Building demo TypeScript and SCSS...');
     
+    // Build demo files (demo.ts → demo.js, style.scss → style.css)
+    // emptyOutDir를 false로 설정하여 기존 파일을 보존
     const demoBuildConfig: BuildOptions = {
       outDir: 'output',
+      emptyOutDir: false, // 중요: 기존 파일을 삭제하지 않음
       lib: false,
       rollupOptions: {
         input: {
@@ -113,15 +119,15 @@ async function buildDemo(): Promise<void> {
         },
         output: {
           entryFileNames: '[name].js',
-          chunkFileNames: '[name].js',
+          chunkFileNames: 'demo-[name].js',
           assetFileNames: (assetInfo) => {
             if (assetInfo.name && assetInfo.name.endsWith('.css')) {
               if (assetInfo.name.includes('style')) {
                 return 'style.css';
               }
-              return '[name].css';
+              return 'demo-[name].css';
             }
-            return '[name].[ext]';
+            return 'demo-[name].[ext]';
           }
         }
       },
@@ -158,12 +164,12 @@ async function buildDemo(): Promise<void> {
     );
     
     indexContent = indexContent.replace(
-      '<script src="/demo.js"></script>',
-      '<script src="./demo.js"></script>'
+      '<script type="module" src="/demo.ts"></script>',
+      '<script type="module" src="./demo.js"></script>'
     );
 
     indexContent = indexContent.replace(
-      '<link rel="stylesheet" href="/style.css">',
+      '<link rel="stylesheet" href="/style.scss">',
       '<link rel="stylesheet" href="./style.css">'
     );
     
@@ -196,6 +202,14 @@ async function buildDemo(): Promise<void> {
           path.join(outputPath, file)
         );
       }
+    }
+    
+    // Verify main.js exists
+    const mainJsPath = path.join(outputPath, 'main.js');
+    if (await pathExists(mainJsPath)) {
+      console.log('✅ main.js successfully created');
+    } else {
+      console.error('❌ main.js not found!');
     }
     
     // Generate build statistics
