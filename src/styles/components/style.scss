@@ -35,6 +35,7 @@ seo-select, seo-select-search {
     position: relative;
     padding: select.$select-padding;
     width: 100%;
+    min-height: select.$select-min-height;
     border: select.$select-border-width solid colors.pick(gray, 5);
     background: white;
     text-align: left;
@@ -52,10 +53,6 @@ seo-select, seo-select-search {
 
     &:hover {
       border-color: colors.$primary-color;
-    }
-
-    &:empty{
-      min-height: 2rem;
     }
   }
 
@@ -122,6 +119,7 @@ seo-select, seo-select-search {
   &.multi-select {
     .selected-container {
       position: relative;
+      min-height: select.$select-min-height;
       padding: select.$select-padding;
       width: 100%;
       border: select.$select-border-width solid colors.pick(gray, 5);
@@ -611,7 +609,7 @@ seo-select, seo-select-search {
   }
 
   // ============================================
-  // Reset Css
+  // Reset CSS
   // ============================================
   button {
     all: unset;
