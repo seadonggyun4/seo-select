@@ -125,39 +125,59 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 4. 빌드 (배포용 dist 생성)
-echo "📦 Building for GitHub Release distribution..."
+# 4. 빌드 (npm 배포용)
+echo "📦 Building for NPM distribution..."
 npm run build
 if [ $? -ne 0 ]; then
     echo "❌ Build failed!"
     exit 1
 fi
 
-# 5. 빌드 결과 검증
+# 5. 미니파이 빌드 (GitHub Release용)
+echo "📦 Building minified version for GitHub Release..."
+npm run build:min
+if [ $? -ne 0 ]; then
+    echo "❌ Minified build failed!"
+    exit 1
+fi
+
+# 6. 빌드 결과 검증
 echo "✅ Verifying build output..."
 if [ ! -f "dist/index.js" ]; then
-    echo "❌ Built file not found!"
+    echo "❌ NPM build file not found!"
+    exit 1
+fi
+
+if [ ! -f "min/index.js" ]; then
+    echo "❌ Minified build file not found!"
+    exit 1
+fi
+
+if [ ! -f "min/seo-select.css" ]; then
+    echo "❌ Minified CSS file not found!"
     exit 1
 fi
 
 echo "📁 Build verification complete:"
-echo "  - Built file: $(du -h dist/index.js | cut -f1)"
+echo "  - NPM built file: $(du -h dist/index.js | cut -f1)"
+echo "  - Minified JS: $(du -h min/index.js | cut -f1)"
+echo "  - Minified CSS: $(du -h min/seo-select.css | cut -f1)"
 
-# 6. 압축 파일 생성 (GitHub Release용)
+# 7. 압축 파일 생성 (GitHub Release용)
 echo "📁 Creating distribution archives..."
-ZIP_NAME="seo-select-dist-$NEW_VERSION_TAG.zip"
-TAR_NAME="seo-select-dist-$NEW_VERSION_TAG.tar.gz"
+ZIP_NAME="seo-select-standalone-$NEW_VERSION_TAG.zip"
+TAR_NAME="seo-select-standalone-$NEW_VERSION_TAG.tar.gz"
 
-# ZIP 파일 생성
-zip -r $ZIP_NAME dist/
+# ZIP 파일 생성 (min 폴더 내용)
+zip -r $ZIP_NAME min/
 echo "  - Created: $ZIP_NAME ($(du -h $ZIP_NAME | cut -f1))"
 
-# TAR.GZ 파일 생성
-tar -czf $TAR_NAME dist/
+# TAR.GZ 파일 생성 (min 폴더 내용)
+tar -czf $TAR_NAME min/
 echo "  - Created: $TAR_NAME ($(du -h $TAR_NAME | cut -f1))"
 
-# 7. npm 배포 (소스코드만)
-echo "📤 Publishing source code to npm..."
+# 8. npm 배포 (빌드된 파일)
+echo "📤 Publishing built files to npm..."
 npm publish --dry-run  # 먼저 드라이런으로 확인
 if [ $? -eq 0 ]; then
     echo "🎯 Dry run successful, proceeding with actual publish..."
@@ -171,7 +191,7 @@ else
     exit 1
 fi
 
-# 8. Git 태그 및 커밋
+# 9. Git 태그 및 커밋
 echo "📝 Creating git commit and tag..."
 git add package.json
 git commit -m "chore: bump version to $NEW_VERSION_TAG"
@@ -188,60 +208,36 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 9. GitHub 푸시
+# 10. GitHub 푸시
 echo "📤 Pushing to GitHub..."
 git push origin main
 git push origin $NEW_VERSION_TAG
 
-# 10. 파일 크기 정보 수집
-BUILD_SIZE=$(du -h dist/index.js | cut -f1)
-GZIP_SIZE=$(gzip -c dist/index.js | wc -c | awk '{printf "%.1fK", $1/1024}')
+# 11. 파일 크기 정보 수집
+BUILD_SIZE=$(du -h min/index.js | cut -f1)
+CSS_SIZE=$(du -h min/seo-select.css | cut -f1)
+GZIP_SIZE=$(gzip -c min/index.js | wc -c | awk '{printf "%.1fK", $1/1024}')
 
-# 11. GitHub Release 생성
-echo "🎉 Creating GitHub Release..."
-# 11. GitHub Release 생성
+# 12. GitHub Release 생성
 echo "🎉 Creating GitHub Release..."
 gh release create $NEW_VERSION_TAG \
   $ZIP_NAME \
   $TAR_NAME \
-  dist/index.js \
-  dist/styles/components/style.css \
-  --title "🚀 $NEW_VERSION_TAG - Pre-built Distribution Assets" \
+  min/index.js \
+  min/seo-select.css \
+  --title "🚀 $NEW_VERSION_TAG - Standalone & NPM Distribution" \
   --notes "
 ## 🎉 What's New in $NEW_VERSION_TAG
 
 ### 📦 Distribution Strategy
-This release provides both NPM package with pre-built files and alternative GitHub Release assets:
+This release provides both NPM package with pre-built files and standalone GitHub Release assets:
 
-#### 📦 NPM Distribution (Recommended)
-- **Pre-built Files**: Optimized and minified for production use
-- **Ready-to-use**: No additional build step required
+#### 📦 NPM Distribution (Recommended for Bundlers)
+- **Pre-built Files**: Optimized for modern bundlers (Vite, Webpack, etc.)
+- **Tree-shaking Support**: Import only what you need
+- **TypeScript Support**: Full type definitions included
 - **Modern Bundle**: Built with Vite for optimal performance
-- **Full Package**: Includes both JavaScript and CSS files
 
-\`\`\`bash
-npm install seo-select@$NEW_VERSION
-\`\`\`
-
-\`\`\`html
-<!-- Files available in node_modules after npm install -->
-<link rel=\"stylesheet\" href=\"./node_modules/seo-select/dist/styles/components/style.css\">
-<script type=\"module\" src=\"./node_modules/seo-select/dist/index.js\"></script>
-\`\`\`
-
-#### 🌐 GitHub Release Alternative
-- **Offline Usage**: Download and host locally without npm
-- **CDN-free Environment**: Perfect for local development
-- **Manual Control**: Import CSS and JS separately as needed
-
-### 📊 Build Information
-- **Built File Size**: $BUILD_SIZE (gzipped: $GZIP_SIZE)
-- **Target**: ES2020, Modern Browsers
-- **Build Tool**: Vite (optimized bundle)
-
-### 🚀 Quick Start
-
-#### 📦 NPM Installation (Recommended)
 \`\`\`bash
 npm install seo-select@$NEW_VERSION
 \`\`\`
@@ -252,34 +248,79 @@ import 'seo-select';
 import 'seo-select/components/seo-select-search';
 \`\`\`
 
-#### 📥 GitHub Release Assets (Alternative)
-- **Full Package**: \`$ZIP_NAME\`
-- **Compressed**: \`$TAR_NAME\`
-- **Individual Files**: \`index.js\`, \`style.css\`
+#### 🌐 GitHub Release (Standalone - Direct Browser Usage)
+- **All Dependencies Included**: Lit framework bundled inside
+- **No Build Required**: Ready-to-use in any HTML file
+- **Offline Usage**: Perfect for local development or CDN-free environments
+- **Single File Solution**: Just download and use
 
-#### 🌐 Direct File Usage (GitHub Release)
-\`\`\`html
-<!-- Download from GitHub Release and host locally -->
-<link rel=\"stylesheet\" href=\"./dist/styles/components/style.css\">
-<script type=\"module\" src=\"./dist/index.js\"></script>
+### 📊 Build Information
+- **Standalone JS**: $BUILD_SIZE (gzipped: $GZIP_SIZE)
+- **Standalone CSS**: $CSS_SIZE
+- **Target**: ES2020, Modern Browsers
+- **Dependencies**: Lit $BUILD_VERSION bundled
+
+### 🚀 Quick Start
+
+#### 📦 NPM Installation (For Bundlers)
+\`\`\`bash
+npm install seo-select@$NEW_VERSION
 \`\`\`
 
-### 🔧 Migration Notes
-- NPM package now includes pre-built, optimized files
-- No build step required for most use cases
-- Better performance and compatibility across environments
-- GitHub Release provides alternative for offline/CDN-free usage
+\`\`\`html
+<!-- Your bundler will handle the dependencies -->
+<link rel="stylesheet" href="./index.css">
+<script type="module" src="./index.js"></script>
+\`\`\`
 
-### 🎯 Recommended Usage
-- **Primary**: Use NPM package for standard development workflow
-- **Alternative**: Use GitHub Release for offline or CDN-free environments
-- **Testing**: Both options provide the same functionality
+#### 📥 GitHub Release Assets (Standalone)
+- **Full Package**: \`$ZIP_NAME\`
+- **Compressed**: \`$TAR_NAME\`
+- **Individual Files**: \`index.js\` (with Lit bundled), \`seo-select.css\`
+
+#### 🌐 Direct Browser Usage (Standalone)
+\`\`\`html
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Download from GitHub Release and host locally -->
+  <link rel=\"stylesheet\" href=\"./min/seo-select.css\">
+  <script type=\"module\" src=\"./min/index.js\"></script>
+</head>
+<body>
+  <seo-select name=\"test\">
+    <option value=\"1\">Option 1</option>
+    <option value=\"2\">Option 2</option>
+  </seo-select>
+</body>
+</html>
+\`\`\`
+
+### 🔧 When to Use Which Version
+
+#### Use NPM Package When:
+- Using modern bundlers (Vite, Webpack, Rollup, etc.)
+- Building applications with TypeScript
+- Need tree-shaking and dead code elimination
+- Want to import specific components only
+
+#### Use GitHub Release When:
+- Direct browser usage without bundlers
+- Quick prototyping or testing
+- Offline development environments
+- Legacy projects without build tools
 
 ### ⚡ Performance Improvements
 - Optimized bundle size with Vite
 - Modern JavaScript features with ES2020 target
-- Enhanced tree-shaking capabilities
-- Improved loading performance
+- Enhanced tree-shaking capabilities (NPM version)
+- All dependencies included (Standalone version)
+
+### 🆕 What's New in This Version
+- Standalone version now includes all dependencies
+- Better compatibility across different environments
+- Improved build process for both distributions
+- Enhanced documentation for different use cases
 
 ---
 [📖 Full Documentation](https://github.com/seadonggyun4/seo-select#readme) | [🐛 Report Issues](https://github.com/seadonggyun4/seo-select/issues)
@@ -290,27 +331,27 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 12. 정리
+# 13. 정리
 echo "🧹 Cleaning up temporary files..."
 rm $ZIP_NAME $TAR_NAME
 
-# 13. 배포 완료 안내
+# 14. 배포 완료 안내
 echo ""
 echo "✅ Release $NEW_VERSION_TAG completed successfully!"
 echo ""
 echo "📝 Changes made:"
 echo "  - Updated package.json version: $CURRENT_VERSION → $NEW_VERSION"
 echo "  - Created git commit and tag: $NEW_VERSION_TAG"
-echo "  - Published source code to npm: seo-select@$NEW_VERSION"
-echo "  - Created GitHub Release with build artifacts"
+echo "  - Published built files to npm: seo-select@$NEW_VERSION"
+echo "  - Created GitHub Release with standalone assets"
 echo ""
 echo "🎯 Distribution Summary:"
-echo "  📦 NPM (Source): https://www.npmjs.com/package/seo-select"  
-echo "  📋 GitHub Release: https://github.com/seadonggyun4/seo-select/releases/tag/$NEW_VERSION_TAG"
-echo "  📁 Built Assets: Available in GitHub Release"
+echo "  📦 NPM (For Bundlers): https://www.npmjs.com/package/seo-select"  
+echo "  📋 GitHub Release (Standalone): https://github.com/seadonggyun4/seo-select/releases/tag/$NEW_VERSION_TAG"
+echo "  📁 Standalone Assets: index.js ($BUILD_SIZE), seo-select.css ($CSS_SIZE)"
 echo ""
 echo "💡 Usage:"
 echo "  - For bundlers: npm install seo-select@$NEW_VERSION"
-echo "  - For direct use: Download built files from GitHub Release"
+echo "  - For direct browser use: Download standalone files from GitHub Release"
 echo ""
 echo "🎉 Happy coding! 🚀"
