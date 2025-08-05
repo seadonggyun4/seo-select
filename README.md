@@ -605,6 +605,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - **Better Compatibility**: Works out-of-the-box across different bundlers and environments
 - **Enhanced Developer Experience**: No additional build step required for most use cases
 - **Vite Build Integration**: Built using Vite for optimal bundle size and modern JavaScript features
+- **Web Standards & Accessibility**: replace option tags with accessible divs and optimize pool size for small datasets
 
 ### Version 1.x (Previous Stable)
 - **Enhanced Event System**: Standard `addEventListener` with built-in type-safe helpers
