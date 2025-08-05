@@ -264,9 +264,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         <div class="${CSS_CLASSES.SELECTED_CONTAINER} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" @click=${this.toggleDropdown}>
           <div class="${CSS_CLASSES.SELECTED_TAGS}">
             ${this._selectedValues.map(value => {
-              // 수정: VirtualSelectOption 사용
-              const option = this._optionsCache.get(value);
-              const label = option?.label || value;
+              const option = this._options.find(opt => opt.value === value);
+              const label = option?.textContent || value;
               return html`
                 <span class="${CSS_CLASSES.TAG}">
                   ${label}
@@ -302,7 +301,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   private renderSingleSelectSearch() {
     const texts = this.getLocalizedText();
-    // 수정: VirtualSelectOption 사용
     const firstOptionValue = this._options && this._options.length > 0 ? this._options[0].value : null;
     const showResetButton = this.showReset &&
                           this._value !== null &&
@@ -348,13 +346,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       return;
     }
 
-    // 기존 가상 스크롤 정리
-    if (this._virtual) {
-      this._virtual.destroy();
-      this._virtual = null;
-    }
-
-    if (scrollEl && !this._isLoading && optionData.length > 0) {
+    if (!this._virtual && scrollEl && !this._isLoading && optionData.length > 0) {
       this._virtual = this._createVirtualSelect(optionData, scrollEl);
 
       // 검색 텍스트가 있으면 필터 적용
@@ -456,8 +448,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._selectedValues = this._selectedValues.filter(value => value !== valueToRemove);
     this.updateFormValue();
 
-    // 수정: VirtualSelectOption 사용
-    const option = this._optionsCache.get(valueToRemove);
+    const option = this._optionsCache.get(valueToRemove) || this._options.find(opt => opt.value === valueToRemove);
 
     if (this.open) {
       this._virtual?.destroy();
@@ -479,8 +470,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       }
     }
 
-    // 표준 이벤트 발생 - VirtualSelectOption 사용
-    triggerDeselectEvent(this, option?.label || '', valueToRemove);
+    // 표준 이벤트 발생
+    triggerDeselectEvent(this, option?.textContent || '', valueToRemove);
 
     this._debouncedUpdate();
   };
@@ -519,7 +510,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       if (this._options.length > 0) {
         const firstOption = this._options[0];
         this.value = firstOption.value;
-        this._labelText = firstOption.label; // 수정: VirtualSelectOption 사용
+        this._labelText = firstOption.textContent || '';
 
         // 드롭다운이 열려있는 경우 즉시 activeIndex와 focusedIndex를 첫 번째로 설정
         if (this.open && this._virtual) {
@@ -540,8 +531,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
           }
         }
 
-        // 표준 이벤트 발생 - VirtualSelectOption 사용
-        triggerResetEvent(this, { value: firstOption.value, label: firstOption.label });
+        // 표준 이벤트 발생
+        triggerResetEvent(this, { value: firstOption.value, label: firstOption.textContent || '' });
       }
     }
     
@@ -555,22 +546,19 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this.open = true;
     this._debouncedUpdate();
 
-    // DOM 업데이트 완료 후 가상 스크롤 초기화
-    requestAnimationFrame(() => {
-      if (this.hasNoOptions()) {
-        this._isLoading = true;
-        this._debouncedUpdate();
+    if (this.hasNoOptions()) {
+      this._isLoading = true;
+      this._debouncedUpdate();
 
-        this.loadOptionsAsync().then(() => {
-          this.initializeVirtualSelect();
-        }).catch(() => {
-          this._isLoading = false;
-          this._debouncedUpdate();
-        });
-      } else {
+      this.loadOptionsAsync().then(() => {
         this.initializeVirtualSelect();
-      }
-    });
+      }).catch(() => {
+        this._isLoading = false;
+        this._debouncedUpdate();
+      });
+    } else {
+      this.initializeVirtualSelect();
+    }
   }
 
   // 옵션 선택 메서드 오버라이드 - 표준 이벤트 사용
@@ -610,14 +598,13 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     }
   }
 
-  // 값 설정 메서드 오버라이드 - 표준 이벤트 사용 및 VirtualSelectOption 지원
+  // 값 설정 메서드 오버라이드 - 표준 이벤트 사용
   public override _setValue(newVal: string, emit: boolean = true): void {
     if (this._value === newVal) return;
 
     this._value = newVal;
-    // 수정: VirtualSelectOption 사용
-    const matched = this._optionsCache.get(newVal);
-    this._labelText = matched?.label ?? this._labelText ?? '';
+    const matched = this._optionsCache.get(newVal) || this._options.find((opt) => opt.value === newVal);
+    this._labelText = matched?.textContent ?? this._labelText ?? '';
 
     this._internals.setFormValue(this._value || '');
 
@@ -626,11 +613,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       this._internals.setValidity({ valueMissing: true }, texts.required);
     } else {
       this._internals.setValidity({});
-    }
-
-    // Hidden input 값 업데이트 (직접 호출로 순환 방지)
-    if (this._hiddenInput) {
-      this._hiddenInput.value = this._getFormValue();
     }
 
     this._debouncedUpdate();
@@ -645,7 +627,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._noMatchVisible = false;
   }
 
-  // 자동 너비 계산 오버라이드 - 검색 입력창 고려 및 VirtualSelectOption 지원
+  // 자동 너비 계산 오버라이드 - 검색 입력창 고려
   public override calculateAutoWidth(): void {
     // width가 명시적으로 설정되지 않은 경우에만 계산
     if (this.width || this._options.length === 0) {
@@ -653,8 +635,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       return;
     }
 
-    // 수정: VirtualSelectOption 사용
-    const optionTexts = this._options.map(opt => opt.label || '');
+    // 모든 옵션 텍스트를 수집
+    const optionTexts = this._options.map(opt => opt.textContent || '');
     
     // placeholder 텍스트와 검색 placeholder도 고려
     const texts = this.getLocalizedText();
@@ -711,45 +693,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this.requestUpdate();
   }
 
-  // 웹 표준 준수: 옵션 일괄 업데이트 메서드 오버라이드
-  public override batchUpdateOptions(newOptions: VirtualSelectOption[]): void {
-    super.batchUpdateOptions(newOptions);
-    
-    // 검색 텍스트가 있는 경우 필터 재적용
-    if (this._searchText && this._virtual) {
-      this._applyFilteredOptions();
-    }
-  }
-
-  // 웹 표준 준수: 옵션 추가 메서드 오버라이드
-  public override addOption(option: VirtualSelectOption): void {
-    super.addOption(option);
-    
-    // 검색 텍스트가 있는 경우 필터 재적용
-    if (this._searchText && this._virtual) {
-      this._applyFilteredOptions();
-    }
-  }
-
-  // 웹 표준 준수: 옵션 제거 메서드 오버라이드
-  public override removeOption(value: string): void {
-    super.removeOption(value);
-    
-    // 검색 텍스트가 있는 경우 필터 재적용
-    if (this._searchText && this._virtual) {
-      this._applyFilteredOptions();
-    }
-  }
-
-  // 웹 표준 준수: 모든 옵션 클리어 메서드 오버라이드
-  public override clearOptions(): void {
-    super.clearOptions();
-    
-    // 검색 텍스트도 초기화
-    this._searchText = '';
-    this._noMatchVisible = false;
-  }
-
   // 검색 관련 다국어 텍스트를 반환하는 정적 메서드
   static getSearchLocalizedTexts(): Record<SupportedLanguage, SearchLocalizedTexts> {
     return SEARCH_LOCALIZED_TEXTS;
@@ -780,14 +723,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       searchText: this._searchText,
       hasSearchResults: this._searchText ? this.getAllOptionData().length > 0 : true
     };
-  }
-
-  // Form 값 가져오기 헬퍼 메서드
-  public _getFormValue(): string {
-    if (this.multiple) {
-      return this._selectedValues.join(',');
-    }
-    return this._value || '';
   }
 }
 
