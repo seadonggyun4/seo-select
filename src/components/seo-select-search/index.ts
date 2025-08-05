@@ -623,24 +623,446 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this.requestUpdate();
   }
 
+
+  /**
+   * 가상 스크롤 데이터를 검색 필터와 함께 즉시 업데이트하는 헬퍼 메서드
+   */
+  private _updateVirtualScrollDataWithSearch(): void {
+    if (!this._virtual || !this.open) return;
+
+    const optionData = this.getAllOptionData();
+    
+    if (optionData.length > 0) {
+      const activeValue = this.multiple ? undefined : this._value || undefined;
+      this._virtual.setData(optionData, activeValue);
+      
+      // 검색 텍스트가 있으면 필터 적용
+      if (this._searchText) {
+        this._applyFilteredOptions();
+      } else {
+        // 활성 인덱스 설정
+        requestAnimationFrame(() => {
+          if (!this._virtual) return;
+          
+          if (this.multiple) {
+            this._virtual.setActiveIndex(0);
+          } else {
+            const selectedIndex = optionData.findIndex(opt => opt.value === this._value);
+            this._virtual.setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
+          }
+        });
+      }
+    } else {
+      this._virtual.clearData();
+    }
+  }
+
   public override addOptions(options: VirtualSelectOption[], preserveSelection: boolean = false): void {
-    super.addOptions(options, preserveSelection);
-    // 검색 텍스트 초기화
-    this._searchText = '';
+    if (this._isUpdating) return;
+    this._isUpdating = true;
+
+    try {
+      // 기존 선택값 백업
+      let previousValue: string | null = null;
+      let previousSelectedValues: string[] = [];
+      
+      if (preserveSelection) {
+        if (this.multiple) {
+          previousSelectedValues = [...this._selectedValues];
+        } else {
+          previousValue = this._value;
+        }
+      }
+
+      // 기존 옵션들 정리
+      this._options.forEach(opt => opt.remove());
+      this._options = [];
+      this._optionsCache.clear();
+      this._widthCalculationCache.clear();
+
+      // 새로운 옵션들 생성
+      if (Array.isArray(options) && options.length > 0) {
+        const fragment = document.createDocumentFragment();
+        
+        this._options = options.map(opt => {
+          const el = document.createElement('option');
+          el.value = opt.value;
+          el.textContent = opt.label;
+          el.hidden = true;
+          this._optionsCache.set(opt.value, el);
+          fragment.appendChild(el);
+          return el;
+        });
+        
+        this.appendChild(fragment);
+        this._isLoading = false;
+      } else {
+        this._isLoading = true;
+      }
+
+      // 선택값 복원 또는 초기화
+      if (preserveSelection && options.length > 0) {
+        if (this.multiple) {
+          const validValues = previousSelectedValues.filter(value => 
+            this._options.some(opt => opt.value === value)
+          );
+          this._selectedValues = validValues;
+          this.updateFormValue();
+        } else {
+          if (previousValue && this._options.some(opt => opt.value === previousValue)) {
+            this._setValue(previousValue, false);
+          } else if (this._options.length > 0) {
+            this._setValue(this._options[0].value, false);
+          }
+        }
+      } else {
+        if (this.multiple) {
+          this._selectedValues = [];
+          this.updateFormValue();
+        } else if (this._options.length > 0) {
+          this._setValue(this._options[0].value, false);
+        }
+      }
+
+      // 검색 텍스트 초기화 (옵션이 완전히 변경된 경우)
+      if (!preserveSelection) {
+        this._searchText = '';
+      }
+
+      // 검색 기능과 함께 가상 스크롤 즉시 업데이트
+      this._updateVirtualScrollDataWithSearch();
+
+      // 초기값 설정
+      if (this._options.length > 0) {
+        this._initialValue = this._options[0].value;
+        this._initialLabel = this._options[0].textContent || '';
+      } else {
+        this._initialValue = null;
+        this._initialLabel = null;
+      }
+
+      this.calculateAutoWidth();
+
+    } finally {
+      this._isUpdating = false;
+      this._debouncedUpdate();
+    }
   }
 
   public override addOption(option: VirtualSelectOption, index?: number): void {
-    super.addOption(option, index);
+    if (this._isUpdating) return;
+    
+    if (this._options.some(opt => opt.value === option.value)) {
+      console.warn(`Option with value "${option.value}" already exists`);
+      return;
+    }
+
+    this._isUpdating = true;
+
+    try {
+      // 새 옵션 요소 생성
+      const el = document.createElement('option');
+      el.value = option.value;
+      el.textContent = option.label;
+      el.hidden = true;
+      this._optionsCache.set(option.value, el);
+
+      // 지정된 위치에 삽입
+      const insertIndex = index !== undefined ? Math.max(0, Math.min(index, this._options.length)) : this._options.length;
+      
+      if (insertIndex >= this._options.length) {
+        this._options.push(el);
+        this.appendChild(el);
+      } else {
+        const nextOption = this._options[insertIndex];
+        this._options.splice(insertIndex, 0, el);
+        this.insertBefore(el, nextOption);
+      }
+
+      this._widthCalculationCache.clear();
+      this._isLoading = false;
+
+      // 검색 기능과 함께 가상 스크롤 즉시 업데이트
+      this._updateVirtualScrollDataWithSearch();
+
+      // 첫 번째 옵션이면 초기값 설정
+      if (this._options.length === 1) {
+        this._initialValue = option.value;
+        this._initialLabel = option.label;
+        
+        if (!this.multiple && !this._value) {
+          this._setValue(option.value, false);
+        }
+      }
+
+      this.calculateAutoWidth();
+
+    } finally {
+      this._isUpdating = false;
+      this._debouncedUpdate();
+    }
   }
 
   public override clearOption(value: string): void {
-    super.clearOption(value);
+    if (this._isUpdating) return;
+    
+    const optionIndex = this._options.findIndex(opt => opt.value === value);
+    if (optionIndex === -1) return;
+
+    this._isUpdating = true;
+
+    try {
+      // 옵션 제거
+      const removedOption = this._options[optionIndex];
+      removedOption.remove();
+      this._options.splice(optionIndex, 1);
+      this._optionsCache.delete(value);
+      this._widthCalculationCache.clear();
+
+      // 선택된 값에서도 제거
+      if (this.multiple) {
+        const selectedIndex = this._selectedValues.indexOf(value);
+        if (selectedIndex > -1) {
+          this._selectedValues.splice(selectedIndex, 1);
+          this.updateFormValue();
+          triggerDeselectEvent(this, removedOption.textContent || '', value);
+        }
+      } else {
+        if (this._value === value) {
+          if (this._options.length > 0) {
+            this._setValue(this._options[0].value, true);
+          } else {
+            this._setValue('', true);
+          }
+        }
+      }
+
+      // 검색 기능과 함께 가상 스크롤 즉시 업데이트
+      this._updateVirtualScrollDataWithSearch();
+
+      // 초기값 업데이트
+      if (this._options.length > 0) {
+        this._initialValue = this._options[0].value;
+        this._initialLabel = this._options[0].textContent || '';
+      } else {
+        this._initialValue = null;
+        this._initialLabel = null;
+        this._isLoading = true;
+      }
+
+      this.calculateAutoWidth();
+
+    } finally {
+      this._isUpdating = false;
+      this._debouncedUpdate();
+    }
   }
 
   public override clearAllOptions(): void {
-    super.clearAllOptions();
-    // 검색 텍스트 초기화
-    this._searchText = '';
+    if (this._isUpdating) return;
+    this._isUpdating = true;
+
+    try {
+      // 모든 옵션 제거
+      this._options.forEach(opt => opt.remove());
+      this._options = [];
+      this._optionsCache.clear();
+      this._widthCalculationCache.clear();
+
+      // 선택값 초기화
+      if (this.multiple) {
+        const previousSelectedValues = [...this._selectedValues];
+        this._selectedValues = [];
+        this.updateFormValue();
+        
+        if (previousSelectedValues.length > 0) {
+          triggerResetEvent(this, { values: [], labels: [] });
+        }
+      } else {
+        const previousValue = this._value;
+        this._setValue('', true);
+        
+        if (previousValue) {
+          triggerResetEvent(this, { value: '', label: '' });
+        }
+      }
+
+      // 검색 텍스트 초기화
+      this._searchText = '';
+      this._noMatchVisible = false;
+
+      // 가상 스크롤 즉시 클리어
+      if (this._virtual) {
+        this._virtual.clearData();
+      }
+
+      // 초기값 클리어
+      this._initialValue = null;
+      this._initialLabel = null;
+      this._isLoading = true;
+      this._calculatedWidth = null;
+
+    } finally {
+      this._isUpdating = false;
+      this._debouncedUpdate();
+    }
+  }
+
+  /**
+   * 검색 텍스트와 함께 옵션 데이터 일괄 업데이트
+   */
+  public override batchUpdateOptions(updates: Array<{
+    action: 'add' | 'remove' | 'update';
+    option?: VirtualSelectOption;
+    value?: string;
+    index?: number;
+  }>): void {
+    if (this._isUpdating) return;
+    this._isUpdating = true;
+    let hasChanges = false;
+
+    try {
+      updates.forEach(update => {
+        switch (update.action) {
+          case 'add':
+            if (update.option && !this._options.some(opt => opt.value === update.option!.value)) {
+              const el = document.createElement('option');
+              el.value = update.option.value;
+              el.textContent = update.option.label;
+              el.hidden = true;
+              this._optionsCache.set(update.option.value, el);
+
+              const insertIndex = update.index !== undefined ? 
+                Math.max(0, Math.min(update.index, this._options.length)) : 
+                this._options.length;
+
+              if (insertIndex >= this._options.length) {
+                this._options.push(el);
+                this.appendChild(el);
+              } else {
+                const nextOption = this._options[insertIndex];
+                this._options.splice(insertIndex, 0, el);
+                this.insertBefore(el, nextOption);
+              }
+              hasChanges = true;
+            }
+            break;
+
+          case 'remove':
+            if (update.value) {
+              const optionIndex = this._options.findIndex(opt => opt.value === update.value);
+              if (optionIndex !== -1) {
+                const removedOption = this._options[optionIndex];
+                removedOption.remove();
+                this._options.splice(optionIndex, 1);
+                this._optionsCache.delete(update.value);
+
+                // 선택된 값에서도 제거
+                if (this.multiple) {
+                  const selectedIndex = this._selectedValues.indexOf(update.value);
+                  if (selectedIndex > -1) {
+                    this._selectedValues.splice(selectedIndex, 1);
+                  }
+                } else {
+                  if (this._value === update.value && this._options.length > 0) {
+                    this._setValue(this._options[0].value, false);
+                  }
+                }
+                hasChanges = true;
+              }
+            }
+            break;
+
+          case 'update':
+            if (update.option && update.value) {
+              const existingOption = this._options.find(opt => opt.value === update.value);
+              if (existingOption) {
+                existingOption.textContent = update.option.label;
+                this._optionsCache.set(update.value, existingOption);
+                hasChanges = true;
+              }
+            }
+            break;
+        }
+      });
+
+      if (hasChanges) {
+        this._widthCalculationCache.clear();
+        this._isLoading = this._options.length === 0;
+
+        // 검색 기능과 함께 가상 스크롤 한 번만 업데이트
+        this._updateVirtualScrollDataWithSearch();
+
+        // 초기값 업데이트
+        if (this._options.length > 0) {
+          this._initialValue = this._options[0].value;
+          this._initialLabel = this._options[0].textContent || '';
+        } else {
+          this._initialValue = null;
+          this._initialLabel = null;
+        }
+
+        // 폼 값 업데이트
+        if (this.multiple) {
+          this.updateFormValue();
+        }
+
+        this.calculateAutoWidth();
+      }
+
+    } finally {
+      this._isUpdating = false;
+      if (hasChanges) {
+        this._debouncedUpdate();
+      }
+    }
+  }
+
+  /**
+   * 검색 상태를 유지하면서 옵션 업데이트
+   * @param options - 새 옵션 배열
+   * @param preserveSearch - 검색 텍스트 유지 여부 (기본값: true)
+   */
+  public updateOptionsWithSearch(options: VirtualSelectOption[], preserveSearch: boolean = true): void {
+    const currentSearchText = preserveSearch ? this._searchText : '';
+    
+    // 기본 addOptions 실행
+    this.addOptions(options, true);
+    
+    // 검색 텍스트 복원 및 필터 적용
+    if (preserveSearch && currentSearchText) {
+      this._searchText = currentSearchText;
+      this._updateVirtualScrollDataWithSearch();
+    }
+  }
+
+  /**
+   * 검색 결과에 따른 동적 옵션 로딩
+   * @param searchText - 검색 텍스트
+   * @param optionLoader - 옵션을 로드하는 비동기 함수
+   */
+  public async loadOptionsForSearch(
+    searchText: string, 
+    optionLoader: (search: string) => Promise<VirtualSelectOption[]>
+  ): Promise<void> {
+    this._isLoading = true;
+    this._searchText = searchText;
+    this._debouncedUpdate();
+
+    try {
+      const newOptions = await optionLoader(searchText);
+      this.addOptions(newOptions, false);
+      
+      // 검색 텍스트 설정 및 필터 적용
+      this._searchText = searchText;
+      if (this._virtual && this.open) {
+        this._applyFilteredOptions();
+      }
+    } catch (error) {
+      console.error('Failed to load options for search:', error);
+      this._isLoading = false;
+      this._debouncedUpdate();
+    }
   }
 }
 

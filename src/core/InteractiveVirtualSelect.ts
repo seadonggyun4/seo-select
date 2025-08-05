@@ -453,8 +453,13 @@ export class InteractiveVirtualSelect {
       : null;
   }
 
-  // 데이터 갱신 및 렌더링 - 개선된 버전
+  // InteractiveVirtualSelect 클래스의 개선된 setData 및 clearData 메서드
+
   setData(newData: OptionData[], activeValue?: string): void {
+    // 데이터 변경 전 상태 저장
+    const wasEmpty = this.total === 0;
+    const hadData = this.total > 0;
+    
     this.data = newData;
     this.total = newData.length;
     this._prevStart = -1;
@@ -469,10 +474,12 @@ export class InteractiveVirtualSelect {
 
     // 다중 선택 모드가 아닐 때만 activeIndex 설정
     if (!this.isMultiple) {
-      this.activeIndex = matchedIndex >= 0 ? matchedIndex : 0;
+      this.activeIndex = matchedIndex >= 0 ? matchedIndex : (this.total > 0 ? 0 : -1);
     }
 
-    this.focusedIndex = matchedIndex >= 0 ? matchedIndex : 0;
+    this.focusedIndex = matchedIndex >= 0 ? matchedIndex : (this.total > 0 ? 0 : -1);
+
+    // 스크롤 위치 초기화 (데이터가 변경되었으므로)
     this.container.scrollTop = 0;
 
     // 컨테이너 및 풀 크기 재계산
@@ -481,17 +488,48 @@ export class InteractiveVirtualSelect {
     // 풀 크기가 변경되었다면 풀을 다시 빌드
     this._rebuildPoolIfNeeded();
     
-    this._setPlaceholders(0, Math.min(this.total, this.pool.length));
-    this._renderPool(0);
-    this._applyHighlight();
+    if (this.total > 0) {
+      // 데이터가 있는 경우 즉시 렌더링
+      const endIdx = Math.min(this.total, this.poolSize);
+      this._setPlaceholders(0, endIdx);
+      this._renderPool(0);
+      
+      // 즉시 하이라이트 적용
+      requestAnimationFrame(() => {
+        this._applyHighlight();
+        
+        // 활성 인덱스가 설정된 경우 해당 위치로 스크롤
+        if (this.focusedIndex >= 0) {
+          this._scrollIntoView(this.focusedIndex);
+        }
+      });
+    } else {
+      // 데이터가 없는 경우 빈 상태로 설정
+      this._setPlaceholders(0, 0);
+      this.pool.forEach(el => {
+        el.style.display = 'none';
+        el.removeAttribute('data-index');
+        el.removeAttribute('aria-posinset');
+        this._resetClass(el);
+      });
+    }
     
     // 풀의 모든 요소에 새로운 aria-setsize 설정
     this.pool.forEach(el => {
       el.setAttribute('aria-setsize', String(this.total));
     });
+
+    // 상태 변화에 따른 컨테이너 가시성 처리
+    if (wasEmpty && this.total > 0) {
+      // 빈 상태에서 데이터가 생긴 경우
+      this.container.style.display = '';
+    } else if (hadData && this.total === 0) {
+      // 데이터가 있다가 없어진 경우
+      this.container.style.height = '0px';
+    }
   }
 
-  // 데이터 완전 클리어 - 개선된 버전
+  // 데이터 완전 클리어 - 개선된 버전 (즉시 UI 반영)
   clearData(): void {
     this.data = [];
     this.total = 0;
@@ -500,19 +538,21 @@ export class InteractiveVirtualSelect {
     this._prevStart = -1;
     this._prevEnd = -1;
 
-    // 풀의 모든 요소 숨기기
+    // 풀의 모든 요소 즉시 숨기기 및 정리
     this.pool.forEach(el => {
       el.style.display = 'none';
       el.removeAttribute('data-index');
       el.removeAttribute('aria-posinset');
+      el.removeAttribute('aria-current');
+      el.removeAttribute('aria-selected');
       this._resetClass(el);
     });
 
-    // 컨테이너 높이 최소화
+    // 컨테이너 높이 즉시 최소화
     this.container.style.height = '0px';
     this.wrapper.style.height = '0px';
     
-    // placeholder 초기화
+    // placeholder 즉시 초기화
     this.container.style.setProperty('--top-placeholder', '0px');
     this.container.style.setProperty('--bottom-placeholder', '0px');
     (this.topPad.firstElementChild as HTMLElement).style.height = '0px';
@@ -521,10 +561,138 @@ export class InteractiveVirtualSelect {
     // ARIA 속성 정리
     this.wrapper.removeAttribute('aria-activedescendant');
 
+    // 스크롤 위치 초기화
+    this.container.scrollTop = 0;
+
     // 풀 크기 재계산 - 빈 데이터에 맞춰 조정
     this.poolSize = 0;
-    // 풀을 완전히 비우지는 않고, 필요시 재사용할 수 있도록 유지
-    // 하지만 다음 setData 호출 시 _rebuildPoolIfNeeded()에서 적절히 조정됨
+    this.visibleCount = 0;
+
+    // 즉시 UI 반영을 위한 강제 리플로우
+    requestAnimationFrame(() => {
+      this.container.offsetHeight; // 강제 리플로우
+    });
+  }
+
+  // 부분 데이터 업데이트 (특정 인덱스의 데이터만 변경)
+  updateDataItem(index: number, newData: OptionData): void {
+    if (index < 0 || index >= this.total) return;
+    
+    this.data[index] = newData;
+    
+    // 해당 인덱스가 현재 렌더링된 범위에 있는지 확인
+    if (index >= this._prevStart && index < this._prevEnd) {
+      const poolIndex = index - this._prevStart;
+      if (poolIndex >= 0 && poolIndex < this.pool.length) {
+        const el = this.pool[poolIndex];
+        
+        // 요소 즉시 업데이트
+        el.textContent = newData.label;
+        (el as any)._value = newData.value;
+        
+        this._handleDisabledOption(el, newData);
+        this._resetClass(el);
+        
+        // renderOption 콜백 호출 (있다면)
+        if (this.renderOption) {
+          this.renderOption(el, newData);
+        }
+        
+        // multi 모드일 때는 active 클래스 강제 제거
+        if (this.isMultiple) {
+          el.classList.remove('active');
+        }
+        
+        // 하이라이트 재적용
+        requestAnimationFrame(() => {
+          this._applyHighlight();
+        });
+      }
+    }
+  }
+
+  // 데이터 배열에 항목 추가 (끝에 추가)
+  appendDataItem(newData: OptionData): void {
+    this.data.push(newData);
+    this.total = this.data.length;
+    
+    // 컨테이너 크기 재계산
+    this._initializeContainer();
+    this._rebuildPoolIfNeeded();
+    
+    // wrapper 높이 업데이트
+    this.wrapper.style.height = `${this.total * this.rowHeight}px`;
+    
+    // ARIA 속성 업데이트
+    this.pool.forEach(el => {
+      el.setAttribute('aria-setsize', String(this.total));
+    });
+    
+    // 현재 보이는 영역에 영향이 있으면 렌더링 업데이트
+    const currentEndIdx = Math.min(this.total, this._prevStart + this.poolSize);
+    if (currentEndIdx > this._prevEnd) {
+      this._setPlaceholders(this._prevStart, currentEndIdx);
+      this._renderPool(this._prevStart);
+    }
+    
+    requestAnimationFrame(() => {
+      this._applyHighlight();
+    });
+  }
+
+  // 데이터 배열에서 항목 제거
+  removeDataItem(index: number): void {
+    if (index < 0 || index >= this.total) return;
+    
+    this.data.splice(index, 1);
+    this.total = this.data.length;
+    
+    // 인덱스 조정
+    if (this.focusedIndex >= index && this.focusedIndex > 0) {
+      this.focusedIndex--;
+    }
+    if (this.activeIndex >= index && this.activeIndex > 0) {
+      this.activeIndex--;
+    }
+    
+    // 데이터가 없어진 경우
+    if (this.total === 0) {
+      this.clearData();
+      return;
+    }
+    
+    // 컨테이너 크기 재계산
+    this._initializeContainer();
+    this._rebuildPoolIfNeeded();
+    
+    // wrapper 높이 업데이트
+    this.wrapper.style.height = `${this.total * this.rowHeight}px`;
+    
+    // ARIA 속성 업데이트
+    this.pool.forEach(el => {
+      el.setAttribute('aria-setsize', String(this.total));
+    });
+    
+    // 전체 다시 렌더링
+    this._prevStart = -1;
+    this._prevEnd = -1;
+    this.render();
+  }
+
+  // 현재 보이는 영역만 즉시 업데이트 (성능 최적화)
+  refreshVisibleItems(): void {
+    if (this.total === 0) return;
+    
+    const scrollTop = this.container.scrollTop;
+    const startIdx = Math.max(0, Math.floor(scrollTop / this.rowHeight) - this.overscan);
+    const endIdx = Math.min(this.total, startIdx + this.poolSize);
+    
+    this._setPlaceholders(startIdx, endIdx);
+    this._renderPool(startIdx);
+    
+    requestAnimationFrame(() => {
+      this._applyHighlight();
+    });
   }
 
   // 파괴 및 이벤트 제거
