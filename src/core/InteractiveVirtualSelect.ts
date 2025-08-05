@@ -474,6 +474,37 @@ export class InteractiveVirtualSelect {
     });
   }
 
+  // 데이터 완전 클리어 - 빈 상태로 만들어 로딩 화면 표시 가능
+  clearData(): void {
+    this.data = [];
+    this.total = 0;
+    this.focusedIndex = -1;
+    this.activeIndex = -1;
+    this._prevStart = -1;
+    this._prevEnd = -1;
+
+    // 풀의 모든 요소 숨기기
+    this.pool.forEach(el => {
+      el.style.display = 'none';
+      el.removeAttribute('data-index');
+      el.removeAttribute('aria-posinset');
+      this._resetClass(el);
+    });
+
+    // 컨테이너 높이 최소화
+    this.container.style.height = '0px';
+    this.wrapper.style.height = '0px';
+    
+    // placeholder 초기화
+    this.container.style.setProperty('--top-placeholder', '0px');
+    this.container.style.setProperty('--bottom-placeholder', '0px');
+    (this.topPad.firstElementChild as HTMLElement).style.height = '0px';
+    (this.botPad.firstElementChild as HTMLElement).style.height = '0px';
+
+    // ARIA 속성 정리
+    this.wrapper.removeAttribute('aria-activedescendant');
+  }
+
   // 파괴 및 이벤트 제거
   destroy(): void {
     this.container.removeEventListener('scroll', this._onScroll);
