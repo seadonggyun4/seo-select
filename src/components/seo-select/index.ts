@@ -886,6 +886,365 @@ After:  select.removeEventListener('${type}', handler);`);
     this._debouncedUpdate();
   }
 
+  /**
+   * 옵션들을 동적으로 설정합니다
+   * @param options - 설정할 옵션 배열
+   * @param preserveSelection - 기존 선택값 유지 여부 (기본값: false)
+   */
+  protected addOptions(options: VirtualSelectOption[], preserveSelection: boolean = false): void {
+    if (this._isUpdating) return;
+    this._isUpdating = true;
+
+    try {
+      // 기존 선택값 백업 (preserveSelection이 true인 경우)
+      let previousValue: string | null = null;
+      let previousSelectedValues: string[] = [];
+      
+      if (preserveSelection) {
+        if (this.multiple) {
+          previousSelectedValues = [...this._selectedValues];
+        } else {
+          previousValue = this._value;
+        }
+      }
+
+      // 기존 옵션들 정리
+      this._options.forEach(opt => opt.remove());
+      this._options = [];
+      this._optionsCache.clear();
+      this._widthCalculationCache.clear();
+
+      // 새로운 옵션들 생성
+      if (Array.isArray(options) && options.length > 0) {
+        const fragment = document.createDocumentFragment();
+        
+        this._options = options.map(opt => {
+          const el = document.createElement('option');
+          el.value = opt.value;
+          el.textContent = opt.label;
+          el.hidden = true;
+          this._optionsCache.set(opt.value, el);
+          fragment.appendChild(el);
+          return el;
+        });
+        
+        this.appendChild(fragment);
+        this._isLoading = false;
+      } else {
+        // 옵션이 없는 경우 로딩 상태로 설정
+        this._isLoading = true;
+      }
+
+      // 선택값 복원 또는 초기화
+      if (preserveSelection && options.length > 0) {
+        if (this.multiple) {
+          // 다중 선택: 여전히 존재하는 값들만 유지
+          const validValues = previousSelectedValues.filter(value => 
+            this._options.some(opt => opt.value === value)
+          );
+          this._selectedValues = validValues;
+          this.updateFormValue();
+        } else {
+          // 단일 선택: 이전 값이 여전히 존재하면 유지, 아니면 첫 번째 옵션 선택
+          if (previousValue && this._options.some(opt => opt.value === previousValue)) {
+            this._setValue(previousValue, false);
+          } else if (this._options.length > 0) {
+            this._setValue(this._options[0].value, false);
+          }
+        }
+      } else {
+        // 선택값 초기화
+        if (this.multiple) {
+          this._selectedValues = [];
+          this.updateFormValue();
+        } else if (this._options.length > 0) {
+          this._setValue(this._options[0].value, false);
+        }
+      }
+
+      // 가상 스크롤 업데이트
+      if (this._virtual && this.open) {
+        const optionData = this.getAllOptionData();
+        if (optionData.length > 0) {
+          this._virtual.setData(optionData, this.multiple ? undefined : this._value || undefined);
+          
+          requestAnimationFrame(() => {
+            this._virtual?.setActiveIndex(0);
+          });
+        } else {
+          this._virtual.clearData();
+        }
+      }
+
+      // 초기값 설정
+      if (this._options.length > 0) {
+        this._initialValue = this._options[0].value;
+        this._initialLabel = this._options[0].textContent || '';
+      } else {
+        this._initialValue = null;
+        this._initialLabel = null;
+      }
+
+      // 너비 재계산
+      this.calculateAutoWidth();
+      
+      // 표준 이벤트 발생 (옵션 변경)
+      this.dispatchEvent(new CustomEvent('options-changed', {
+        detail: { 
+          options: options.map(opt => ({ value: opt.value, label: opt.label })),
+          preservedSelection: preserveSelection 
+        },
+        bubbles: true,
+        composed: true
+      }));
+
+    } finally {
+      this._isUpdating = false;
+      this._debouncedUpdate();
+    }
+  }
+
+  /**
+   * 단일 옵션을 추가합니다
+   * @param option - 추가할 옵션
+   * @param index - 삽입할 위치 (선택적, 기본값은 마지막)
+   */
+  protected addOption(option: VirtualSelectOption, index?: number): void {
+    if (this._isUpdating) return;
+    
+    // 이미 존재하는 값인지 확인
+    if (this._options.some(opt => opt.value === option.value)) {
+      console.warn(`Option with value "${option.value}" already exists`);
+      return;
+    }
+
+    this._isUpdating = true;
+
+    try {
+      // 새 옵션 요소 생성
+      const el = document.createElement('option');
+      el.value = option.value;
+      el.textContent = option.label;
+      el.hidden = true;
+      this._optionsCache.set(option.value, el);
+
+      // 지정된 위치에 삽입
+      const insertIndex = index !== undefined ? Math.max(0, Math.min(index, this._options.length)) : this._options.length;
+      
+      if (insertIndex >= this._options.length) {
+        // 마지막에 추가
+        this._options.push(el);
+        this.appendChild(el);
+      } else {
+        // 특정 위치에 삽입
+        const nextOption = this._options[insertIndex];
+        this._options.splice(insertIndex, 0, el);
+        this.insertBefore(el, nextOption);
+      }
+
+      this._widthCalculationCache.clear();
+      this._isLoading = false;
+
+      // 가상 스크롤 업데이트
+      if (this._virtual && this.open) {
+        const optionData = this.getAllOptionData();
+        this._virtual.setData(optionData, this.multiple ? undefined : this._value || undefined);
+        
+        requestAnimationFrame(() => {
+          const activeIndex = this.multiple ? 0 : 
+            Math.max(0, optionData.findIndex(opt => opt.value === this._value));
+          this._virtual?.setActiveIndex(activeIndex);
+        });
+      }
+
+      // 첫 번째 옵션이면 초기값 설정
+      if (this._options.length === 1) {
+        this._initialValue = option.value;
+        this._initialLabel = option.label;
+        
+        // 단일 선택 모드이고 현재 값이 없으면 이 옵션을 선택
+        if (!this.multiple && !this._value) {
+          this._setValue(option.value, false);
+        }
+      }
+
+      // 너비 재계산
+      this.calculateAutoWidth();
+      
+      // 옵션 추가 이벤트 발생
+      this.dispatchEvent(new CustomEvent('option-added', {
+        detail: { 
+          option: { value: option.value, label: option.label },
+          index: insertIndex,
+          totalCount: this._options.length 
+        },
+        bubbles: true,
+        composed: true
+      }));
+
+    } finally {
+      this._isUpdating = false;
+      this._debouncedUpdate();
+    }
+  }
+
+  /**
+   * 특정 옵션을 제거합니다
+   * @param value - 제거할 옵션의 값
+   */
+  protected clearOption(value: string): void {
+    if (this._isUpdating) return;
+    
+    const optionIndex = this._options.findIndex(opt => opt.value === value);
+    if (optionIndex === -1) return;
+
+    this._isUpdating = true;
+
+    try {
+      // 옵션 제거
+      const removedOption = this._options[optionIndex];
+      removedOption.remove();
+      this._options.splice(optionIndex, 1);
+      this._optionsCache.delete(value);
+      this._widthCalculationCache.clear();
+
+      // 선택된 값에서도 제거
+      if (this.multiple) {
+        const selectedIndex = this._selectedValues.indexOf(value);
+        if (selectedIndex > -1) {
+          this._selectedValues.splice(selectedIndex, 1);
+          this.updateFormValue();
+          
+          // 선택 해제 이벤트 발생
+          triggerDeselectEvent(this, removedOption.textContent || '', value);
+        }
+      } else {
+        if (this._value === value) {
+          // 현재 선택된 값이 제거된 경우, 첫 번째 옵션으로 변경
+          if (this._options.length > 0) {
+            this._setValue(this._options[0].value, true);
+          } else {
+            this._setValue('', true);
+          }
+        }
+      }
+
+      // 가상 스크롤 업데이트
+      if (this._virtual && this.open) {
+        const optionData = this.getAllOptionData();
+        if (optionData.length > 0) {
+          this._virtual.setData(optionData, this.multiple ? undefined : this._value || undefined);
+          
+          requestAnimationFrame(() => {
+            const activeIndex = this.multiple ? 0 : 
+              Math.max(0, optionData.findIndex(opt => opt.value === this._value));
+            this._virtual?.setActiveIndex(activeIndex);
+          });
+        } else {
+          this._virtual.clearData();
+          this._isLoading = true; // 옵션이 없으면 로딩 상태로 변경
+        }
+      }
+
+      // 초기값 업데이트
+      if (this._options.length > 0) {
+        this._initialValue = this._options[0].value;
+        this._initialLabel = this._options[0].textContent || '';
+      } else {
+        this._initialValue = null;
+        this._initialLabel = null;
+        this._isLoading = true;
+      }
+
+      // 너비 재계산
+      this.calculateAutoWidth();
+      
+      // 옵션 제거 이벤트 발생
+      this.dispatchEvent(new CustomEvent('option-removed', {
+        detail: { 
+          value: value, 
+          label: removedOption.textContent || '',
+          remainingCount: this._options.length 
+        },
+        bubbles: true,
+        composed: true
+      }));
+
+    } finally {
+      this._isUpdating = false;
+      this._debouncedUpdate();
+    }
+  }
+
+  /**
+   * 모든 옵션을 제거합니다
+   */
+  protected clearAllOptions(): void {
+    if (this._isUpdating) return;
+    this._isUpdating = true;
+
+    try {
+      const removedOptions = this._options.map(opt => ({
+        value: opt.value,
+        label: opt.textContent || ''
+      }));
+
+      // 모든 옵션 제거
+      this._options.forEach(opt => opt.remove());
+      this._options = [];
+      this._optionsCache.clear();
+      this._widthCalculationCache.clear();
+
+      // 선택값 초기화
+      if (this.multiple) {
+        const previousSelectedValues = [...this._selectedValues];
+        this._selectedValues = [];
+        this.updateFormValue();
+        
+        // 모든 선택 해제 이벤트 발생
+        if (previousSelectedValues.length > 0) {
+          triggerResetEvent(this, { values: [], labels: [] });
+        }
+      } else {
+        const previousValue = this._value;
+        const previousLabel = this._labelText;
+        this._setValue('', true);
+        
+        // 리셋 이벤트 발생
+        if (previousValue) {
+          triggerResetEvent(this, { value: '', label: '' });
+        }
+      }
+
+      // 가상 스크롤 클리어
+      if (this._virtual) {
+        this._virtual.clearData();
+      }
+
+      // 초기값 클리어
+      this._initialValue = null;
+      this._initialLabel = null;
+      this._isLoading = true; // 로딩 상태로 변경
+
+      // 너비 초기화
+      this._calculatedWidth = null;
+      
+      // 모든 옵션 제거 이벤트 발생
+      this.dispatchEvent(new CustomEvent('options-cleared', {
+        detail: { 
+          removedOptions: removedOptions,
+          count: removedOptions.length 
+        },
+        bubbles: true,
+        composed: true
+      }));
+
+    } finally {
+      this._isUpdating = false;
+      this._debouncedUpdate();
+    }
+  }
+
   // 캐시 수동 정리 메서드
   public clearCaches(): void {
     this._optionsCache.clear();
