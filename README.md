@@ -41,13 +41,6 @@ import 'seo-select';
 // Import search-enabled select component
 import 'seo-select/components/seo-select-search';
 
-// Import event types (TypeScript)
-import type { 
-  SeoSelectEvent, 
-  SeoDeselectEvent,
-  SeoResetEvent 
-} from 'seo-select/event';
-
 // Import Style
 import 'seo-select/styles'
 ```
