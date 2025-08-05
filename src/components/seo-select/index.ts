@@ -617,7 +617,6 @@ After:  select.removeEventListener('${type}', handler);`);
   }
 
   public openDropdown(): void {
-    // 표준 이벤트 발생
     triggerOpenEvent(this);
     this.open = true;
     this._debouncedUpdate();
@@ -633,12 +632,26 @@ After:  select.removeEventListener('${type}', handler);`);
         this._debouncedUpdate();
       });
     } else {
+      // 기존 가상 스크롤이 있으면 제거
+      if (this._virtual) {
+        this._virtual.destroy();
+        this._virtual = null;
+      }
+      
+      // 새로운 가상 스크롤 초기화
       this.initializeVirtualSelect();
     }
   }
 
   public closeDropdown(): void {
     this.open = false;
+    
+    // 가상 스크롤 정리
+    if (this._virtual) {
+      this._virtual.destroy();
+      this._virtual = null;
+    }
+    
     this._debouncedUpdate();
   }
 
@@ -896,7 +909,7 @@ After:  select.removeEventListener('${type}', handler);`);
     this._isUpdating = true;
 
     try {
-      // 기존 선택값 백업 (preserveSelection이 true인 경우)
+      // 기존 선택값 백업
       let previousValue: string | null = null;
       let previousSelectedValues: string[] = [];
       
@@ -932,6 +945,10 @@ After:  select.removeEventListener('${type}', handler);`);
         this._isLoading = false;
       } else {
         this._isLoading = true;
+        // 옵션이 없을 때 라벨 초기화
+        if (!this.multiple) {
+          this._labelText = '';
+        }
       }
 
       // 선택값 복원 또는 초기화
@@ -947,6 +964,9 @@ After:  select.removeEventListener('${type}', handler);`);
             this._setValue(previousValue, false);
           } else if (this._options.length > 0) {
             this._setValue(this._options[0].value, false);
+          } else {
+            this._setValue('', false);
+            this._labelText = '';
           }
         }
       } else {
@@ -955,11 +975,16 @@ After:  select.removeEventListener('${type}', handler);`);
           this.updateFormValue();
         } else if (this._options.length > 0) {
           this._setValue(this._options[0].value, false);
+        } else {
+          this._setValue('', false);
+          this._labelText = '';
         }
       }
 
-      // 가상 스크롤 즉시 업데이트
-      this._updateVirtualScrollData();
+      // 드롭다운이 열려있는 경우 가상 스크롤 즉시 업데이트
+      if (this.open) {
+        this._updateVirtualScrollData();
+      }
 
       // 초기값 설정
       if (this._options.length > 0) {
@@ -970,7 +995,6 @@ After:  select.removeEventListener('${type}', handler);`);
         this._initialLabel = null;
       }
 
-      // 너비 재계산
       this.calculateAutoWidth();
 
     } finally {
@@ -987,7 +1011,6 @@ After:  select.removeEventListener('${type}', handler);`);
   public addOption(option: VirtualSelectOption, index?: number): void {
     if (this._isUpdating) return;
     
-    // 이미 존재하는 값인지 확인
     if (this._options.some(opt => opt.value === option.value)) {
       console.warn(`Option with value "${option.value}" already exists`);
       return;
@@ -1018,8 +1041,10 @@ After:  select.removeEventListener('${type}', handler);`);
       this._widthCalculationCache.clear();
       this._isLoading = false;
 
-      // 가상 스크롤 즉시 업데이트
-      this._updateVirtualScrollData();
+      // 드롭다운이 열려있는 경우 가상 스크롤 즉시 업데이트
+      if (this.open) {
+        this._updateVirtualScrollData();
+      }
 
       // 첫 번째 옵션이면 초기값 설정
       if (this._options.length === 1) {
@@ -1073,12 +1098,15 @@ After:  select.removeEventListener('${type}', handler);`);
             this._setValue(this._options[0].value, true);
           } else {
             this._setValue('', true);
+            this._labelText = '';
           }
         }
       }
 
-      // 가상 스크롤 즉시 업데이트
-      this._updateVirtualScrollData();
+      // 드롭다운이 열려있는 경우 가상 스크롤 즉시 업데이트
+      if (this.open) {
+        this._updateVirtualScrollData();
+      }
 
       // 초기값 업데이트
       if (this._options.length > 0) {
@@ -1088,6 +1116,10 @@ After:  select.removeEventListener('${type}', handler);`);
         this._initialValue = null;
         this._initialLabel = null;
         this._isLoading = true;
+        // 옵션이 없을 때 라벨 초기화
+        if (!this.multiple) {
+          this._labelText = '';
+        }
       }
 
       this.calculateAutoWidth();
@@ -1124,14 +1156,15 @@ After:  select.removeEventListener('${type}', handler);`);
       } else {
         const previousValue = this._value;
         this._setValue('', true);
+        this._labelText = ''; // 라벨 초기화 추가
         
         if (previousValue) {
           triggerResetEvent(this, { value: '', label: '' });
         }
       }
 
-      // 가상 스크롤 즉시 클리어
-      if (this._virtual) {
+      // 드롭다운이 열려있는 경우 가상 스크롤 즉시 클리어
+      if (this.open && this._virtual) {
         this._virtual.clearData();
       }
 
@@ -1151,7 +1184,7 @@ After:  select.removeEventListener('${type}', handler);`);
    * 가상 스크롤 데이터를 즉시 업데이트하는 헬퍼 메서드
    */
   private _updateVirtualScrollData(): void {
-    if (!this._virtual || !this.open) return;
+    if (!this._virtual) return;
 
     const optionData = this.getAllOptionData();
     
@@ -1234,8 +1267,13 @@ After:  select.removeEventListener('${type}', handler);`);
                     this._selectedValues.splice(selectedIndex, 1);
                   }
                 } else {
-                  if (this._value === update.value && this._options.length > 0) {
-                    this._setValue(this._options[0].value, false);
+                  if (this._value === update.value) {
+                    if (this._options.length > 0) {
+                      this._setValue(this._options[0].value, false);
+                    } else {
+                      this._setValue('', false);
+                      this._labelText = '';
+                    }
                   }
                 }
                 hasChanges = true;
@@ -1249,6 +1287,10 @@ After:  select.removeEventListener('${type}', handler);`);
               if (existingOption) {
                 existingOption.textContent = update.option.label;
                 this._optionsCache.set(update.value, existingOption);
+                // 현재 선택된 값의 라벨도 업데이트
+                if (!this.multiple && this._value === update.value) {
+                  this._labelText = update.option.label;
+                }
                 hasChanges = true;
               }
             }
@@ -1260,8 +1302,10 @@ After:  select.removeEventListener('${type}', handler);`);
         this._widthCalculationCache.clear();
         this._isLoading = this._options.length === 0;
 
-        // 가상 스크롤 한 번만 업데이트
-        this._updateVirtualScrollData();
+        // 드롭다운이 열려있는 경우 가상 스크롤 한 번만 업데이트
+        if (this.open) {
+          this._updateVirtualScrollData();
+        }
 
         // 초기값 업데이트
         if (this._options.length > 0) {
@@ -1270,6 +1314,10 @@ After:  select.removeEventListener('${type}', handler);`);
         } else {
           this._initialValue = null;
           this._initialLabel = null;
+          // 옵션이 없을 때 라벨 초기화
+          if (!this.multiple) {
+            this._labelText = '';
+          }
         }
 
         // 폼 값 업데이트
