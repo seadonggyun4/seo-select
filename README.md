@@ -517,40 +517,6 @@ seo-select[dark] {
 
 </details>
 
-## Best Practices
-
-### Event Handling
-```typescript
-// ✅ Use standard addEventListener (works everywhere)
-select.addEventListener('onSelect', handler);
-
-// ✅ Or use built-in helper methods for better DX
-select.onSelect(handler);
-
-// ✅ Clean up is automatic with modern browsers
-```
-
-### Performance
-```typescript
-// ✅ Use search component for large datasets
-const select = new SeoSelectSearch();
-
-// ✅ Batch update options
-select.batchUpdateOptions(largeArray);
-
-// ✅ Clear caches when needed
-select.clearCaches();
-```
-
-### Accessibility
-```html
-<!-- ✅ Always provide labels -->
-<label for="country-select">Choose your country</label>
-<seo-select id="country-select" name="country" required>
-  <option value="">Select a country</option>
-</seo-select>
-```
-
 ## Troubleshooting
 
 ### Common Issues
@@ -558,8 +524,6 @@ select.clearCaches();
 **Events not working**: Use `select.onSelect(handler)` or ensure DOM is ready when using `addEventListener`.
 
 **TypeScript errors**: Add type declarations for custom elements.
-
-**Performance issues**: Use `seo-select-search` for large datasets and `batchUpdateOptions()`.
 
 **Styling not applied**: Check CSS variable names in documentation.
 
