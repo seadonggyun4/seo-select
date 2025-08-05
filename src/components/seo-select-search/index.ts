@@ -622,6 +622,26 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._applyFilteredOptions();
     this.requestUpdate();
   }
+
+  public override addOptions(options: VirtualSelectOption[], preserveSelection: boolean = false): void {
+    super.addOptions(options, preserveSelection);
+    // 검색 텍스트 초기화
+    this._searchText = '';
+  }
+
+  public override addOption(option: VirtualSelectOption, index?: number): void {
+    super.addOption(option, index);
+  }
+
+  public override clearOption(value: string): void {
+    super.clearOption(value);
+  }
+
+  public override clearAllOptions(): void {
+    super.clearAllOptions();
+    // 검색 텍스트 초기화
+    this._searchText = '';
+  }
 }
 
 if (!customElements.get('seo-select-search')) {
