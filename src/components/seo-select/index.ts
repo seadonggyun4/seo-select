@@ -1207,7 +1207,6 @@ After:  select.removeEventListener('${type}', handler);`);
         }
       } else {
         const previousValue = this._value;
-        const previousLabel = this._labelText;
         this._setValue('', true);
         
         // 리셋 이벤트 발생
