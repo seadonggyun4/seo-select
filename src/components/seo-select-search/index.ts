@@ -169,6 +169,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
   override updated(changed: Map<string, unknown>): void {
     super.updated?.(changed);
     if (changed.has('optionItems') || changed.has('_searchText') || changed.has('language') || changed.has('searchTexts')) {
+      // 옵션이 변경되면 검색 텍스트 초기화
+      if (changed.has('optionItems')) {
+        this._searchText = '';
+      }
       this._applyFilteredOptions();
     }
   }
@@ -568,6 +572,12 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     super.closeDropdown();
     this._searchText = '';
     this._noMatchVisible = false;
+    
+    // 검색 입력창도 초기화
+    const searchInput = this.querySelector(`.${CSS_CLASSES.SEARCH_INPUT} input`) as HTMLInputElement;
+    if (searchInput) {
+      searchInput.value = '';
+    }
   }
 
   public override calculateAutoWidth(): void {
