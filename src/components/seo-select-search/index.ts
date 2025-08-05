@@ -105,10 +105,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
   
   /**
    * 선택 이벤트 리스너 추가 (타입 안전)
-   * @example
-   * searchSelect.onSelect((event) => {
-   *   console.log('Selected:', event.label, event.value);
-   * });
    */
   public override onSelect(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.SELECT]) => void): void {
     this.addEventListener(EVENT_NAMES.SELECT, handler as EventListener);
@@ -116,10 +112,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   /**
    * 선택 해제 이벤트 리스너 추가 (타입 안전)
-   * @example
-   * searchSelect.onDeselect((event) => {
-   *   console.log('Deselected:', event.label, event.value);
-   * });
    */
   public override onDeselect(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.DESELECT]) => void): void {
     this.addEventListener(EVENT_NAMES.DESELECT, handler as EventListener);
@@ -127,14 +119,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   /**
    * 리셋 이벤트 리스너 추가 (타입 안전)
-   * @example
-   * searchSelect.onReset((event) => {
-   *   if (event.values && event.labels) {
-   *     console.log('Reset multiple:', event.values, event.labels);
-   *   } else {
-   *     console.log('Reset single:', event.value, event.label);
-   *   }
-   * });
    */
   public override onReset(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.RESET]) => void): void {
     this.addEventListener(EVENT_NAMES.RESET, handler as EventListener);
@@ -142,10 +126,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   /**
    * 변경 이벤트 리스너 추가 (타입 안전)
-   * @example
-   * searchSelect.onChange((event) => {
-   *   console.log('Value changed');
-   * });
    */
   public override onChange(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.CHANGE]) => void): void {
     this.addEventListener(EVENT_NAMES.CHANGE, handler as EventListener);
@@ -153,10 +133,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   /**
    * 드롭다운 열기 이벤트 리스너 추가 (타입 안전)
-   * @example
-   * searchSelect.onOpen((event) => {
-   *   console.log('Search dropdown opened');
-   * });
    */
   public override onOpen(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.SELECT_OPEN]) => void): void {
     this.addEventListener(EVENT_NAMES.SELECT_OPEN, handler as EventListener);
@@ -164,10 +140,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   /**
    * 검색 텍스트 변경 이벤트 리스너 추가 (검색 컴포넌트 전용)
-   * @example
-   * searchSelect.onSearchChange((searchText) => {
-   *   console.log('Search text changed:', searchText);
-   * });
    */
   public onSearchChange(handler: (searchText: string) => void): void {
     // 내부적으로 input 이벤트를 처리하여 검색 텍스트 변경을 감지
@@ -178,10 +150,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   /**
    * 검색 결과 필터링 이벤트 리스너 추가 (검색 컴포넌트 전용)
-   * @example
-   * searchSelect.onSearchFilter((filteredOptions) => {
-   *   console.log('Filtered options:', filteredOptions);
-   * });
    */
   public onSearchFilter(handler: (filteredOptions: VirtualSelectOption[]) => void): void {
     this.addEventListener('search-filter', ((event: CustomEvent) => {
@@ -198,7 +166,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     };
   }
 
-  updated(changed: Map<string, unknown>): void {
+  override updated(changed: Map<string, unknown>): void {
     super.updated?.(changed);
     if (changed.has('optionItems') || changed.has('_searchText') || changed.has('language') || changed.has('searchTexts')) {
       this._applyFilteredOptions();
@@ -214,7 +182,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     const searchTexts = this.getSearchLocalizedText();
     const hasOptions = this.getAllOptionData().length > 0;
     const showNoData = this.multiple && !this._isLoading && !hasOptions;
-    const effectiveWidth = this.getEffectiveWidth(); // 부모 클래스의 public 메서드 사용
+    const effectiveWidth = this.getEffectiveWidth();
 
     return html`
       <div class="${CSS_CLASSES.LISTBOX} ${this.open ? '' : CSS_CLASSES.HIDDEN}" style="width: ${effectiveWidth};">
@@ -239,14 +207,13 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     `;
   }
 
-  // 부모 클래스의 getThemeClass 메서드를 오버라이드하여 다크 모드 지원
   protected override getThemeClass(): string {
     const themeClass = `theme-${this.theme}`;
     const darkClass = this.dark ? 'dark' : '';
     return `${themeClass} ${darkClass}`.trim();
   }
 
-  render() {
+  override render() {
     if (this.multiple) {
       return this.renderMultiSelectSearch();
     } else {
@@ -336,12 +303,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     return virtual;
   }
 
-  // 가상 스크롤 초기화 - 부모 클래스 메서드 오버라이드하여 검색 처리 추가
   protected override initializeVirtualSelect(): void {
     const scrollEl = this.querySelector(`.${CSS_CLASSES.SCROLL}`) as HTMLDivElement;
     const optionData = this.getAllOptionData();
 
-    // 다중선택에서 모든 항목이 선택된 경우 가상 스크롤 생성하지 않음
     if (this.multiple && optionData.length === 0) {
       return;
     }
@@ -349,7 +314,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     if (!this._virtual && scrollEl && !this._isLoading && optionData.length > 0) {
       this._virtual = this._createVirtualSelect(optionData, scrollEl);
 
-      // 검색 텍스트가 있으면 필터 적용
       if (this._searchText) {
         this._applyFilteredOptions();
       }
@@ -399,7 +363,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       this._virtual.setData(allOptions, this.multiple ? undefined : this.getCurrentValue());
       this._noMatchVisible = false;
 
-      // 검색 필터 이벤트 발생
       this.dispatchEvent(new CustomEvent('search-filter', {
         detail: { filteredOptions: allOptions, searchText: rawInput },
         bubbles: true,
@@ -410,7 +373,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
     const allOptions: OptionItem[] = this.getAllOptionData();
     
-    // 향상된 다국어 검색 적용
     const filtered = allOptions.filter(opt => {
       const label = (opt.label ?? '').toString();
       return isMultilingualMatch(rawInput, label);
@@ -423,7 +385,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         this.multiple ? undefined : this.getCurrentValue(),
       );
 
-      // 검색 필터 이벤트 발생 (결과 없음)
       this.dispatchEvent(new CustomEvent('search-filter', {
         detail: { filteredOptions: [], searchText: rawInput, hasResults: false },
         bubbles: true,
@@ -434,7 +395,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
     this._virtual.setData(filtered, this.multiple ? undefined : this.getCurrentValue());
 
-    // 검색 필터 이벤트 발생
     this.dispatchEvent(new CustomEvent('search-filter', {
       detail: { filteredOptions: filtered, searchText: rawInput, hasResults: true },
       bubbles: true,
@@ -442,7 +402,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     }));
   }
 
-  // 부모 클래스의 removeTag 메서드를 오버라이드하여 검색 기능 추가 및 표준 이벤트 사용
   public override removeTag = (e: Event, valueToRemove: string): void => {
     e.stopPropagation();
     this._selectedValues = this._selectedValues.filter(value => value !== valueToRemove);
@@ -454,7 +413,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       this._virtual?.destroy();
       this._virtual = null;
 
-      // 선택 해제 후 옵션이 있으면 가상 스크롤 재생성
       const optionData = this.getAllOptionData();
       if (optionData.length > 0) {
         const scrollEl = this.querySelector(`.${CSS_CLASSES.SCROLL}`) as HTMLDivElement;
@@ -470,13 +428,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       }
     }
 
-    // 표준 이벤트 발생
     triggerDeselectEvent(this, option?.textContent || '', valueToRemove);
-
     this._debouncedUpdate();
   };
 
-  // 부모 클래스의 resetToDefault 메서드를 오버라이드하여 검색 기능 추가 및 표준 이벤트 사용
   public override resetToDefault = (e: Event): void => {
     e.stopPropagation();
 
@@ -488,7 +443,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         this._virtual?.destroy();
         this._virtual = null;
 
-        // 리셋 후 모든 옵션이 다시 사용 가능하므로 가상 스크롤 재생성
         const scrollEl = this.querySelector(`.${CSS_CLASSES.SCROLL}`) as HTMLDivElement;
         if (scrollEl) {
           const optionData = this.getAllOptionData();
@@ -504,7 +458,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         this._pendingActiveIndex = 0;
       }
 
-      // 표준 이벤트 발생
       triggerResetEvent(this, { values: [], labels: [] });
     } else {
       if (this._options.length > 0) {
@@ -512,11 +465,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         this.value = firstOption.value;
         this._labelText = firstOption.textContent || '';
 
-        // 드롭다운이 열려있는 경우 즉시 activeIndex와 focusedIndex를 첫 번째로 설정
         if (this.open && this._virtual) {
           requestAnimationFrame(() => {
             this._virtual?.setActiveIndex(0);
-            // 가상 스크롤의 내부 상태도 첫 번째 옵션으로 설정
             if (this._virtual) {
               this._virtual.setActiveAndFocusedIndex(0);
               this._virtual.applyHighlight();
@@ -531,7 +482,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
           }
         }
 
-        // 표준 이벤트 발생
         triggerResetEvent(this, { value: firstOption.value, label: firstOption.textContent || '' });
       }
     }
@@ -539,9 +489,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._debouncedUpdate();
   };
 
-  // 드롭다운 열기 메서드 오버라이드 - 표준 이벤트 사용
   public override openDropdown(): void {
-    // 표준 이벤트 발생
     triggerOpenEvent(this);
     this.open = true;
     this._debouncedUpdate();
@@ -561,7 +509,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     }
   }
 
-  // 옵션 선택 메서드 오버라이드 - 표준 이벤트 사용
   public override selectOption(value: string, label: string): void {
     if (this.multiple) {
       this._selectedValues = [...this._selectedValues, value];
@@ -585,7 +532,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         }
       }
 
-      // 표준 이벤트 발생
       triggerSelectEvent(this, label, value);
 
     } else {
@@ -593,12 +539,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       this._setValue(value);
       this.closeDropdown();
 
-      // 표준 이벤트 발생
       triggerSelectEvent(this, label, value);
     }
   }
 
-  // 값 설정 메서드 오버라이드 - 표준 이벤트 사용
   public override _setValue(newVal: string, emit: boolean = true): void {
     if (this._value === newVal) return;
 
@@ -617,7 +561,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
     this._debouncedUpdate();
     
-    // 표준 이벤트 발생
     if (emit) triggerChangeEvent(this);
   }
 
@@ -627,18 +570,14 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._noMatchVisible = false;
   }
 
-  // 자동 너비 계산 오버라이드 - 검색 입력창 고려
   public override calculateAutoWidth(): void {
-    // width가 명시적으로 설정되지 않은 경우에만 계산
     if (this.width || this._options.length === 0) {
       this._calculatedWidth = null;
       return;
     }
 
-    // 모든 옵션 텍스트를 수집
     const optionTexts = this._options.map(opt => opt.textContent || '');
     
-    // placeholder 텍스트와 검색 placeholder도 고려
     const texts = this.getLocalizedText();
     const searchTexts = this.getSearchLocalizedText();
     
@@ -647,82 +586,41 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     }
     optionTexts.push(searchTexts.searchPlaceholder);
 
-    // 현재 요소의 font 스타일을 가져와서 측정
     const computedStyle = window.getComputedStyle(this);
     const font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`;
     
-    // 가장 긴 텍스트의 너비를 계산
     const maxTextWidth = this.getMaxOptionWidth(optionTexts, font);
     
-    // 검색 컴포넌트는 추가 여백을 더 많이 필요로 함 (검색 아이콘 + reset 버튼 + 화살표 + 패딩)
-    const additionalSpace = this.multiple ? 140 : 100; // 검색 기능으로 인해 더 넓게
+    const additionalSpace = this.multiple ? 140 : 100;
     const totalWidth = maxTextWidth + additionalSpace;
     
-    this._calculatedWidth = `${Math.max(totalWidth, 200)}px`; // 검색 컴포넌트는 최소 200px
+    this._calculatedWidth = `${Math.max(totalWidth, 200)}px`;
   }
 
-  // 부모 클래스의 언어 변경 메서드를 오버라이드하여 검색 관련 UI도 업데이트
   public override setLanguage(language: SupportedLanguage): void {
     super.setLanguage(language);
-    // 검색 관련 UI 업데이트를 위해 강제 리렌더링
     this.requestUpdate();
   }
 
-  // 검색 관련 커스텀 텍스트 설정 메서드
   public setSearchTexts(customSearchTexts: Partial<SearchLocalizedTexts>): void {
     this.searchTexts = { ...this.searchTexts, ...customSearchTexts };
     this.requestUpdate();
   }
 
-  // 검색 텍스트 초기화 메서드
   public clearSearchText(): void {
     this._searchText = '';
     this._applyFilteredOptions();
     this.requestUpdate();
   }
 
-  // 현재 검색 텍스트 반환
   public getSearchText(): string {
     return this._searchText;
   }
 
-  // 검색 텍스트 설정
   public setSearchText(searchText: string): void {
     this._searchText = searchText;
     this._applyFilteredOptions();
     this.requestUpdate();
-  }
-
-  // 검색 관련 다국어 텍스트를 반환하는 정적 메서드
-  static getSearchLocalizedTexts(): Record<SupportedLanguage, SearchLocalizedTexts> {
-    return SEARCH_LOCALIZED_TEXTS;
-  }
-
-  // 검색 관련 기본 텍스트 구조를 반환하는 정적 메서드
-  static getDefaultSearchTexts(): Record<SupportedLanguage, SearchLocalizedTexts> {
-    return SEARCH_LOCALIZED_TEXTS;
-  }
-
-  // 디버깅을 위한 검색 테스트 메서드 (개발용)
-  public testMultilingualSearch(searchText: string, targetText: string): boolean {
-    return isMultilingualMatch(searchText, targetText);
-  }
-
-  // 성능 모니터링을 위한 검색 관련 메트릭 (부모 클래스 확장)
-  public override getPerformanceMetrics(): {
-    optionCount: number;
-    cacheSize: number;
-    isUpdating: boolean;
-    hasCalculatedWidth: boolean;
-    searchText: string;
-    hasSearchResults: boolean;
-  } {
-    const baseMetrics = super.getPerformanceMetrics();
-    return {
-      ...baseMetrics,
-      searchText: this._searchText,
-      hasSearchResults: this._searchText ? this.getAllOptionData().length > 0 : true
-    };
   }
 }
 

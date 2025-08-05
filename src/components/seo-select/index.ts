@@ -188,7 +188,7 @@ After:  select.removeEventListener('${type}', handler);`);
   }
 
   connectedCallback(): void {
-    this.style.width =  this.width !== '100%' ? '' : '100%';
+    this.style.width = this.width !== '100%' ? '' : '100%';
     super.connectedCallback();
     this.initializeOptionsFromPropsOrSlot();
     window.addEventListener(EVENT_NAMES.SELECT_OPEN, this.onOtherSelectOpened);
@@ -234,7 +234,7 @@ After:  select.removeEventListener('${type}', handler);`);
 
   updated(changed: Map<string, unknown>) {
     if (this._isUpdating) return;
-    this.style.width =  this.width !== '100%' ? '' : '100%';
+    this.style.width = this.width !== '100%' ? '' : '100%';
     
     const needsOptionsUpdate = changed.has('optionItems') || 
                               changed.has('language') || 
@@ -548,6 +548,7 @@ After:  select.removeEventListener('${type}', handler);`);
     try {
       // 기존 캐시 정리
       this._optionsCache.clear();
+      this._widthCalculationCache.clear();
 
       const optionEls = Array.from(this.querySelectorAll('option')) as HTMLOptionElement[];
 
@@ -563,6 +564,10 @@ After:  select.removeEventListener('${type}', handler);`);
         });
 
       } else if (Array.isArray(this.optionItems) && this.optionItems.length > 0) {
+        // 기존 옵션 정리
+        this._options.forEach(opt => opt.remove());
+        this._options = [];
+
         // DocumentFragment를 사용하여 DOM 조작 최적화
         const fragment = document.createDocumentFragment();
         
@@ -879,140 +884,6 @@ After:  select.removeEventListener('${type}', handler);`);
     this.autoWidth = enabled;
     this.calculateAutoWidth();
     this._debouncedUpdate();
-  }
-
-  // 옵션 리스트 새 리스트로 업데이트 메서드
-  public batchUpdateOptions(newOptions: VirtualSelectOption[]): void {
-    if (this._isUpdating) return;
-    
-    // 업데이트 중 플래그 설정
-    this._isUpdating = true;
-    
-    try {
-      // 기존 옵션 정리
-      this._options.forEach(opt => opt.remove());
-      this._options = [];
-      this._optionsCache.clear();
-      this._widthCalculationCache.clear();
-
-      // 새 옵션들을 DocumentFragment로 배치 생성
-      const fragment = document.createDocumentFragment();
-      
-      this._options = newOptions.map(opt => {
-        const el = document.createElement('option');
-        el.value = opt.value;
-        el.textContent = opt.label;
-        el.hidden = true;
-        this._optionsCache.set(opt.value, el);
-        fragment.appendChild(el);
-        return el;
-      });
-
-      // 한 번에 DOM에 추가
-      this.appendChild(fragment);
-
-      // 초기값 설정
-      if (this._options.length > 0) {
-        this._initialValue = this._options[0].value;
-        this._initialLabel = this._options[0].textContent || '';
-        this._isLoading = false;
-        
-        // 단일 선택 모드에서 기본값 설정
-        if (!this.multiple && !this._value) {
-          this._setValue(this._options[0].value, false);
-        }
-      }
-
-      // 너비 재계산
-      this.calculateAutoWidth();
-      
-    } finally {
-      this._isUpdating = false;
-      this._debouncedUpdate();
-    }
-  }
-
-  // 옵션 추가를 위한 최적화된 메서드
-  public addOption(option: VirtualSelectOption): void {
-    const el = document.createElement('option');
-    el.value = option.value;
-    el.textContent = option.label;
-    el.hidden = true;
-    
-    this._options.push(el);
-    this._optionsCache.set(option.value, el);
-    this.appendChild(el);
-    
-    // 캐시 무효화
-    this._widthCalculationCache.clear();
-    this.calculateAutoWidth();
-    this._debouncedUpdate();
-  }
-
-  // 옵션 제거를 위한 최적화된 메서드
-  public removeOption(value: string): void {
-    const index = this._options.findIndex(opt => opt.value === value);
-    if (index === -1) return;
-
-    const optionEl = this._options[index];
-    optionEl.remove();
-    this._options.splice(index, 1);
-    this._optionsCache.delete(value);
-    
-    // 선택된 값에서도 제거
-    if (this.multiple) {
-      this._selectedValues = this._selectedValues.filter(v => v !== value);
-      this.updateFormValue();
-    } else if (this._value === value) {
-      // 현재 선택된 값이 제거되면 첫 번째 옵션으로 변경
-      if (this._options.length > 0) {
-        this._setValue(this._options[0].value, true);
-      } else {
-        this._setValue('', true);
-      }
-    }
-    
-    // 캐시 무효화
-    this._widthCalculationCache.clear();
-    this.calculateAutoWidth();
-    this._debouncedUpdate();
-  }
-
-  // 옵션 검색을 위한 최적화된 메서드
-  public findOption(value: string): HTMLOptionElement | null {
-    return this._optionsCache.get(value) || null;
-  }
-
-  // 모든 옵션 클리어
-  public clearOptions(): void {
-    this._options.forEach(opt => opt.remove());
-    this._options = [];
-    this._optionsCache.clear();
-    this._widthCalculationCache.clear();
-    
-    if (this.multiple) {
-      this._selectedValues = [];
-      this.updateFormValue();
-    } else {
-      this._setValue('', true);
-    }
-    
-    this._debouncedUpdate();
-  }
-
-  // 성능 모니터링을 위한 메서드
-  public getPerformanceMetrics(): {
-    optionCount: number;
-    cacheSize: number;
-    isUpdating: boolean;
-    hasCalculatedWidth: boolean;
-  } {
-    return {
-      optionCount: this._options.length,
-      cacheSize: this._optionsCache.size,
-      isUpdating: this._isUpdating,
-      hasCalculatedWidth: this._calculatedWidth !== null
-    };
   }
 
   // 캐시 수동 정리 메서드
