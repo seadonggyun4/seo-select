@@ -96,8 +96,8 @@ export class SeoSelect extends LitElement {
   private _localizedTextCache: LocalizedTexts | null = null;
   private _lastLanguage: string = '';
   private _lastTextsHash: string = '';
-  private _widthCalculationCache: Map<string, number> = new Map();
-  private _isUpdating: boolean = false;
+  protected _widthCalculationCache: Map<string, number> = new Map();
+  protected _isUpdating: boolean = false;
   private _updateDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   private _handleKeydownBound: (e: KeyboardEvent) => void;
@@ -931,21 +931,18 @@ After:  select.removeEventListener('${type}', handler);`);
         this.appendChild(fragment);
         this._isLoading = false;
       } else {
-        // 옵션이 없는 경우 로딩 상태로 설정
         this._isLoading = true;
       }
 
       // 선택값 복원 또는 초기화
       if (preserveSelection && options.length > 0) {
         if (this.multiple) {
-          // 다중 선택: 여전히 존재하는 값들만 유지
           const validValues = previousSelectedValues.filter(value => 
             this._options.some(opt => opt.value === value)
           );
           this._selectedValues = validValues;
           this.updateFormValue();
         } else {
-          // 단일 선택: 이전 값이 여전히 존재하면 유지, 아니면 첫 번째 옵션 선택
           if (previousValue && this._options.some(opt => opt.value === previousValue)) {
             this._setValue(previousValue, false);
           } else if (this._options.length > 0) {
@@ -953,7 +950,6 @@ After:  select.removeEventListener('${type}', handler);`);
           }
         }
       } else {
-        // 선택값 초기화
         if (this.multiple) {
           this._selectedValues = [];
           this.updateFormValue();
@@ -962,19 +958,8 @@ After:  select.removeEventListener('${type}', handler);`);
         }
       }
 
-      // 가상 스크롤 업데이트
-      if (this._virtual && this.open) {
-        const optionData = this.getAllOptionData();
-        if (optionData.length > 0) {
-          this._virtual.setData(optionData, this.multiple ? undefined : this._value || undefined);
-          
-          requestAnimationFrame(() => {
-            this._virtual?.setActiveIndex(0);
-          });
-        } else {
-          this._virtual.clearData();
-        }
-      }
+      // 가상 스크롤 즉시 업데이트
+      this._updateVirtualScrollData();
 
       // 초기값 설정
       if (this._options.length > 0) {
@@ -1022,11 +1007,9 @@ After:  select.removeEventListener('${type}', handler);`);
       const insertIndex = index !== undefined ? Math.max(0, Math.min(index, this._options.length)) : this._options.length;
       
       if (insertIndex >= this._options.length) {
-        // 마지막에 추가
         this._options.push(el);
         this.appendChild(el);
       } else {
-        // 특정 위치에 삽입
         const nextOption = this._options[insertIndex];
         this._options.splice(insertIndex, 0, el);
         this.insertBefore(el, nextOption);
@@ -1035,30 +1018,19 @@ After:  select.removeEventListener('${type}', handler);`);
       this._widthCalculationCache.clear();
       this._isLoading = false;
 
-      // 가상 스크롤 업데이트
-      if (this._virtual && this.open) {
-        const optionData = this.getAllOptionData();
-        this._virtual.setData(optionData, this.multiple ? undefined : this._value || undefined);
-        
-        requestAnimationFrame(() => {
-          const activeIndex = this.multiple ? 0 : 
-            Math.max(0, optionData.findIndex(opt => opt.value === this._value));
-          this._virtual?.setActiveIndex(activeIndex);
-        });
-      }
+      // 가상 스크롤 즉시 업데이트
+      this._updateVirtualScrollData();
 
       // 첫 번째 옵션이면 초기값 설정
       if (this._options.length === 1) {
         this._initialValue = option.value;
         this._initialLabel = option.label;
         
-        // 단일 선택 모드이고 현재 값이 없으면 이 옵션을 선택
         if (!this.multiple && !this._value) {
           this._setValue(option.value, false);
         }
       }
 
-      // 너비 재계산
       this.calculateAutoWidth();
 
     } finally {
@@ -1093,13 +1065,10 @@ After:  select.removeEventListener('${type}', handler);`);
         if (selectedIndex > -1) {
           this._selectedValues.splice(selectedIndex, 1);
           this.updateFormValue();
-          
-          // 선택 해제 이벤트 발생
           triggerDeselectEvent(this, removedOption.textContent || '', value);
         }
       } else {
         if (this._value === value) {
-          // 현재 선택된 값이 제거된 경우, 첫 번째 옵션으로 변경
           if (this._options.length > 0) {
             this._setValue(this._options[0].value, true);
           } else {
@@ -1108,22 +1077,8 @@ After:  select.removeEventListener('${type}', handler);`);
         }
       }
 
-      // 가상 스크롤 업데이트
-      if (this._virtual && this.open) {
-        const optionData = this.getAllOptionData();
-        if (optionData.length > 0) {
-          this._virtual.setData(optionData, this.multiple ? undefined : this._value || undefined);
-          
-          requestAnimationFrame(() => {
-            const activeIndex = this.multiple ? 0 : 
-              Math.max(0, optionData.findIndex(opt => opt.value === this._value));
-            this._virtual?.setActiveIndex(activeIndex);
-          });
-        } else {
-          this._virtual.clearData();
-          this._isLoading = true; // 옵션이 없으면 로딩 상태로 변경
-        }
-      }
+      // 가상 스크롤 즉시 업데이트
+      this._updateVirtualScrollData();
 
       // 초기값 업데이트
       if (this._options.length > 0) {
@@ -1135,7 +1090,6 @@ After:  select.removeEventListener('${type}', handler);`);
         this._isLoading = true;
       }
 
-      // 너비 재계산
       this.calculateAutoWidth();
 
     } finally {
@@ -1164,7 +1118,6 @@ After:  select.removeEventListener('${type}', handler);`);
         this._selectedValues = [];
         this.updateFormValue();
         
-        // 모든 선택 해제 이벤트 발생
         if (previousSelectedValues.length > 0) {
           triggerResetEvent(this, { values: [], labels: [] });
         }
@@ -1172,13 +1125,12 @@ After:  select.removeEventListener('${type}', handler);`);
         const previousValue = this._value;
         this._setValue('', true);
         
-        // 리셋 이벤트 발생
         if (previousValue) {
           triggerResetEvent(this, { value: '', label: '' });
         }
       }
 
-      // 가상 스크롤 클리어
+      // 가상 스크롤 즉시 클리어
       if (this._virtual) {
         this._virtual.clearData();
       }
@@ -1186,14 +1138,153 @@ After:  select.removeEventListener('${type}', handler);`);
       // 초기값 클리어
       this._initialValue = null;
       this._initialLabel = null;
-      this._isLoading = true; // 로딩 상태로 변경
-
-      // 너비 초기화
+      this._isLoading = true;
       this._calculatedWidth = null;
 
     } finally {
       this._isUpdating = false;
       this._debouncedUpdate();
+    }
+  }
+
+  /**
+   * 가상 스크롤 데이터를 즉시 업데이트하는 헬퍼 메서드
+   */
+  private _updateVirtualScrollData(): void {
+    if (!this._virtual || !this.open) return;
+
+    const optionData = this.getAllOptionData();
+    
+    if (optionData.length > 0) {
+      // 현재 활성화된 값으로 가상 스크롤 데이터 설정
+      const activeValue = this.multiple ? undefined : this._value || undefined;
+      this._virtual.setData(optionData, activeValue);
+      
+      // 활성 인덱스 설정
+      requestAnimationFrame(() => {
+        if (!this._virtual) return;
+        
+        if (this.multiple) {
+          this._virtual.setActiveIndex(0);
+        } else {
+          const selectedIndex = optionData.findIndex(opt => opt.value === this._value);
+          this._virtual.setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
+        }
+      });
+    } else {
+      // 옵션이 없으면 가상 스크롤 클리어
+      this._virtual.clearData();
+    }
+  }
+
+  /**
+   * 옵션 데이터 일괄 업데이트 (성능 최적화)
+   * @param updates - 업데이트할 옵션들의 배열
+   */
+  public batchUpdateOptions(updates: Array<{
+    action: 'add' | 'remove' | 'update';
+    option?: VirtualSelectOption;
+    value?: string;
+    index?: number;
+  }>): void {
+    if (this._isUpdating) return;
+    this._isUpdating = true;
+    let hasChanges = false;
+
+    try {
+      updates.forEach(update => {
+        switch (update.action) {
+          case 'add':
+            if (update.option && !this._options.some(opt => opt.value === update.option!.value)) {
+              const el = document.createElement('option');
+              el.value = update.option.value;
+              el.textContent = update.option.label;
+              el.hidden = true;
+              this._optionsCache.set(update.option.value, el);
+
+              const insertIndex = update.index !== undefined ? 
+                Math.max(0, Math.min(update.index, this._options.length)) : 
+                this._options.length;
+
+              if (insertIndex >= this._options.length) {
+                this._options.push(el);
+                this.appendChild(el);
+              } else {
+                const nextOption = this._options[insertIndex];
+                this._options.splice(insertIndex, 0, el);
+                this.insertBefore(el, nextOption);
+              }
+              hasChanges = true;
+            }
+            break;
+
+          case 'remove':
+            if (update.value) {
+              const optionIndex = this._options.findIndex(opt => opt.value === update.value);
+              if (optionIndex !== -1) {
+                const removedOption = this._options[optionIndex];
+                removedOption.remove();
+                this._options.splice(optionIndex, 1);
+                this._optionsCache.delete(update.value);
+
+                // 선택된 값에서도 제거
+                if (this.multiple) {
+                  const selectedIndex = this._selectedValues.indexOf(update.value);
+                  if (selectedIndex > -1) {
+                    this._selectedValues.splice(selectedIndex, 1);
+                  }
+                } else {
+                  if (this._value === update.value && this._options.length > 0) {
+                    this._setValue(this._options[0].value, false);
+                  }
+                }
+                hasChanges = true;
+              }
+            }
+            break;
+
+          case 'update':
+            if (update.option && update.value) {
+              const existingOption = this._options.find(opt => opt.value === update.value);
+              if (existingOption) {
+                existingOption.textContent = update.option.label;
+                this._optionsCache.set(update.value, existingOption);
+                hasChanges = true;
+              }
+            }
+            break;
+        }
+      });
+
+      if (hasChanges) {
+        this._widthCalculationCache.clear();
+        this._isLoading = this._options.length === 0;
+
+        // 가상 스크롤 한 번만 업데이트
+        this._updateVirtualScrollData();
+
+        // 초기값 업데이트
+        if (this._options.length > 0) {
+          this._initialValue = this._options[0].value;
+          this._initialLabel = this._options[0].textContent || '';
+        } else {
+          this._initialValue = null;
+          this._initialLabel = null;
+        }
+
+        // 폼 값 업데이트
+        if (this.multiple) {
+          this.updateFormValue();
+        }
+
+        this.calculateAutoWidth();
+      }
+
+    } finally {
+      this._isUpdating = false;
+      if (hasChanges) {
+        this._debouncedUpdate();
+      }
     }
   }
 
