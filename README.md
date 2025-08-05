@@ -616,4 +616,6 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Migration Note**: Version 2.x maintains full API compatibility with 1.x while changing the distribution format from source TypeScript files to pre-built, optimized JavaScript and CSS files.
+> **Migration Note**:  
+> Version 2.x maintains full API compatibility with 1.x while changing the distribution format from source TypeScript files to pre-built, optimized JavaScript and CSS files.
+
