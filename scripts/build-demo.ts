@@ -107,7 +107,6 @@ async function buildDemo(): Promise<void> {
     console.log('🎨 Building demo TypeScript and SCSS...');
     
     // Build demo files (demo.ts → demo.js, style.scss → style.css)
-    // emptyOutDir를 false로 설정하여 기존 파일을 보존
     const demoBuildConfig: BuildOptions = {
       outDir: 'output',
       emptyOutDir: false, // 중요: 기존 파일을 삭제하지 않음
@@ -157,29 +156,39 @@ async function buildDemo(): Promise<void> {
     console.log('📄 Processing index.html...');
     let indexContent = await fs.readFile('demo/index.html', 'utf8');
     
-    // Replace script and style references
+    // Replace script and style references with more flexible pattern matching
+    // Handle both with and without type="module"
     indexContent = indexContent.replace(
-      '<script type="module" src="/src/main.ts"></script>',
+      /<script[^>]*src=["'][^"']*src\/main\.ts["'][^>]*><\/script>/g,
       '<script type="module" src="./main.js"></script>'
     );
     
+    // Handle demo.ts script - match both with and without type="module"
     indexContent = indexContent.replace(
-      '<script type="module" src="/demo.ts"></script>',
+      /<script[^>]*src=["']\/demo\.ts["'][^>]*><\/script>/g,
       '<script type="module" src="./demo.js"></script>'
     );
 
+    // Handle SCSS to CSS conversion
     indexContent = indexContent.replace(
-      '<link rel="stylesheet" href="/style.scss">',
+      /<link[^>]*href=["']\/style\.scss["'][^>]*>/g,
       '<link rel="stylesheet" href="./style.css">'
     );
     
     // Add components CSS link if exists
     if (await pathExists(path.join(outputPath, 'components.css'))) {
-      indexContent = indexContent.replace(
-        '</head>',
-        '    <link rel="stylesheet" href="./components.css">\n</head>'
-      );
+      const hasComponentsCSS = indexContent.includes('components.css');
+      if (!hasComponentsCSS) {
+        indexContent = indexContent.replace(
+          '</head>',
+          '    <link rel="stylesheet" href="./components.css">\n</head>'
+        );
+      }
     }
+
+    // Fix other asset paths that might use absolute paths
+    indexContent = indexContent.replace(/src=["']\/([^"']+)["']/g, 'src="./$1"');
+    indexContent = indexContent.replace(/href=["']\/([^"']+)["']/g, 'href="./$1"');
     
     await fs.writeFile(path.join(outputPath, 'index.html'), indexContent);
     
@@ -203,6 +212,24 @@ async function buildDemo(): Promise<void> {
         );
       }
     }
+
+    // Copy assets from demo folder (like images)
+    if (await pathExists('demo')) {
+      console.log('📁 Copying demo assets...');
+      const demoFiles = await fs.readdir('demo');
+      const assetExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.webp'];
+      
+      for (const file of demoFiles) {
+        const ext = path.extname(file).toLowerCase();
+        if (assetExtensions.includes(ext)) {
+          console.log(`📄 Copying demo asset: ${file}...`);
+          await copyFile(
+            path.join('demo', file), 
+            path.join(outputPath, file)
+          );
+        }
+      }
+    }
     
     // Verify main.js exists
     const mainJsPath = path.join(outputPath, 'main.js');
@@ -210,6 +237,22 @@ async function buildDemo(): Promise<void> {
       console.log('✅ main.js successfully created');
     } else {
       console.error('❌ main.js not found!');
+    }
+    
+    // Verify demo.js exists
+    const demoJsPath = path.join(outputPath, 'demo.js');
+    if (await pathExists(demoJsPath)) {
+      console.log('✅ demo.js successfully created');
+    } else {
+      console.error('❌ demo.js not found!');
+    }
+
+    // Verify style.css exists
+    const styleCssPath = path.join(outputPath, 'style.css');
+    if (await pathExists(styleCssPath)) {
+      console.log('✅ style.css successfully created');
+    } else {
+      console.error('❌ style.css not found!');
     }
     
     // Generate build statistics
@@ -230,6 +273,13 @@ async function buildDemo(): Promise<void> {
       console.log(`   ${name} (${size}KB)`);
     });
     console.log(`📅 Build time: ${new Date().toLocaleString()}`);
+    
+    // Display final HTML structure verification
+    console.log('\n🔍 HTML References Updated:');
+    console.log('   src/main.ts → ./main.js');
+    console.log('   /demo.ts → ./demo.js');
+    console.log('   /style.scss → ./style.css');
+    console.log('   Absolute paths → Relative paths');
     
   } catch (error) {
     console.error('❌ Build failed:', error);
