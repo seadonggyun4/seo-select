@@ -346,7 +346,6 @@ After:  select.removeEventListener('${type}', handler);`);
     const hasOptions = this.getAllOptionData().length > 0;
     const showNoData = this.multiple && !this._isLoading && !hasOptions;
     const effectiveWidth = this.getEffectiveWidth();
-
     return html`
       <div class="${CSS_CLASSES.LISTBOX} ${CSS_CLASSES.SCROLL} ${this.open ? '' : CSS_CLASSES.HIDDEN}" role="listbox" style="width: ${effectiveWidth};">
         ${this._isLoading
@@ -558,6 +557,11 @@ After:  select.removeEventListener('${type}', handler);`);
           this._optionsCache.set(opt.value, opt);
           return opt;
         });
+
+        optionEls.forEach((el) => {
+          el.remove();
+        });
+
       } else if (Array.isArray(this.optionItems) && this.optionItems.length > 0) {
         // DocumentFragment를 사용하여 DOM 조작 최적화
         const fragment = document.createDocumentFragment();
@@ -574,9 +578,7 @@ After:  select.removeEventListener('${type}', handler);`);
         
         // 한 번에 DOM에 추가
         this.appendChild(fragment);
-      } else {
-        this._options = [];
-      }
+      } 
 
       if (this._options.length > 0) {
         this._isLoading = false;
