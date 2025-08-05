@@ -1,10 +1,6 @@
 # seo-select
-<div style="display: flex; gap: 1.5rem; align-items: center;">
-  <img src="https://dev.wenivops.co.kr/services/weniv-hit-counter/api/v1/badge?url=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2Fseo-select%3FactiveTab%3Dreadme&label=NPM&style=flat-square&messageColor=red" alt="NPM Hits">
-  <img src="https://dev.wenivops.co.kr/services/weniv-hit-counter/api/v1/badge?url=https%3A%2F%2Fgithub.com%2Fseadonggyun4%2Fseo-select%3Ftab%3Dreadme-ov-file&label=Git&style=flat-square&messageColor=blue" alt="GitHub Hits">
-</div>
-
-<br/>
+![npm](https://img.shields.io/npm/dt/seo-select?style=flat&label=NPM%20Downloads)
+![GitHub Repo stars](https://img.shields.io/github/stars/seadonggyun4/seo-select?style=flat&label=GitHub%20Stars)
 
 <img width="300" height="300" alt="logo" src="https://github.com/user-attachments/assets/e567ea31-d046-45b3-80d1-9a1e32c7e002" />
 
