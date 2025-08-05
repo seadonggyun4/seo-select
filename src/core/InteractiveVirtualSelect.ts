@@ -154,6 +154,18 @@ export class InteractiveVirtualSelect {
     }
   }
 
+  // 풀 크기 재조정 - 새로운 메서드 추가
+  private _rebuildPoolIfNeeded(): void {
+    const idealPoolSize = this.visibleCount + this.overscan * 2;
+    const newPoolSize = Math.min(idealPoolSize, this.total);
+    
+    if (newPoolSize !== this.poolSize) {
+      console.log(`Pool size changed: ${this.poolSize} -> ${newPoolSize}`);
+      this.poolSize = newPoolSize;
+      this._buildPool();
+    }
+  }
+
   // 스크롤 이벤트 바인딩
   private _bindScroll(): void {
     this._ticking = false;
@@ -441,7 +453,7 @@ export class InteractiveVirtualSelect {
       : null;
   }
 
-  // 데이터 갱신 및 렌더링
+  // 데이터 갱신 및 렌더링 - 개선된 버전
   setData(newData: OptionData[], activeValue?: string): void {
     this.data = newData;
     this.total = newData.length;
@@ -463,7 +475,12 @@ export class InteractiveVirtualSelect {
     this.focusedIndex = matchedIndex >= 0 ? matchedIndex : 0;
     this.container.scrollTop = 0;
 
+    // 컨테이너 및 풀 크기 재계산
     this._initializeContainer();
+    
+    // 풀 크기가 변경되었다면 풀을 다시 빌드
+    this._rebuildPoolIfNeeded();
+    
     this._setPlaceholders(0, Math.min(this.total, this.pool.length));
     this._renderPool(0);
     this._applyHighlight();
@@ -474,7 +491,7 @@ export class InteractiveVirtualSelect {
     });
   }
 
-  // 데이터 완전 클리어 - 빈 상태로 만들어 로딩 화면 표시 가능
+  // 데이터 완전 클리어 - 개선된 버전
   clearData(): void {
     this.data = [];
     this.total = 0;
@@ -503,6 +520,11 @@ export class InteractiveVirtualSelect {
 
     // ARIA 속성 정리
     this.wrapper.removeAttribute('aria-activedescendant');
+
+    // 풀 크기 재계산 - 빈 데이터에 맞춰 조정
+    this.poolSize = 0;
+    // 풀을 완전히 비우지는 않고, 필요시 재사용할 수 있도록 유지
+    // 하지만 다음 setData 호출 시 _rebuildPoolIfNeeded()에서 적절히 조정됨
   }
 
   // 파괴 및 이벤트 제거
