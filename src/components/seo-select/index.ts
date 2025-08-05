@@ -22,7 +22,7 @@ import {
   SeoSelectEventListener
 } from '../../event/index.js';
 
-export interface VirtualSelectOption {
+interface VirtualSelectOption {
   value: string;
   label: string;
 }
@@ -48,13 +48,7 @@ export class SeoSelect extends LitElement {
       required: { type: Boolean, reflect: true },
       width: { type: String },
       height: { type: String },
-      optionItems: { 
-        type: Array,
-        hasChanged: (newVal: VirtualSelectOption[], oldVal: VirtualSelectOption[]) => {
-          // 깊은 비교를 통한 실제 변경 감지
-          return JSON.stringify(newVal) !== JSON.stringify(oldVal);
-        }
-      },
+      optionItems: { type: Array },
       open: { type: Boolean, state: true },
       _labelText: { type: String, state: true },
       showReset: { type: Boolean },
@@ -74,6 +68,7 @@ export class SeoSelect extends LitElement {
   declare required: boolean;
   declare width: string | null;
   declare height: string;
+  declare optionItems: VirtualSelectOption[];
   declare showReset: boolean;
   declare multiple: boolean;
   declare theme: SelectTheme;
@@ -105,11 +100,6 @@ export class SeoSelect extends LitElement {
   private _isUpdating: boolean = false;
   private _updateDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-  // Reactive optionItems 관련 속성들
-  private _lastOptionItemsSnapshot: string = '';
-  private _optionItemsProxy: VirtualSelectOption[] = [];
-  private _isProcessingOptionChange: boolean = false;
-
   private _handleKeydownBound: (e: KeyboardEvent) => void;
 
   constructor() {
@@ -122,6 +112,9 @@ export class SeoSelect extends LitElement {
     this._options = [];
     this.width = null;
     this.required = DEFAULT_CONFIG.required;
+    this.optionItems = [];
+    this.open = false;
+    this._labelText = '';
     this.showReset = DEFAULT_CONFIG.showReset;
     this.multiple = DEFAULT_CONFIG.multiple;
     this._selectedValues = [];
@@ -135,200 +128,6 @@ export class SeoSelect extends LitElement {
     this._handleKeydownBound = (e: KeyboardEvent) => this._virtual?.handleKeydown(e);
     this.tabIndex = 0;
     this._pendingActiveIndex = null;
-    
-    this.open = false;
-    this._labelText = '';
-    
-    // optionItems를 빈 배열로 초기화하고 Proxy 설정
-    this._optionItemsProxy = [];
-    this._setupReactiveOptionItems();
-  }
-
-  // optionItems를 반응형으로 만드는 Proxy 설정
-  private _setupReactiveOptionItems(): void {
-    const arrayMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
-    const self = this; // this 참조를 캡처
-    
-    this._optionItemsProxy = new Proxy(this._optionItemsProxy || [], {
-      set: (target: VirtualSelectOption[], property: string | symbol, value: any): boolean => {
-        const result = Reflect.set(target, property, value);
-        
-        // 배열 인덱스나 length 변경 시 업데이트
-        if (typeof property === 'string' && 
-            (property === 'length' || /^\d+$/.test(property))) {
-          self._scheduleOptionItemsUpdate();
-        }
-        
-        return result;
-      },
-      
-      get: (target: VirtualSelectOption[], property: string | symbol): any => {
-        const value = Reflect.get(target, property);
-        
-        // 배열 변경 메서드들을 감지
-        if (arrayMethods.includes(property as string)) {
-          return function(this: VirtualSelectOption[], ...args: any[]): any {
-            const result = (value as Function).apply(this, args);
-            self._scheduleOptionItemsUpdate();
-            return result;
-          };
-        }
-        
-        return value;
-      }
-    });
-  }
-
-  // optionItems 변경 스케줄링 (디바운싱)
-  private _scheduleOptionItemsUpdate(): void {
-    if (this._isProcessingOptionChange) return;
-    
-    // 마이크로태스크로 다음 틱에 실행
-    Promise.resolve().then(() => {
-      if (!this._isProcessingOptionChange) {
-        this._handleOptionItemsReactiveChange();
-      }
-    });
-  }
-
-  // optionItems 반응형 변경 처리
-  protected _handleOptionItemsReactiveChange(): void {
-    if (this._isProcessingOptionChange) return;
-    
-    const currentSnapshot = JSON.stringify(this._optionItemsProxy);
-    if (this._lastOptionItemsSnapshot === currentSnapshot) return;
-    
-    this._isProcessingOptionChange = true;
-    
-    try {
-      // 기존 선택값 보존을 위한 백업
-      const previousSelectedValues = this.multiple ? [...this._selectedValues] : [this._value];
-      
-      // 옵션 재구성
-      this._rebuildOptionsFromItems();
-      
-      // 유효한 선택값들만 복원
-      this._restoreValidSelections(previousSelectedValues);
-      
-      // 가상 스크롤 업데이트
-      if (this._virtual && this.open) {
-        this._updateVirtualScrollData();
-      }
-      
-      // 상태 업데이트
-      this._lastOptionItemsSnapshot = currentSnapshot;
-      this._debouncedUpdate();
-      
-    } finally {
-      this._isProcessingOptionChange = false;
-    }
-  }
-
-  // optionItems에서 실제 DOM 옵션들 재구성
-  private _rebuildOptionsFromItems(): void {
-    // 기존 옵션들 정리
-    this._options.forEach(opt => opt.remove());
-    this._options = [];
-    this._optionsCache.clear();
-    this._widthCalculationCache.clear();
-
-    if (!Array.isArray(this._optionItemsProxy) || this._optionItemsProxy.length === 0) {
-      this._isLoading = true;
-      // 옵션이 없을 때 labelText도 초기화
-      if (!this.multiple) {
-        this._labelText = '';
-      }
-      return;
-    }
-
-    // DocumentFragment로 DOM 조작 최적화
-    const fragment = document.createDocumentFragment();
-    
-    this._options = this._optionItemsProxy.map(item => {
-      const optionEl = document.createElement('option');
-      optionEl.value = item.value;
-      optionEl.textContent = item.label;
-      optionEl.hidden = true;
-      
-      this._optionsCache.set(item.value, optionEl);
-      fragment.appendChild(optionEl);
-      
-      return optionEl;
-    });
-
-    // 한 번에 DOM에 추가
-    this.appendChild(fragment);
-    this._isLoading = false;
-
-    // 단일 선택 모드에서 labelText 설정
-    if (!this.multiple) {
-      if (this._value) {
-        // 현재 값이 있으면 해당 옵션의 라벨 설정
-        const matchedOption = this._optionsCache.get(this._value);
-        if (matchedOption) {
-          this._labelText = matchedOption.textContent || '';
-        } else if (this._options.length > 0) {
-          // 현재 값이 유효하지 않으면 첫 번째 옵션으로 설정
-          const firstOption = this._options[0];
-          this._value = firstOption.value;
-          this._labelText = firstOption.textContent || '';
-        }
-      } else if (this._options.length > 0) {
-        // 값이 없으면 첫 번째 옵션으로 초기화
-        const firstOption = this._options[0];
-        this._value = firstOption.value;
-        this._labelText = firstOption.textContent || '';
-      } else {
-        // 옵션이 없으면 빈 값으로 설정
-        this._labelText = '';
-      }
-    }
-
-    // 너비 재계산
-    this.calculateAutoWidth();
-  }
-
-  // 유효한 선택값들 복원
-  private _restoreValidSelections(previousSelectedValues: (string | null)[]): void {
-    const validValues = this._options.map(opt => opt.value);
-    
-    if (this.multiple) {
-      // 다중 선택: 여전히 유효한 값들만 유지
-      this._selectedValues = this._selectedValues.filter(value => 
-        validValues.includes(value)
-      );
-      this.updateFormValue();
-    } else {
-      // 단일 선택: 현재 값이 유효하지 않으면 첫 번째 옵션으로 변경
-      if (this._value && !validValues.includes(this._value)) {
-        if (this._options.length > 0) {
-          this._setValue(this._options[0].value, false);
-        } else {
-          this._setValue('', false);
-        }
-      }
-    }
-  }
-
-  // 가상 스크롤 데이터 업데이트
-  private _updateVirtualScrollData(): void {
-    const optionData = this.getAllOptionData();
-    if (optionData.length > 0) {
-      this._virtual?.setData(optionData, this.multiple ? undefined : this._value || undefined);
-    } else {
-      this._virtual?.clearData();
-    }
-  }
-
-  // optionItems setter/getter
-  set optionItems(newItems: VirtualSelectOption[]) {
-    this._optionItemsProxy = newItems || [];
-    this._setupReactiveOptionItems();
-    this.requestUpdate('optionItems');
-  }
-
-  get optionItems(): VirtualSelectOption[] {
-    return this._optionItemsProxy || [];
   }
 
   /**
@@ -437,12 +236,10 @@ After:  select.removeEventListener('${type}', handler);`);
     if (this._isUpdating) return;
     this.style.width = this.width !== '100%' ? '' : '100%';
     
-    // optionItems가 직접 설정된 경우 (속성으로)
-    if (changed.has('optionItems')) {
-      this._handleOptionItemsDirectChange();
-    }
+    const needsOptionsUpdate = changed.has('optionItems') || 
+                              changed.has('language') || 
+                              changed.has('texts');
     
-    const needsOptionsUpdate = changed.has('language') || changed.has('texts');
     const needsWidthUpdate = changed.has('width') || 
                             changed.has('optionItems') || 
                             changed.has('_options');
@@ -454,18 +251,6 @@ After:  select.removeEventListener('${type}', handler);`);
     if (needsWidthUpdate) {
       this.calculateAutoWidth();
     }
-  }
-
-  // optionItems 직접 변경 처리 (속성 설정)
-  private _handleOptionItemsDirectChange(): void {
-    const currentSnapshot = JSON.stringify(this._optionItemsProxy);
-    if (this._lastOptionItemsSnapshot === currentSnapshot) return;
-    
-    // Proxy 재설정
-    this._setupReactiveOptionItems();
-    
-    // 반응형 변경 처리
-    this._handleOptionItemsReactiveChange();
   }
 
   // 최적화된 자동 너비 계산 - 캐싱 및 배치 처리
@@ -641,13 +426,10 @@ After:  select.removeEventListener('${type}', handler);`);
                           this._value !== firstOptionValue;
     const effectiveWidth = this.getEffectiveWidth();
 
-    // labelText가 비어있을 때 placeholder 표시
-    const displayText = this._labelText || texts.placeholder;
-
     return html`
       <div class="${CSS_CLASSES.SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
         <div class="${CSS_CLASSES.SELECTED} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" @click=${this.toggleDropdown}>
-          <span class="${!this._labelText ? CSS_CLASSES.PLACEHOLDER : ''}">${displayText}</span>
+          ${this._labelText}
           ${showResetButton
             ? html`<button
                 type="button"
@@ -758,34 +540,56 @@ After:  select.removeEventListener('${type}', handler);`);
     return this._options.length === 0;
   }
 
-  // 초기화 시 기존 슬롯 옵션들을 optionItems로 변환
+  // 최적화된 옵션 초기화 - 배치 처리 및 캐싱
   public initializeOptionsFromPropsOrSlot(): void {
     if (this._isUpdating) return;
     this._isUpdating = true;
 
     try {
+      // 기존 캐시 정리
+      this._optionsCache.clear();
+      this._widthCalculationCache.clear();
+
       const optionEls = Array.from(this.querySelectorAll('option')) as HTMLOptionElement[];
 
       if (optionEls.length > 0) {
-        // 슬롯에서 optionItems로 변환
-        const itemsFromSlot = optionEls.map(opt => ({
-          value: opt.value,
-          label: opt.textContent || ''
-        }));
+        this._options = optionEls.map(opt => {
+          opt.hidden = true;
+          this._optionsCache.set(opt.value, opt);
+          return opt;
+        });
 
-        // 기존 optionItems가 비어있다면 슬롯 데이터로 초기화
-        if (!this.optionItems || this.optionItems.length === 0) {
-          this.optionItems = itemsFromSlot;
-        }
+        optionEls.forEach((el) => {
+          el.remove();
+        });
 
-        // DOM에서 제거 (optionItems가 원본이 됨)
-        optionEls.forEach(el => el.remove());
+      } else if (Array.isArray(this.optionItems) && this.optionItems.length > 0) {
+        // 기존 옵션 정리
+        this._options.forEach(opt => opt.remove());
+        this._options = [];
+
+        // DocumentFragment를 사용하여 DOM 조작 최적화
+        const fragment = document.createDocumentFragment();
+        
+        this._options = this.optionItems.map(opt => {
+          const el = document.createElement('option');
+          el.value = opt.value;
+          el.textContent = opt.label;
+          el.hidden = true;
+          this._optionsCache.set(opt.value, el);
+          fragment.appendChild(el);
+          return el;
+        });
+        
+        // 한 번에 DOM에 추가
+        this.appendChild(fragment);
+      } 
+
+      if (this._options.length > 0) {
+        this._isLoading = false;
       }
 
-      // optionItems에서 실제 DOM 구성
-      this._rebuildOptionsFromItems();
-
-      // 선택된 값 처리 - _rebuildOptionsFromItems 이후에 처리
+      // 선택된 값 처리
       if (this.multiple) {
         const selectedOptions = this._options.filter(opt => opt.selected);
         this._selectedValues = selectedOptions.map(opt => opt.value);
@@ -793,11 +597,11 @@ After:  select.removeEventListener('${type}', handler);`);
         const selected = this._options.find(opt => opt.selected);
         if (selected) {
           this._setValue(selected.value, false);
+        } else if (this._options.length > 0) {
+          this._setValue(this._options[0].value, false);
         }
-        // _rebuildOptionsFromItems에서 이미 처리하므로 여기서는 제거
       }
 
-      // 초기값 설정
       if (this._options.length > 0) {
         this._initialValue = this._options[0].value;
         this._initialLabel = this._options[0].textContent || '';
