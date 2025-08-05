@@ -6,7 +6,7 @@
 
 A lightweight and extensible select component built with Lit, designed to work seamlessly across frameworks. Supports search, virtual scrolling, multiple selection, i18n, and flexible theming.
 
-> `seo-select` does not officially support TypeScript and React, Vue yet, but I’m doing my best to make it happen soon.
+> `seo-select` does not officially support TypeScript and React, Vue yet, but I'm doing my best to make it happen soon.
 
 Demo Site: https://seo-select.netlify.app/
 
@@ -241,41 +241,180 @@ select.onSelect((event) => {
 
 ## Methods
 
-### SeoSelect & SeoSelectSearch
+### SeoSelect (Basic Component)
 
+The basic `seo-select` component provides fundamental option management and value control methods:
+
+#### Value Management
 ```typescript
-// Value management
+// Get/Set single value
+const currentValue = select.value;
 select.value = 'option1';
-select.selectedValues = ['opt1', 'opt2']; // Multiple mode
 
-// Language and customization
-select.setLanguage('ko');
-select.setTexts({ placeholder: 'Custom...' });
-select.setSearchTexts({ searchPlaceholder: 'Search...' }); // Search only
+// Get/Set multiple values (when multiple=true)
+const selectedValues = select.selectedValues; // ['opt1', 'opt2']
+select.selectedValues = ['opt1', 'opt3'];
 
-// Options management
-select.optionItems = newOptions;
-select.batchUpdateOptions(largeArray);
-select.addOption({ value: 'new', label: 'New Option' });
-select.removeOption('value-to-remove');
-select.clearOptions();
-
-// Event management (always available)
-select.onSelect(handler);
-select.onDeselect(handler);
-select.onReset(handler);
-select.onChange(handler);
-select.onOpen(handler);
-
-// Search-specific (seo-select-search only)
-select.onSearchChange(handler);
-select.onSearchFilter(handler);
-select.setSearchText('search term');
-select.clearSearchText();
-
-// Utility
+// Reset to default value
 select.resetToDefaultValue();
+```
+
+#### Dynamic Option Management
+```typescript
+// Add multiple options at once (replaces existing options)
+select.addOptions([
+  { value: 'opt1', label: 'Option 1' },
+  { value: 'opt2', label: 'Option 2' }
+], preserveSelection); // preserveSelection: boolean (default: false)
+
+// Add a single option
+select.addOption({ value: 'new', label: 'New Option' }, index); // index: optional position
+
+// Remove a specific option by value
+select.clearOption('option-value-to-remove');
+
+// Remove all options
+select.clearAllOptions();
+
+// Batch update operations (highly optimized for performance)
+select.batchUpdateOptions([
+  { action: 'add', option: { value: 'new1', label: 'New 1' } },
+  { action: 'remove', value: 'old-option' },
+  { action: 'update', value: 'existing', option: { value: 'existing', label: 'Updated Label' } }
+]);
+```
+
+#### Customization Methods
+```typescript
+// Change language dynamically
+select.setLanguage('ko'); // 'en' | 'ko' | 'ja' | 'zh'
+
+// Set custom localized texts
+select.setTexts({ 
+  placeholder: 'Custom placeholder...',
+  required: 'This field is required',
+  resetToDefault: 'Reset selection'
+});
+
+// Enable/disable auto-width calculation
+select.setAutoWidth(true);
+
+// Clear internal caches (useful for memory optimization)
 select.clearCaches();
+```
+
+#### Event Management (Type-Safe Helpers)
+```typescript
+// Basic events (always available)
+select.onSelect((event) => {
+  console.log('Selected:', event.label, event.value);
+});
+
+select.onDeselect((event) => {
+  console.log('Deselected:', event.label, event.value);
+});
+
+select.onReset((event) => {
+  if (select.multiple) {
+    console.log('Reset multiple:', event.values, event.labels);
+  } else {
+    console.log('Reset single:', event.value, event.label);
+  }
+});
+
+select.onChange(() => {
+  console.log('Form value changed');
+});
+
+select.onOpen(() => {
+  console.log('Dropdown opened');
+});
+```
+
+#### Utility Methods
+```typescript
+// Get current option count
+const optionCount = select.options.length;
+
+// Get selected index (single mode only)
+const selectedIndex = select.selectedIndex;
+
+// Get default value
+const defaultValue = select.defaultValue;
+
+// Check if component has options
+const hasOptions = !select.hasNoOptions();
+```
+
+### SeoSelectSearch (Search-Enhanced Component)
+
+The `seo-select-search` component extends the basic component with advanced search functionality:
+
+#### Search-Specific Methods
+```typescript
+// Set search text programmatically
+searchSelect.setSearchText('search term');
+
+// Get current search text
+const currentSearch = searchSelect.getSearchText();
+
+// Clear search text
+searchSelect.clearSearchText();
+```
+
+#### Advanced Option Management
+```typescript
+// Update options while preserving search state
+searchSelect.updateOptionsWithSearch([
+  { value: 'opt1', label: 'Searchable Option 1' },
+  { value: 'opt2', label: 'Searchable Option 2' }
+], preserveSearch); // preserveSearch: boolean (default: true)
+
+// Load options dynamically based on search
+await searchSelect.loadOptionsForSearch('search term', async (searchText) => {
+  // Custom async function to load options
+  const response = await fetch(`/api/search?q=${searchText}`);
+  return await response.json();
+});
+```
+
+#### Search Event Handling
+```typescript
+// Listen to search text changes
+searchSelect.onSearchChange((searchText) => {
+  console.log('User typed:', searchText);
+  // Trigger API calls, analytics, etc.
+});
+
+// Listen to search filter events
+searchSelect.onSearchFilter((filteredOptions) => {
+  console.log(`Found ${filteredOptions.length} results`);
+  // Update UI indicators, show result counts, etc.
+});
+```
+
+#### Custom Search Texts
+```typescript
+// Set search-specific localized texts
+searchSelect.setSearchTexts({
+  searchPlaceholder: 'Type to search...',
+  noMatchText: 'No results found'
+});
+```
+
+#### Inherited Methods
+The `seo-select-search` component inherits all methods from the basic `seo-select` component, so you can use all the value management, option management, and customization methods mentioned above.
+
+#### Performance Considerations
+```typescript
+// For large datasets, use batch operations
+searchSelect.batchUpdateOptions(largeUpdateArray);
+
+// Clear caches when dealing with frequent option updates
+searchSelect.clearCaches();
+
+// Use preserveSelection for better UX when updating options
+searchSelect.addOptions(newOptions, true); // Preserves current selection
 ```
 
 ## Styling and Customization
@@ -462,6 +601,76 @@ seo-select[dark] {
 </details>
 
 <details>
+<summary><strong>🎨 Color Palette Variables</strong></summary>
+
+**Primary Colors:**
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+| `--primary-color` | `#3253de` | Main brand color |
+| `--primary-hover` | `#003766` | Primary color on hover state |
+| `--primary-bg-color` | `#e5f1fbf2` | Primary background color |
+| `--secondary-color` | `#5f77ca` | Secondary brand color |
+| `--secondary-hover` | `#303c65f2` | Secondary color on hover state |
+| `--secondary-bg-color` | `#eff1faf2` | Secondary background color |
+
+**Semantic State Colors:**
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+| `--success-color` | `pick(green, 5)` | Success state color |
+| `--success-hover` | `pick(green, 6)` | Success color on hover |
+| `--success-bg-color` | `pick(green, 0)` | Success background color |
+| `--error-color` | `pick(red, 5)` | Error state color |
+| `--error-hover` | `pick(red, 6)` | Error color on hover |
+| `--error-bg-color` | `color.mix(#fff, pick(red, 1), 25%)` | Error background color |
+| `--warning-color` | `pick(orange, 4)` | Warning state color |
+| `--warning-hover` | `pick(orange, 5)` | Warning color on hover |
+| `--warning-bg-color` | `color.mix(#fff, pick(orange, 1), 25%)` | Warning background color |
+| `--disabled-color` | `color.adjust(pick(gray, 3), $lightness: 5%)` | Disabled element color |
+
+**Typography Colors:**
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+| `--font-color` | `color.mix(#000, pick(indigo, 10), 70%)` | Primary text color |
+| `--font-secondary-color` | `pick(gray, 5)` | Secondary text color |
+
+**UI Element Colors:**
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+| `--border-color` | `pick(gray, 3)` | Default border color |
+| `--box-head-border-color` | `color.mix(#fff, pick(gray, 2), 35%)` | Box header border color |
+
+**Extended Color Palette (Open Color System):**
+The component uses a sophisticated color system based on Open Color with primary color mixing:
+
+| Color Name | Usage | Available Shades |
+|------------|-------|------------------|
+| `gray` | Neutral elements, borders, backgrounds | 0-10 (lightest to darkest) |
+| `red` | Error states, destructive actions | 0-10 |
+| `pink` | Accent colors, highlights | 0-10 |
+| `grape` | Decorative elements | 0-10 |
+| `violet` | Special highlights | 0-10 |
+| `indigo` | Primary variants | 0-10 |
+| `blue` | Information states, links | 0-10 |
+| `cyan` | Cool accents | 0-10 |
+| `teal` | Fresh accents | 0-10 |
+| `green` | Success states, positive actions | 0-10 |
+| `lime` | Fresh highlights | 0-10 |
+| `yellow` | Warning states, attention | 0-10 |
+| `orange` | Warning states, alerts | 0-10 |
+
+**Using the Color System:**
+```scss
+// Access colors using the pick() function
+.my-element {
+  background-color: pick(blue, 2);    // Light blue
+  border-color: pick(blue, 5);        // Medium blue
+  color: pick(blue, 8);               // Dark blue
+}
+```
+
+</details>
+
+<details>
 <summary><strong>🌙 Dark Mode Color Variables</strong></summary>
 
 **Background Colors:**
@@ -471,6 +680,9 @@ seo-select[dark] {
 | `--dark-dropdown-bg` | `#374151` | Dropdown background in dark mode |
 | `--dark-tag-bg` | `#4b5563` | Tag background in dark mode |
 | `--dark-search-input-bg` | `#374151` | Search input background in dark mode |
+| `--dark-accent-bg` | `#1f2937` | Darker background for special elements |
+| `--dark-card-bg` | `#374151` | Card/container background |
+| `--dark-surface-bg` | `#4b5563` | Surface element background |
 
 **Border Colors:**
 | Variable | Default Value | Description |
@@ -485,6 +697,15 @@ seo-select[dark] {
 | `--dark-text-color` | `#f3f4f6` | Primary text color in dark mode |
 | `--dark-text-secondary-color` | `#d1d5db` | Secondary text color in dark mode |
 | `--dark-placeholder-color` | `#9ca3af` | Placeholder color in dark mode |
+| `--dark-highlight-color` | `#fbbf24` | Highlight/accent color in dark mode |
+
+**Dark Mode State Colors:**
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+| `--dark-success-color` | `#10b981` | Success state color in dark mode |
+| `--dark-warning-color` | `#f59e0b` | Warning state color in dark mode |
+| `--dark-error-color` | `#ef4444` | Error state color in dark mode |
+| `--dark-info-color` | `#3b82f6` | Information state color in dark mode |
 
 **Option Colors:**
 | Variable | Default Value | Description |
@@ -546,6 +767,10 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - **Enhanced Developer Experience**: No additional build step required for most use cases
 - **Vite Build Integration**: Built using Vite for optimal bundle size and modern JavaScript features
 - **Web Standards & Accessibility**: replace option tags with accessible divs and optimize pool size for small datasets
+- **Dynamic Option Management**: Advanced methods for real-time option manipulation
+- **Real-time Virtual Scroll Sync**: Instant UI updates for option changes
+- **nhanced State Management**: Improved consistency and reliability
+- **Search Component Enhancements** 
 
 ### Version 1.x (Previous Stable)
 - **Enhanced Event System**: Standard `addEventListener` with built-in type-safe helpers
@@ -557,5 +782,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ---
 
 > **Migration Note**:  
-> Version 2.x maintains full API compatibility with 1.x while changing the distribution format from source TypeScript files to pre-built, optimized JavaScript and CSS files.
-
+> Version 2.x maintains full API compatibility with 1.x while changing the distribution format from source TypeScript files to pre-built, optimized JavaScript and CSS files. The new dynamic option management methods provide powerful tools for building interactive applications with real-time data updates.
