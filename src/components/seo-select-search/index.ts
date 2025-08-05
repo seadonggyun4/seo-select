@@ -505,6 +505,13 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         this._debouncedUpdate();
       });
     } else {
+      // 기존 가상 스크롤이 있으면 제거
+      if (this._virtual) {
+        this._virtual.destroy();
+        this._virtual = null;
+      }
+      
+      // 새로운 가상 스크롤 초기화
       this.initializeVirtualSelect();
     }
   }
@@ -565,9 +572,19 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
   }
 
   public override closeDropdown(): void {
-    super.closeDropdown();
+    this.open = false;
+    
+    // 가상 스크롤 정리
+    if (this._virtual) {
+      this._virtual.destroy();
+      this._virtual = null;
+    }
+    
+    // 검색 상태 초기화
     this._searchText = '';
     this._noMatchVisible = false;
+    
+    this._debouncedUpdate();
   }
 
   public override calculateAutoWidth(): void {
@@ -628,7 +645,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
    * 가상 스크롤 데이터를 검색 필터와 함께 즉시 업데이트하는 헬퍼 메서드
    */
   private _updateVirtualScrollDataWithSearch(): void {
-    if (!this._virtual || !this.open) return;
+    if (!this._virtual) return;
 
     const optionData = this.getAllOptionData();
     
@@ -638,7 +655,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       
       // 검색 텍스트가 있으면 필터 적용
       if (this._searchText) {
-        this._applyFilteredOptions();
+        requestAnimationFrame(() => {
+          this._applyFilteredOptions();
+        });
       } else {
         // 활성 인덱스 설정
         requestAnimationFrame(() => {
@@ -964,8 +983,13 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
                     this._selectedValues.splice(selectedIndex, 1);
                   }
                 } else {
-                  if (this._value === update.value && this._options.length > 0) {
-                    this._setValue(this._options[0].value, false);
+                  if (this._value === update.value) {
+                    if (this._options.length > 0) {
+                      this._setValue(this._options[0].value, false);
+                    } else {
+                      this._setValue('', false);
+                      this._labelText = '';
+                    }
                   }
                 }
                 hasChanges = true;
@@ -979,6 +1003,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
               if (existingOption) {
                 existingOption.textContent = update.option.label;
                 this._optionsCache.set(update.value, existingOption);
+                // 현재 선택된 값의 라벨도 업데이트
+                if (!this.multiple && this._value === update.value) {
+                  this._labelText = update.option.label;
+                }
                 hasChanges = true;
               }
             }
@@ -990,8 +1018,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         this._widthCalculationCache.clear();
         this._isLoading = this._options.length === 0;
 
-        // 검색 기능과 함께 가상 스크롤 한 번만 업데이트
-        this._updateVirtualScrollDataWithSearch();
+        // 드롭다운이 열려있는 경우 검색 기능과 함께 가상 스크롤 한 번만 업데이트
+        if (this.open) {
+          this._updateVirtualScrollDataWithSearch();
+        }
 
         // 초기값 업데이트
         if (this._options.length > 0) {
@@ -1000,6 +1030,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         } else {
           this._initialValue = null;
           this._initialLabel = null;
+          // 옵션이 없을 때 라벨 초기화
+          if (!this.multiple) {
+            this._labelText = '';
+          }
         }
 
         // 폼 값 업데이트
