@@ -352,7 +352,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   // null을 undefined로 변환하는 헬퍼 함수
   private getCurrentValue(): string | undefined {
-    return this.value ?? undefined;
+    return this._value || undefined;
   }
 
   // 향상된 다국어 검색 필터 적용
@@ -364,7 +364,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     
     if (!rawInput) {
       const allOptions = this.getAllOptionData();
-      this._virtual.setData(allOptions, this.multiple ? undefined : this.getCurrentValue());
+      this._virtual.setData(allOptions, this.getCurrentValue());
       this._noMatchVisible = false;
 
       this.dispatchEvent(new CustomEvent('search-filter', {
@@ -386,7 +386,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       const noMatchOption = [{ value: 'no_match', label: searchTexts.noMatchText, disabled: true }];
       this._virtual.setData(
         noMatchOption,
-        this.multiple ? undefined : this.getCurrentValue(),
+        this.getCurrentValue(),
       );
 
       this.dispatchEvent(new CustomEvent('search-filter', {
@@ -397,7 +397,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       return;
     }
 
-    this._virtual.setData(filtered, this.multiple ? undefined : this.getCurrentValue());
+    this._virtual.setData(filtered, this.getCurrentValue());
 
     this.dispatchEvent(new CustomEvent('search-filter', {
       detail: { filteredOptions: filtered, searchText: rawInput, hasResults: true },

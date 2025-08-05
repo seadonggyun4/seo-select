@@ -610,11 +610,10 @@ After:  select.removeEventListener('${type}', handler);`);
         this._initialLabel = this._options[0].textContent || '';
       }
 
-      // 가상 스크롤이 열려있다면 다시 초기화
+      // 가상 스크롤이 열려있다면 setData로 업데이트
       if (this.open && this._virtual) {
-        this._virtual.destroy();
-        this._virtual = null;
-        this.initializeVirtualSelect();
+        const optionData = this.getAllOptionData();
+        this._virtual.setData(optionData, this._value || undefined);
       }
 
       // 너비 계산을 비동기로 처리
