@@ -100,6 +100,9 @@ export class InteractiveVirtualSelect {
   private _ensureWrapper(): void {
     this.wrapper = this.container.querySelector('.option-wrapper') as HTMLElement || document.createElement('div');
     this.wrapper.className = 'option-wrapper';
+    this.wrapper.setAttribute('role', 'listbox');
+    this.wrapper.setAttribute('aria-multiselectable', this.isMultiple.toString());
+    
     if (!this.wrapper.parentElement) {
       this.container.appendChild(this.wrapper);
     }
@@ -110,10 +113,12 @@ export class InteractiveVirtualSelect {
   private _buildDOM(): void {
     this.topPad = document.createElement('div');
     this.topPad.className = 'virtual-placeholder top';
+    this.topPad.setAttribute('aria-hidden', 'true');
     this.topPad.appendChild(document.createElement('div'));
 
     this.botPad = document.createElement('div');
     this.botPad.className = 'virtual-placeholder bottom';
+    this.botPad.setAttribute('aria-hidden', 'true');
     this.botPad.appendChild(document.createElement('div'));
 
     this.wrapper.append(this.topPad, this.botPad);
@@ -127,7 +132,11 @@ export class InteractiveVirtualSelect {
 
     this.container.style.height = `${finalHeight + 5 + extraHeight}px`;
     this.visibleCount = Math.max(1, Math.ceil((finalHeight + extraHeight) / this.rowHeight));
-    this.poolSize = this.visibleCount + this.overscan * 2;
+    
+    // total이 작을 때는 실제 필요한 만큼만 pool 생성
+    const idealPoolSize = this.visibleCount + this.overscan * 2;
+    this.poolSize = Math.min(idealPoolSize, this.total);
+    
     this.container.style.setProperty('--row-height', `${this.rowHeight}px`);
     this.wrapper.style.height = `${this.total * this.rowHeight}px`;
   }
@@ -238,12 +247,15 @@ export class InteractiveVirtualSelect {
       if (dataIdx >= this.total) {
         el.style.display = 'none';
         el.removeAttribute('data-index');
+        el.removeAttribute('aria-posinset');
         continue;
       }
 
       const option = this.data[dataIdx];
       el.style.display = '';
       el.dataset.index = String(dataIdx);
+      el.setAttribute('aria-posinset', String(dataIdx + 1));
+      
       if ((el as any)._value !== option.value) {
         el.textContent = option.label;
         (el as any)._value = option.value;
@@ -272,9 +284,23 @@ export class InteractiveVirtualSelect {
       // multi 모드가 아닐 때만 active 클래스 적용
       if (!this.isMultiple) {
         el.classList.toggle('active', idx === this.activeIndex);
+        el.setAttribute('aria-selected', (idx === this.activeIndex).toString());
+      } else {
+        el.removeAttribute('aria-selected');
       }
 
       el.classList.toggle('focused', idx === this.focusedIndex);
+      
+      // ARIA 상태 업데이트
+      if (idx === this.focusedIndex) {
+        el.setAttribute('aria-current', 'true');
+        this.wrapper.setAttribute('aria-activedescendant', el.id || `option-${idx}`);
+        if (!el.id) {
+          el.id = `option-${idx}`;
+        }
+      } else {
+        el.removeAttribute('aria-current');
+      }
     }
   }
 
@@ -282,7 +308,7 @@ export class InteractiveVirtualSelect {
   private _handleDisabledOption(el: HTMLElement, opt: OptionData): void {
     const isDisabled = opt?.value === 'no_match';
     el.classList.toggle('disabled', isDisabled);
-    el.toggleAttribute('aria-disabled', isDisabled);
+    el.setAttribute('aria-disabled', isDisabled.toString());
     if (isDisabled) {
       this.container.style.height = '80px';
     }
@@ -291,13 +317,19 @@ export class InteractiveVirtualSelect {
   // 강조 클래스 초기화
   private _resetClass(el: HTMLElement): void {
     el.classList.remove('active', 'focused');
+    el.removeAttribute('aria-selected');
+    el.removeAttribute('aria-current');
   }
 
-  // 옵션 엘리먼트 생성
+  // 옵션 엘리먼트 생성 - div 요소를 사용하고 ARIA 속성 추가
   private _createOptionElement(): HTMLElement {
-    const el = document.createElement('option');
+    const el = document.createElement('div');
     el.className = 'option';
+    el.setAttribute('role', 'option');
+    el.setAttribute('tabindex', '-1');
+    el.setAttribute('aria-setsize', String(this.total));
     el.style.height = 'var(--row-height)';
+    
     el.addEventListener('click', (e) => this._handleClick(e, el));
 
     el.addEventListener('mouseenter', () => {
@@ -306,6 +338,7 @@ export class InteractiveVirtualSelect {
       this.focusedIndex = idx;
       this._applyHighlight();
     });
+    
     return el;
   }
 
@@ -386,7 +419,6 @@ export class InteractiveVirtualSelect {
     }
   };
 
-
   // 포커스 인덱스 설정
   setFocusedIndex(index: number): void {
     this.focusedIndex = Math.max(0, Math.min(index, this.total - 1));
@@ -416,6 +448,9 @@ export class InteractiveVirtualSelect {
     this._prevStart = -1;
     this._prevEnd = -1;
 
+    // ARIA 속성 업데이트
+    this.wrapper.setAttribute('aria-multiselectable', this.isMultiple.toString());
+
     const matchedIndex = activeValue != null && activeValue !== undefined
       ? this.data.findIndex(opt => opt.value === activeValue)
       : -1;
@@ -432,6 +467,11 @@ export class InteractiveVirtualSelect {
     this._setPlaceholders(0, Math.min(this.total, this.pool.length));
     this._renderPool(0);
     this._applyHighlight();
+    
+    // 풀의 모든 요소에 새로운 aria-setsize 설정
+    this.pool.forEach(el => {
+      el.setAttribute('aria-setsize', String(this.total));
+    });
   }
 
   // 파괴 및 이벤트 제거
