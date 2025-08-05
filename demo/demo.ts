@@ -854,3 +854,493 @@ document.addEventListener('DOMContentLoaded', function(): void {
         }, PAGE_LOAD_TIME);
     }
 });
+
+// ==========================================
+// Simple TypeScript Error Suppression for Demo Page
+// ==========================================
+
+namespace DynamicDemoActions {
+    // Sample datasets
+    const TECH_STACK_OPTIONS: OptionItem[] = [
+        { value: 'react', label: 'React' },
+        { value: 'vue', label: 'Vue.js' },
+        { value: 'angular', label: 'Angular' },
+        { value: 'svelte', label: 'Svelte' },
+        { value: 'nextjs', label: 'Next.js' },
+        { value: 'nuxt', label: 'Nuxt.js' },
+        { value: 'gatsby', label: 'Gatsby' },
+        { value: 'remix', label: 'Remix' }
+    ];
+
+    const LANGUAGE_OPTIONS: OptionItem[] = [
+        { value: 'js', label: 'JavaScript' },
+        { value: 'ts', label: 'TypeScript' },
+        { value: 'python', label: 'Python' },
+        { value: 'java', label: 'Java' },
+        { value: 'csharp', label: 'C#' },
+        { value: 'go', label: 'Go' },
+        { value: 'rust', label: 'Rust' },
+        { value: 'kotlin', label: 'Kotlin' }
+    ];
+
+    const FRAMEWORK_OPTIONS: OptionItem[] = [
+        { value: 'express', label: 'Express.js' },
+        { value: 'fastify', label: 'Fastify' },
+        { value: 'nestjs', label: 'NestJS' },
+        { value: 'django', label: 'Django' },
+        { value: 'flask', label: 'Flask' },
+        { value: 'spring', label: 'Spring Boot' },
+        { value: 'dotnet', label: '.NET Core' }
+    ];
+
+    const USER_DATA: OptionItem[] = [
+        { value: 'user1', label: 'Alice Johnson (Frontend Developer)' },
+        { value: 'user2', label: 'Bob Smith (Backend Engineer)' },
+        { value: 'user3', label: 'Carol Davis (Full Stack Developer)' },
+        { value: 'user4', label: 'David Wilson (DevOps Engineer)' },
+        { value: 'user5', label: 'Emma Brown (UI/UX Designer)' },
+        { value: 'user6', label: 'Frank Miller (Data Scientist)' }
+    ];
+
+    const COUNTRY_DATA: OptionItem[] = [
+        { value: 'kr', label: '🇰🇷 South Korea (대한민국)' },
+        { value: 'jp', label: '🇯🇵 Japan (日本)' },
+        { value: 'us', label: '🇺🇸 United States' },
+        { value: 'cn', label: '🇨🇳 China (中国)' },
+        { value: 'de', label: '🇩🇪 Germany (Deutschland)' },
+        { value: 'fr', label: '🇫🇷 France (France)' },
+        { value: 'gb', label: '🇬🇧 United Kingdom' },
+        { value: 'ca', label: '🇨🇦 Canada' }
+    ];
+
+    // Utility functions
+    function getElement(id: string): SeoSelectElement | null {
+        const element = document.getElementById(id);
+        return isSeoSelectElement(element) ? element : null;
+    }
+
+    function updateAsyncStatus(message: string, type: 'loading' | 'success' | 'error' = 'loading'): void {
+        const status = document.getElementById('async-status');
+        if (status) {
+            status.textContent = message;
+            status.className = `async-status ${type}`;
+        }
+    }
+
+    function addPerformanceMetric(label: string, value: string, type: 'normal' | 'warning' | 'error' = 'normal'): void {
+        const metrics = document.getElementById('performance-metrics');
+        if (metrics) {
+            const row = document.createElement('div');
+            row.className = 'metric-row';
+            row.innerHTML = `
+                <span class="metric-label">${label}:</span>
+                <span class="metric-value ${type}">${value}</span>
+            `;
+            metrics.appendChild(row);
+            metrics.scrollTop = metrics.scrollHeight;
+        }
+    }
+
+    function simulateDelay(ms: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Main demo functions
+    export async function loadTechStack(): Promise<void> {
+        const select = getElement('batch-demo');
+        if (!select) return;
+
+        const btn = document.activeElement as HTMLButtonElement;
+        if (btn) {
+            btn.classList.add('loading');
+            btn.disabled = true;
+        }
+
+        await simulateDelay(800);
+
+        // @ts-ignore - Demo: addOptions method exists at runtime
+        if (select.addOptions) {
+             // @ts-ignore - Demo: clearAllOptions method exists at runtime
+            select.addOptions(TECH_STACK_OPTIONS, true);
+        } else {
+            select.optionItems = TECH_STACK_OPTIONS;
+        }
+
+        if (btn) {
+            btn.classList.remove('loading');
+            btn.classList.add('success');
+            btn.disabled = false;
+            btn.textContent = 'Tech Stack Loaded!';
+            
+            setTimeout(() => {
+                btn.classList.remove('success');
+                btn.textContent = 'Load Tech Stack';
+            }, 2000);
+        }
+
+        showNotification('Tech stack options loaded successfully!');
+        console.log('Dynamic Demo: Tech stack loaded', TECH_STACK_OPTIONS);
+    }
+
+    export async function loadLanguages(): Promise<void> {
+        const select = getElement('batch-demo');
+        if (!select) return;
+
+        const btn = document.activeElement as HTMLButtonElement;
+        if (btn) {
+            btn.classList.add('loading');
+            btn.disabled = true;
+        }
+
+        await simulateDelay(600);
+
+        // @ts-ignore - Demo: addOptions method exists at runtime
+        if (select.addOptions) {
+             // @ts-ignore - Demo: clearAllOptions method exists at runtime
+            select.addOptions(LANGUAGE_OPTIONS, true);
+        } else {
+            select.optionItems = LANGUAGE_OPTIONS;
+        }
+
+        if (btn) {
+            btn.classList.remove('loading');
+            btn.classList.add('success');
+            btn.disabled = false;
+            btn.textContent = 'Languages Loaded!';
+            
+            setTimeout(() => {
+                btn.classList.remove('success');
+                btn.textContent = 'Load Languages';
+            }, 2000);
+        }
+
+        showNotification('Programming languages loaded!');
+        console.log('Dynamic Demo: Languages loaded', LANGUAGE_OPTIONS);
+    }
+
+    export async function loadFrameworks(): Promise<void> {
+        const select = getElement('batch-demo');
+        if (!select) return;
+
+        const btn = document.activeElement as HTMLButtonElement;
+        if (btn) {
+            btn.classList.add('loading');
+            btn.disabled = true;
+        }
+
+        await simulateDelay(700);
+
+        // @ts-ignore - Demo: addOptions method exists at runtime
+        if (select.addOptions) {
+             // @ts-ignore - Demo: clearAllOptions method exists at runtime
+            select.addOptions(FRAMEWORK_OPTIONS, true);
+        } else {
+            select.optionItems = FRAMEWORK_OPTIONS;
+        }
+
+        if (btn) {
+            btn.classList.remove('loading');
+            btn.classList.add('success');
+            btn.disabled = false;
+            btn.textContent = 'Frameworks Loaded!';
+            
+            setTimeout(() => {
+                btn.classList.remove('success');
+                btn.textContent = 'Load Frameworks';
+            }, 2000);
+        }
+
+        showNotification('Framework options loaded!');
+        console.log('Dynamic Demo: Frameworks loaded', FRAMEWORK_OPTIONS);
+    }
+
+    export function clearAllOptions(selectId: string): void {
+        const select = getElement(selectId);
+        if (!select) return;
+
+        // @ts-ignore - Demo: clearAllOptions method exists at runtime
+        if (select.clearAllOptions) {
+             // @ts-ignore - Demo: clearAllOptions method exists at runtime
+            select.clearAllOptions();
+        } else {
+            select.optionItems = [];
+        }
+
+        showNotification('All options cleared');
+        console.log(`Dynamic Demo: Cleared all options for ${selectId}`);
+    }
+
+    export function addCustomOption(): void {
+        const select = getElement('individual-demo');
+        const valueInput = document.getElementById('new-option-value') as HTMLInputElement;
+        const labelInput = document.getElementById('new-option-label') as HTMLInputElement;
+
+        if (!select || !valueInput || !labelInput) return;
+
+        const value = valueInput.value.trim();
+        const label = labelInput.value.trim();
+
+        if (!value || !label) {
+            showNotification('Please enter both value and label');
+            return;
+        }
+
+        const newOption = { value, label };
+
+        // @ts-ignore - Demo: addOption method exists at runtime
+        if (select.addOption) {
+             // @ts-ignore - Demo: clearAllOptions method exists at runtime
+            select.addOption(newOption);
+        } else {
+            const currentOptions = select.optionItems || [];
+            select.optionItems = [...currentOptions, newOption];
+        }
+
+        // Clear inputs
+        valueInput.value = '';
+        labelInput.value = '';
+
+        showNotification(`Added option: ${label}`);
+        console.log('Dynamic Demo: Added custom option', newOption);
+    }
+
+    export function removeOption(): void {
+        const select = getElement('individual-demo');
+        const valueInput = document.getElementById('remove-option-value') as HTMLInputElement;
+
+        if (!select || !valueInput) return;
+
+        const value = valueInput.value.trim();
+        if (!value) {
+            showNotification('Please enter a value to remove');
+            return;
+        }
+
+        // @ts-ignore - Demo: clearOption method exists at runtime
+        if (select.clearOption) {
+             // @ts-ignore - Demo: clearAllOptions method exists at runtime
+            select.clearOption(value);
+        } else {
+            const currentOptions = select.optionItems || [];
+            select.optionItems = currentOptions.filter(opt => opt.value !== value);
+        }
+
+        valueInput.value = '';
+        showNotification(`Removed option: ${value}`);
+        console.log('Dynamic Demo: Removed option', value);
+    }
+
+    export async function loadUserData(): Promise<void> {
+        const select = getElement('async-demo');
+        if (!select) return;
+
+        updateAsyncStatus('Loading user data...', 'loading');
+
+        try {
+            await simulateDelay(1200);
+
+            // @ts-ignore - Demo: addOptions method exists at runtime
+            if (select.addOptions) {
+                 // @ts-ignore - Demo: clearAllOptions method exists at runtime
+                select.addOptions(USER_DATA, true);
+            } else {
+                select.optionItems = USER_DATA;
+            }
+
+            updateAsyncStatus('User data loaded successfully', 'success');
+            showNotification('User data loaded!');
+            console.log('Dynamic Demo: User data loaded', USER_DATA);
+        } catch (error) {
+            updateAsyncStatus('Failed to load user data', 'error');
+            console.error('Dynamic Demo: Error loading user data', error);
+        }
+    }
+
+    export async function loadCountryData(): Promise<void> {
+        const select = getElement('async-demo');
+        if (!select) return;
+
+        updateAsyncStatus('Loading country data...', 'loading');
+
+        try {
+            await simulateDelay(900);
+
+            // @ts-ignore - Demo: addOptions method exists at runtime
+            if (select.addOptions) {
+                 // @ts-ignore - Demo: clearAllOptions method exists at runtime
+                select.addOptions(COUNTRY_DATA, true);
+            } else {
+                select.optionItems = COUNTRY_DATA;
+            }
+
+            updateAsyncStatus('Country data loaded successfully', 'success');
+            showNotification('Country data loaded!');
+            console.log('Dynamic Demo: Country data loaded', COUNTRY_DATA);
+        } catch (error) {
+            updateAsyncStatus('Failed to load country data', 'error');
+            console.error('Dynamic Demo: Error loading country data', error);
+        }
+    }
+
+    export async function simulateApiError(): Promise<void> {
+        updateAsyncStatus('Attempting to load data...', 'loading');
+
+        try {
+            await simulateDelay(1500);
+            throw new Error('Simulated API error');
+        } catch (error) {
+            updateAsyncStatus('API Error: Failed to load data (simulated)', 'error');
+            showNotification('API error simulated');
+            console.log('Dynamic Demo: Simulated API error');
+        }
+    }
+
+    export async function loadIncrementalData(): Promise<void> {
+        const select = getElement('async-demo');
+        if (!select) return;
+
+        updateAsyncStatus('Loading incremental data...', 'loading');
+
+        try {
+            await simulateDelay(800);
+
+            const currentOptions = select.optionItems || [];
+            const newOptions = [
+                ...currentOptions,
+                { value: `item-${Date.now()}`, label: `New Item ${currentOptions.length + 1}` },
+                { value: `item-${Date.now() + 1}`, label: `New Item ${currentOptions.length + 2}` },
+                { value: `item-${Date.now() + 2}`, label: `New Item ${currentOptions.length + 3}` }
+            ];
+
+            // @ts-ignore - Demo: addOptions method exists at runtime
+            if (select.addOptions) {
+                 // @ts-ignore - Demo: clearAllOptions method exists at runtime
+                select.addOptions(newOptions, true);
+            } else {
+                select.optionItems = newOptions;
+            }
+
+            updateAsyncStatus(`Added 3 more items (total: ${newOptions.length})`, 'success');
+            showNotification('Incremental data loaded!');
+            console.log('Dynamic Demo: Incremental data loaded');
+        } catch (error) {
+            updateAsyncStatus('Failed to load incremental data', 'error');
+            console.error('Dynamic Demo: Error loading incremental data', error);
+        }
+    }
+
+    export async function performanceTest1K(): Promise<void> {
+        const select = getElement('performance-demo');
+        if (!select) return;
+
+        const startTime = performance.now();
+        
+        const options = Array.from({ length: 1000 }, (_, i) => ({
+            value: `item-${i}`,
+            label: `Performance Test Item ${i + 1}`
+        }));
+
+        // @ts-ignore - Demo: addOptions method exists at runtime
+        if (select.addOptions) {
+             // @ts-ignore - Demo: clearAllOptions method exists at runtime
+            select.addOptions(options, false);
+        } else {
+            select.optionItems = options;
+        }
+
+        const endTime = performance.now();
+        const duration = (endTime - startTime).toFixed(2);
+
+        addPerformanceMetric('Load 1K Items', `${duration}ms`, Number(duration) > 100 ? 'warning' : 'normal');
+        showNotification(`Loaded 1,000 items in ${duration}ms`);
+        console.log(`Dynamic Demo: Performance test 1K - ${duration}ms`);
+    }
+
+    export async function performanceTest10K(): Promise<void> {
+        const select = getElement('performance-demo');
+        if (!select) return;
+
+        const startTime = performance.now();
+        
+        const options = Array.from({ length: 10000 }, (_, i) => ({
+            value: `item-${i}`,
+            label: `Large Dataset Item ${i + 1} - Performance Test`
+        }));
+
+        // @ts-ignore - Demo: addOptions method exists at runtime
+        if (select.addOptions) {
+             // @ts-ignore - Demo: clearAllOptions method exists at runtime
+            select.addOptions(options, false);
+        } else {
+            select.optionItems = options;
+        }
+
+        const endTime = performance.now();
+        const duration = (endTime - startTime).toFixed(2);
+
+        addPerformanceMetric('Load 10K Items', `${duration}ms`, Number(duration) > 500 ? 'error' : Number(duration) > 200 ? 'warning' : 'normal');
+        showNotification(`Loaded 10,000 items in ${duration}ms`);
+        console.log(`Dynamic Demo: Performance test 10K - ${duration}ms`);
+    }
+
+    export async function performanceTestUpdates(): Promise<void> {
+        const select = getElement('performance-demo');
+        if (!select) return;
+
+        const iterations = 50;
+        const startTime = performance.now();
+
+        for (let i = 0; i < iterations; i++) {
+            const options = Array.from({ length: 10 }, (_, j) => ({
+                value: `rapid-${i}-${j}`,
+                label: `Rapid Update ${i + 1}-${j + 1}`
+            }));
+
+            // @ts-ignore - Demo: addOptions method exists at runtime
+            if (select.addOptions) {
+                 // @ts-ignore - Demo: clearAllOptions method exists at runtime
+                select.addOptions(options, false);
+            } else {
+                select.optionItems = options;
+            }
+
+            // Small delay to see updates
+            await simulateDelay(20);
+        }
+
+        const endTime = performance.now();
+        const duration = (endTime - startTime).toFixed(2);
+        const avgPerUpdate = (parseFloat(duration) / iterations).toFixed(2);
+
+        addPerformanceMetric('Rapid Updates', `${iterations} updates in ${duration}ms`, 'normal');
+        addPerformanceMetric('Avg per Update', `${avgPerUpdate}ms`, parseFloat(avgPerUpdate) > 10 ? 'warning' : 'normal');
+        
+        showNotification(`Completed ${iterations} rapid updates`);
+        console.log(`Dynamic Demo: Rapid updates test - ${duration}ms total, ${avgPerUpdate}ms average`);
+    }
+
+    export function clearPerformanceDemo(): void {
+        const select = getElement('performance-demo');
+        const metrics = document.getElementById('performance-metrics');
+        
+        if (select) {
+             // @ts-ignore - Demo: clearAllOptions method exists at runtime
+            if (select.clearAllOptions) {
+                // @ts-ignore - Demo: clearAllOptions method exists at runtime
+                select.clearAllOptions();
+            } else {
+                select.optionItems = [];
+            }
+        }
+
+        if (metrics) {
+            metrics.innerHTML = '';
+        }
+
+        showNotification('Performance demo cleared');
+        console.log('Dynamic Demo: Performance demo cleared');
+    }
+}
+
+// Make DynamicDemoActions globally available
+(window as any).DynamicDemoActions = DynamicDemoActions;
