@@ -1,6 +1,6 @@
 {
   "name": "seo-select",
-  "version": "2.1.10",
+  "version": "2.1.11",
   "description": "A customizable and accessible select component with search functionality built with Lit",
   "type": "module",
   "main": "./dist/index.js",
