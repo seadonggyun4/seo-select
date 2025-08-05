@@ -760,19 +760,21 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
-### Version 2.1.x (Latest)
+### Version 2.2.x
+- **Dynamic Option Management**: Advanced methods for real-time option manipulation
+- **Real-time Virtual Scroll Sync**: Instant UI updates for option changes
+- **nhanced State Management**: Improved consistency and reliability
+- **Search Component Enhancements** 
+
+### Version 2.1.x
 - **Built Distribution**: Now distributes pre-built files optimized for production use
 - **Improved Performance**: Ready-to-use minified JavaScript and CSS files
 - **Better Compatibility**: Works out-of-the-box across different bundlers and environments
 - **Enhanced Developer Experience**: No additional build step required for most use cases
 - **Vite Build Integration**: Built using Vite for optimal bundle size and modern JavaScript features
 - **Web Standards & Accessibility**: replace option tags with accessible divs and optimize pool size for small datasets
-- **Dynamic Option Management**: Advanced methods for real-time option manipulation
-- **Real-time Virtual Scroll Sync**: Instant UI updates for option changes
-- **nhanced State Management**: Improved consistency and reliability
-- **Search Component Enhancements** 
 
-### Version 1.x (Previous Stable)
+### Version 1.x 
 - **Enhanced Event System**: Standard `addEventListener` with built-in type-safe helpers
 - **Helper Methods**: `onSelect()`, `onDeselect()`, `onReset()`, `onChange()`, `onOpen()` always available
 - **Improved DX**: Better TypeScript support and developer experience
