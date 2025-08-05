@@ -169,10 +169,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
   override updated(changed: Map<string, unknown>): void {
     super.updated?.(changed);
     if (changed.has('optionItems') || changed.has('_searchText') || changed.has('language') || changed.has('searchTexts')) {
-      // 옵션이 변경되면 검색 텍스트 초기화
-      if (changed.has('optionItems')) {
-        this._searchText = '';
-      }
       this._applyFilteredOptions();
     }
   }
@@ -352,7 +348,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   // null을 undefined로 변환하는 헬퍼 함수
   private getCurrentValue(): string | undefined {
-    return this._value || undefined;
+    return this.value ?? undefined;
   }
 
   // 향상된 다국어 검색 필터 적용
@@ -364,13 +360,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     
     if (!rawInput) {
       const allOptions = this.getAllOptionData();
-      if (allOptions.length === 0) {
-        // 전체 옵션이 없으면 clearData
-        this._virtual.clearData();
-      } else {
-        // 전체 옵션이 있으면 setData
-        this._virtual.setData(allOptions, this.getCurrentValue());
-      }
+      this._virtual.setData(allOptions, this.multiple ? undefined : this.getCurrentValue());
       this._noMatchVisible = false;
 
       this.dispatchEvent(new CustomEvent('search-filter', {
@@ -392,7 +382,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       const noMatchOption = [{ value: 'no_match', label: searchTexts.noMatchText, disabled: true }];
       this._virtual.setData(
         noMatchOption,
-        this.getCurrentValue(),
+        this.multiple ? undefined : this.getCurrentValue(),
       );
 
       this.dispatchEvent(new CustomEvent('search-filter', {
@@ -403,7 +393,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       return;
     }
 
-    this._virtual.setData(filtered, this.getCurrentValue());
+    this._virtual.setData(filtered, this.multiple ? undefined : this.getCurrentValue());
 
     this.dispatchEvent(new CustomEvent('search-filter', {
       detail: { filteredOptions: filtered, searchText: rawInput, hasResults: true },
@@ -435,10 +425,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
             this._virtual?.setActiveIndex(0);
           });
         }
-      } else {
-        // 옵션이 없으면 로딩 상태로 전환
-        this._isLoading = true;
-        this._debouncedUpdate();
       }
     }
 
@@ -460,19 +446,13 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         const scrollEl = this.querySelector(`.${CSS_CLASSES.SCROLL}`) as HTMLDivElement;
         if (scrollEl) {
           const optionData = this.getAllOptionData();
-          if (optionData.length > 0) {
-            this._virtual = this._createVirtualSelect(optionData, scrollEl);
-            if (this._searchText) {
-              this._applyFilteredOptions();
-            }
-            requestAnimationFrame(() => {
-              this._virtual?.setActiveIndex(0);
-            });
-          } else {
-            // 옵션이 없으면 로딩 상태로 전환
-            this._isLoading = true;
-            this._debouncedUpdate();
+          this._virtual = this._createVirtualSelect(optionData, scrollEl);
+          if (this._searchText) {
+            this._applyFilteredOptions();
           }
+          requestAnimationFrame(() => {
+            this._virtual?.setActiveIndex(0);
+          });
         }
       } else {
         this._pendingActiveIndex = 0;
@@ -549,10 +529,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
           requestAnimationFrame(() => {
             this._virtual?.setActiveIndex(0);
           });
-        } else {
-          // 옵션이 없으면 로딩 상태로 전환
-          this._isLoading = true;
-          this._debouncedUpdate();
         }
       }
 
@@ -592,12 +568,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     super.closeDropdown();
     this._searchText = '';
     this._noMatchVisible = false;
-    
-    // 검색 입력창도 초기화
-    const searchInput = this.querySelector(`.${CSS_CLASSES.SEARCH_INPUT} input`) as HTMLInputElement;
-    if (searchInput) {
-      searchInput.value = '';
-    }
   }
 
   public override calculateAutoWidth(): void {

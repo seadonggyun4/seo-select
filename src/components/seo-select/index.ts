@@ -550,14 +550,9 @@ After:  select.removeEventListener('${type}', handler);`);
       this._optionsCache.clear();
       this._widthCalculationCache.clear();
 
-      // 기존 모든 옵션 요소들을 먼저 제거
-      this._options.forEach(opt => opt.remove());
-      this._options = [];
-
       const optionEls = Array.from(this.querySelectorAll('option')) as HTMLOptionElement[];
 
       if (optionEls.length > 0) {
-        // HTML 슬롯에서 옵션이 있는 경우
         this._options = optionEls.map(opt => {
           opt.hidden = true;
           this._optionsCache.set(opt.value, opt);
@@ -569,7 +564,11 @@ After:  select.removeEventListener('${type}', handler);`);
         });
 
       } else if (Array.isArray(this.optionItems) && this.optionItems.length > 0) {
-        // optionItems 프로퍼티에서 옵션 생성
+        // 기존 옵션 정리
+        this._options.forEach(opt => opt.remove());
+        this._options = [];
+
+        // DocumentFragment를 사용하여 DOM 조작 최적화
         const fragment = document.createDocumentFragment();
         
         this._options = this.optionItems.map(opt => {
@@ -584,42 +583,28 @@ After:  select.removeEventListener('${type}', handler);`);
         
         // 한 번에 DOM에 추가
         this.appendChild(fragment);
-      }
+      } 
 
       if (this._options.length > 0) {
         this._isLoading = false;
       }
 
-      // 선택된 값 처리 - 다중 선택일 때는 유효한 값만 유지
+      // 선택된 값 처리
       if (this.multiple) {
-        const validValues = this._options.map(opt => opt.value);
-        this._selectedValues = this._selectedValues.filter(value => validValues.includes(value));
-        this.updateFormValue();
+        const selectedOptions = this._options.filter(opt => opt.selected);
+        this._selectedValues = selectedOptions.map(opt => opt.value);
       } else {
-        // 단일 선택일 때는 현재 값이 유효한지 확인
-        const isCurrentValueValid = this._options.some(opt => opt.value === this._value);
-        if (!isCurrentValueValid && this._options.length > 0) {
+        const selected = this._options.find(opt => opt.selected);
+        if (selected) {
+          this._setValue(selected.value, false);
+        } else if (this._options.length > 0) {
           this._setValue(this._options[0].value, false);
-        } else if (this._options.length === 0) {
-          this._setValue('', false);
         }
       }
 
       if (this._options.length > 0) {
         this._initialValue = this._options[0].value;
         this._initialLabel = this._options[0].textContent || '';
-      }
-
-      // 가상 스크롤이 열려있다면 옵션에 따라 setData 또는 clearData 사용
-      if (this.open && this._virtual) {
-        const optionData = this.getAllOptionData();
-        if (optionData.length === 0) {
-          // 빈 배열일 때는 clearData로 완전 클리어
-          this._virtual.clearData();
-        } else {
-          // 데이터가 있을 때는 setData로 업데이트
-          this._virtual.setData(optionData, this._value || undefined);
-        }
       }
 
       // 너비 계산을 비동기로 처리
