@@ -170,7 +170,7 @@ body::before {
 
 .nav-btn {
     flex: 1;
-    padding: 12px 16px;
+    padding: 10px;
     border: none;
     border-radius: 6px;
     background: transparent;
@@ -276,12 +276,11 @@ body::before {
     background: linear-gradient(135deg, #3253de, #5f77ca);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 3px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-    margin-top: 12px;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
 }
 
 .action-btn:hover {
@@ -802,6 +801,225 @@ code {
     100% {
         left: 100%;
     }
+}
+
+/* ==========================================
+   Dynamic Demo Styles
+========================================== */
+
+/* Dynamic Controls Styling */
+.dynamic-controls {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.control-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.control-input {
+    padding: 8px 12px;
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 4px;
+    color: #f3f4f6;
+    font-size: 0.9rem;
+    min-width: 120px;
+    transition: border-color 0.2s ease;
+}
+
+.control-input:focus {
+    outline: none;
+    border-color: #5f77ca;
+    box-shadow: 0 0 0 2px rgba(95, 119, 202, 0.2);
+}
+
+.control-input::placeholder {
+    color: #6b7280;
+}
+
+/* Button Variants */
+.action-btn.secondary {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+}
+
+.action-btn.secondary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+.action-btn.small {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+}
+
+
+
+/* Status and Info Displays */
+.async-status {
+    margin-top: 12px;
+    padding: 12px;
+    background: #0f1419;
+    border: 1px solid #374151;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #9ca3af;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+}
+
+.async-status.loading {
+    color: #fbbf24;
+}
+
+.async-status.success {
+    color: #10b981;
+}
+
+.async-status.error {
+    color: #ef4444;
+}
+
+
+
+/* Performance Metrics */
+.performance-metrics {
+    margin-top: 12px;
+    padding: 12px;
+    background: #0f1419;
+    border: 1px solid #374151;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    color: #9ca3af;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.performance-metrics .metric-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+    border-bottom: 1px solid #374151;
+    margin-bottom: 4px;
+}
+
+.performance-metrics .metric-label {
+    color: #d1d5db;
+}
+
+.performance-metrics .metric-value {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.performance-metrics .metric-value.warning {
+    color: #fbbf24;
+}
+
+.performance-metrics .metric-value.error {
+    color: #ef4444;
+}
+
+
+
+/* Loading States for Dynamic Operations */
+.dynamic-controls .action-btn.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.dynamic-controls .action-btn.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    width: 12px;
+    height: 12px;
+    margin-top: -6px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: buttonSpinner 0.8s linear infinite;
+}
+
+@keyframes buttonSpinner {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Success/Error States */
+.dynamic-controls .action-btn.success {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.dynamic-controls .action-btn.error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+/* Responsive Design for Dynamic Controls */
+@media (max-width: 768px) {
+    .dynamic-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .control-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .control-input {
+        min-width: auto;
+        width: 100%;
+    }
+}
+
+/* Animation for dynamic content changes */
+.dynamic-update-animation {
+    animation: dynamicPulse 0.3s ease-in-out;
+}
+
+@keyframes dynamicPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); box-shadow: 0 0 20px rgba(95, 119, 202, 0.3); }
+    100% { transform: scale(1); }
+}
+
+/* Status Icons */
+.async-status::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.async-status.loading::before {
+    background: #fbbf24;
+    animation: statusPulse 1s infinite;
+}
+
+.async-status.success::before {
+    background: #10b981;
+}
+
+.async-status.error::before {
+    background: #ef4444;
+}
+
+@keyframes statusPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
 }
 
 /* ==========================================

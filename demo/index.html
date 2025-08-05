@@ -38,6 +38,7 @@
             <button class="nav-btn" data-section="search">Search Select</button>
             <button class="nav-btn" data-section="themes">Themes</button>
             <button class="nav-btn" data-section="multiple">Multiple Selection</button>
+            <button class="nav-btn" data-section="dynamic">Dynamic Options</button>
             <button class="nav-btn" data-section="advanced">Advanced Features</button>
         </nav>
 
@@ -186,7 +187,7 @@
                     <div class="demo-container">
                         <seo-select-search id="loading-demo" name="async-multilang" width="350px">
                         </seo-select-search>
-                        <button class="action-btn" onclick="DemoActions.loadMultilingualData()">Load Multilingual Data</button>
+                        <button class="action-btn" style="margin-top: 12px;" onclick="DemoActions.loadMultilingualData()">Load Multilingual Data</button>
                     </div>
                     <div class="demo-description">
                         <span>⏳</span>
@@ -201,7 +202,7 @@
                     </p>
                     <div class="demo-container">
                         <seo-select-search id="large-multilang-search" name="large-multilang" width="400px"></seo-select-search>
-                        <button class="action-btn" onclick="DemoActions.loadLargeDataset()">Load 10,000 Items</button>
+                        <button class="action-btn" style="margin-top: 12px;" onclick="DemoActions.loadLargeDataset()">Load 10,000 Items</button>
                     </div>
                     <div class="demo-description">
                         <span>🚀</span>
@@ -309,7 +310,7 @@
                             <option value="dark">Dark Mode</option>
                             <option value="auto">Auto Mode</option>
                         </seo-select>
-                        <button class="action-btn" onclick="DemoActions.toggleDarkMode()">Toggle Dark Mode</button>
+                        <button class="action-btn" style="margin-top: 12px;" onclick="DemoActions.toggleDarkMode()">Toggle Dark Mode</button>
                     </div>
                     <div class="demo-description">
                         <span>🎨</span>
@@ -407,6 +408,118 @@
                         <span>Dark theme optimized for multi-selection interfaces</span>
                     </div>
                 </div>
+            </section>
+
+            <!-- Dynamic Options Section -->
+            <section id="dynamic" class="demo-section">
+                <h2 class="section-title">
+                    <i class="fas fa-sync-alt"></i>
+                    Dynamic Option Management
+                </h2>
+
+                <div class="feature-highlight">
+                    <h4>Real-time Option Manipulation</h4>
+                    <p>Advanced dynamic option management system supporting real-time option addition, removal, and updates with instant virtual scroll synchronization. Ideal for applications requiring live data updates, user-generated content, or API-driven option sets.</p>
+                </div>
+
+                <div class="use-case">
+                    <h3>Batch Option Management</h3>
+                    <p>
+                        Replace all options at once while optionally preserving current selections. Perfect for loading new datasets from APIs, switching between different option categories, or implementing filtered views with state management.
+                    </p>
+                    <div class="demo-container">
+                        <seo-select id="batch-demo" name="batch-demo" width="350px">
+                            <option value="default">Default Option</option>
+                        </seo-select>
+                        <div class="dynamic-controls">
+                            <button class="action-btn" onclick="DynamicDemoActions.loadTechStack()">Load Tech Stack</button>
+                            <button class="action-btn" onclick="DynamicDemoActions.loadLanguages()">Load Languages</button>
+                            <button class="action-btn" onclick="DynamicDemoActions.loadFrameworks()">Load Frameworks</button>
+                            <button class="action-btn" onclick="DynamicDemoActions.clearAllOptions('batch-demo')">Clear All</button>
+                        </div>
+                    </div>
+                    <div class="demo-description">
+                        <span>🔄</span>
+                        <span>Batch option replacement with optional selection preservation</span>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>Individual Option Control</h3>
+                    <p>
+                        Add or remove specific options dynamically while maintaining optimal performance. Supports insertion at specific positions, option validation, and automatic duplicate prevention for building interactive option builders.
+                    </p>
+                    <div class="demo-container">
+                        <seo-select-search id="individual-demo" name="individual-demo" width="400px" multiple>
+                            <option value="html">HTML</option>
+                            <option value="css">CSS</option>
+                            <option value="js">JavaScript</option>
+                        </seo-select-search>
+                        <div class="dynamic-controls">
+                            <div class="control-group">
+                                <input type="text" id="new-option-value" placeholder="Option value" class="control-input">
+                                <input type="text" id="new-option-label" placeholder="Option label" class="control-input">
+                                <button class="action-btn" onclick="DynamicDemoActions.addCustomOption()">Add Option</button>
+                            </div>
+                            <div class="control-group">
+                                <input type="text" id="remove-option-value" placeholder="Value to remove" class="control-input">
+                                <button class="action-btn secondary" onclick="DynamicDemoActions.removeOption()">Remove Option</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="demo-description">
+                        <span>➕</span>
+                        <span>Individual option addition and removal with real-time updates</span>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>Async Data Loading with Search</h3>
+                    <p>
+                        Demonstrate loading data asynchronously while maintaining search functionality and user selections. Simulates real-world scenarios like autocomplete APIs, progressive data loading, or filtered content retrieval.
+                    </p>
+                    <div class="demo-container">
+                        <seo-select-search id="async-demo" name="async-demo" width="450px" multiple>
+                        </seo-select-search>
+                        <div class="dynamic-controls">
+                            <button class="action-btn" onclick="DynamicDemoActions.loadUserData()">Load User Data</button>
+                            <button class="action-btn" onclick="DynamicDemoActions.loadCountryData()">Load Countries</button>
+                            <button class="action-btn" onclick="DynamicDemoActions.simulateApiError()">Simulate Error</button>
+                            <button class="action-btn" onclick="DynamicDemoActions.loadIncrementalData()">Load More Data</button>
+                        </div>
+                        <div class="async-status" id="async-status"></div>
+                    </div>
+                    <div class="demo-description">
+                        <span>🌐</span>
+                        <span>Async data loading with error handling and progressive updates</span>
+                    </div>
+                </div>
+
+
+
+                <div class="use-case">
+                    <h3>Performance Monitoring</h3>
+                    <p>
+                        Monitor performance metrics during dynamic operations. Track operation timing, memory usage patterns, and virtual scroll efficiency to ensure optimal performance even with frequent updates.
+                    </p>
+                    <div class="demo-container">
+                        <seo-select-search id="performance-demo" name="performance-demo" width="400px">
+                        </seo-select-search>
+                        <div class="dynamic-controls">
+                            <button class="action-btn" onclick="DynamicDemoActions.performanceTest1K()">Load 1K Items</button>
+                            <button class="action-btn" onclick="DynamicDemoActions.performanceTest10K()">Load 10K Items</button>
+                            <button class="action-btn" onclick="DynamicDemoActions.performanceTestUpdates()">Rapid Updates Test</button>
+                            <button class="action-btn secondary" onclick="DynamicDemoActions.clearPerformanceDemo()">Clear</button>
+                        </div>
+                        <div class="performance-metrics" id="performance-metrics"></div>
+                    </div>
+                    <div class="demo-description">
+                        <span>📊</span>
+                        <span>Performance monitoring for dynamic operations and virtual scrolling</span>
+                    </div>
+                </div>
+
+
             </section>
 
             <!-- Advanced Features Section -->
