@@ -891,7 +891,7 @@ After:  select.removeEventListener('${type}', handler);`);
    * @param options - 설정할 옵션 배열
    * @param preserveSelection - 기존 선택값 유지 여부 (기본값: false)
    */
-  protected addOptions(options: VirtualSelectOption[], preserveSelection: boolean = false): void {
+  public addOptions(options: VirtualSelectOption[], preserveSelection: boolean = false): void {
     if (this._isUpdating) return;
     this._isUpdating = true;
 
@@ -1009,7 +1009,7 @@ After:  select.removeEventListener('${type}', handler);`);
    * @param option - 추가할 옵션
    * @param index - 삽입할 위치 (선택적, 기본값은 마지막)
    */
-  protected addOption(option: VirtualSelectOption, index?: number): void {
+  public addOption(option: VirtualSelectOption, index?: number): void {
     if (this._isUpdating) return;
     
     // 이미 존재하는 값인지 확인
@@ -1092,7 +1092,7 @@ After:  select.removeEventListener('${type}', handler);`);
    * 특정 옵션을 제거합니다
    * @param value - 제거할 옵션의 값
    */
-  protected clearOption(value: string): void {
+  public clearOption(value: string): void {
     if (this._isUpdating) return;
     
     const optionIndex = this._options.findIndex(opt => opt.value === value);
@@ -1179,7 +1179,7 @@ After:  select.removeEventListener('${type}', handler);`);
   /**
    * 모든 옵션을 제거합니다
    */
-  protected clearAllOptions(): void {
+  public clearAllOptions(): void {
     if (this._isUpdating) return;
     this._isUpdating = true;
 
