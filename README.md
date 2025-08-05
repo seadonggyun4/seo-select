@@ -61,19 +61,6 @@ Standard dropdown functionality with virtual scrolling, multiple selection, them
 
 Extended component with real-time multilingual search including Korean initial consonant search (ㅎㄱㅇ → 한국어), Japanese romaji search (nihongo → 日本語), and Chinese pinyin search (beijing → 北京).
 
-## Use Cases & When to Use Each Component
-
-### Use `seo-select` when:
-- Small to medium option lists (< 50 items)
-- Form controls with known options
-- Settings and configuration panels
-
-### Use `seo-select-search` when:
-- Large option lists (50+ items)
-- Multilingual content
-- User-friendly data entry with search
-- Dynamic data loading
-
 ## Basic Usage Examples
 
 ### Simple Select
