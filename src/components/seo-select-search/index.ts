@@ -364,7 +364,13 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     
     if (!rawInput) {
       const allOptions = this.getAllOptionData();
-      this._virtual.setData(allOptions, this.getCurrentValue());
+      if (allOptions.length === 0) {
+        // 전체 옵션이 없으면 clearData
+        this._virtual.clearData();
+      } else {
+        // 전체 옵션이 있으면 setData
+        this._virtual.setData(allOptions, this.getCurrentValue());
+      }
       this._noMatchVisible = false;
 
       this.dispatchEvent(new CustomEvent('search-filter', {
@@ -429,6 +435,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
             this._virtual?.setActiveIndex(0);
           });
         }
+      } else {
+        // 옵션이 없으면 로딩 상태로 전환
+        this._isLoading = true;
+        this._debouncedUpdate();
       }
     }
 
@@ -450,13 +460,19 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         const scrollEl = this.querySelector(`.${CSS_CLASSES.SCROLL}`) as HTMLDivElement;
         if (scrollEl) {
           const optionData = this.getAllOptionData();
-          this._virtual = this._createVirtualSelect(optionData, scrollEl);
-          if (this._searchText) {
-            this._applyFilteredOptions();
+          if (optionData.length > 0) {
+            this._virtual = this._createVirtualSelect(optionData, scrollEl);
+            if (this._searchText) {
+              this._applyFilteredOptions();
+            }
+            requestAnimationFrame(() => {
+              this._virtual?.setActiveIndex(0);
+            });
+          } else {
+            // 옵션이 없으면 로딩 상태로 전환
+            this._isLoading = true;
+            this._debouncedUpdate();
           }
-          requestAnimationFrame(() => {
-            this._virtual?.setActiveIndex(0);
-          });
         }
       } else {
         this._pendingActiveIndex = 0;
@@ -533,6 +549,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
           requestAnimationFrame(() => {
             this._virtual?.setActiveIndex(0);
           });
+        } else {
+          // 옵션이 없으면 로딩 상태로 전환
+          this._isLoading = true;
+          this._debouncedUpdate();
         }
       }
 

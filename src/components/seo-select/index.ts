@@ -610,10 +610,16 @@ After:  select.removeEventListener('${type}', handler);`);
         this._initialLabel = this._options[0].textContent || '';
       }
 
-      // 가상 스크롤이 열려있다면 setData로 업데이트
+      // 가상 스크롤이 열려있다면 옵션에 따라 setData 또는 clearData 사용
       if (this.open && this._virtual) {
         const optionData = this.getAllOptionData();
-        this._virtual.setData(optionData, this._value || undefined);
+        if (optionData.length === 0) {
+          // 빈 배열일 때는 clearData로 완전 클리어
+          this._virtual.clearData();
+        } else {
+          // 데이터가 있을 때는 setData로 업데이트
+          this._virtual.setData(optionData, this._value || undefined);
+        }
       }
 
       // 너비 계산을 비동기로 처리
