@@ -887,7 +887,7 @@ After:  select.removeEventListener('${type}', handler);`);
   }
 
   /**
-   * 옵션들을 동적으로 설정합니다
+   * 옵션들을 동적으로 설정합니다 (기존 옵션 모두 교체)
    * @param options - 설정할 옵션 배열
    * @param preserveSelection - 기존 선택값 유지 여부 (기본값: false)
    */
@@ -987,16 +987,6 @@ After:  select.removeEventListener('${type}', handler);`);
 
       // 너비 재계산
       this.calculateAutoWidth();
-      
-      // 표준 이벤트 발생 (옵션 변경)
-      this.dispatchEvent(new CustomEvent('options-changed', {
-        detail: { 
-          options: options.map(opt => ({ value: opt.value, label: opt.label })),
-          preservedSelection: preserveSelection 
-        },
-        bubbles: true,
-        composed: true
-      }));
 
     } finally {
       this._isUpdating = false;
@@ -1070,17 +1060,6 @@ After:  select.removeEventListener('${type}', handler);`);
 
       // 너비 재계산
       this.calculateAutoWidth();
-      
-      // 옵션 추가 이벤트 발생
-      this.dispatchEvent(new CustomEvent('option-added', {
-        detail: { 
-          option: { value: option.value, label: option.label },
-          index: insertIndex,
-          totalCount: this._options.length 
-        },
-        bubbles: true,
-        composed: true
-      }));
 
     } finally {
       this._isUpdating = false;
@@ -1158,17 +1137,6 @@ After:  select.removeEventListener('${type}', handler);`);
 
       // 너비 재계산
       this.calculateAutoWidth();
-      
-      // 옵션 제거 이벤트 발생
-      this.dispatchEvent(new CustomEvent('option-removed', {
-        detail: { 
-          value: value, 
-          label: removedOption.textContent || '',
-          remainingCount: this._options.length 
-        },
-        bubbles: true,
-        composed: true
-      }));
 
     } finally {
       this._isUpdating = false;
@@ -1184,11 +1152,6 @@ After:  select.removeEventListener('${type}', handler);`);
     this._isUpdating = true;
 
     try {
-      const removedOptions = this._options.map(opt => ({
-        value: opt.value,
-        label: opt.textContent || ''
-      }));
-
       // 모든 옵션 제거
       this._options.forEach(opt => opt.remove());
       this._options = [];
@@ -1227,16 +1190,6 @@ After:  select.removeEventListener('${type}', handler);`);
 
       // 너비 초기화
       this._calculatedWidth = null;
-      
-      // 모든 옵션 제거 이벤트 발생
-      this.dispatchEvent(new CustomEvent('options-cleared', {
-        detail: { 
-          removedOptions: removedOptions,
-          count: removedOptions.length 
-        },
-        bubbles: true,
-        composed: true
-      }));
 
     } finally {
       this._isUpdating = false;
