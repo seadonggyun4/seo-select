@@ -117,7 +117,7 @@ Extended component with real-time multilingual search including Korean initial c
 
 ## Event System
 
-### 🆕 Standard addEventListener (Recommended)
+### Standard addEventListener (Recommended)
 
 ```typescript
 // Standard way - works in all frameworks
