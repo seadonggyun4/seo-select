@@ -42,6 +42,9 @@ import 'seo-select/components/seo-select-search';
 
 // Import Style
 import 'seo-select/styles'
+
+// Import Types
+import 'seo-select/types';
 ```
 
 ### For Direct Browser Usage
