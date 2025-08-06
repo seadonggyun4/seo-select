@@ -1,14 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEO Select Components - Documentation</title>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" integrity="sha512-oHDEc8Xed4hiW6CxD7qjbnI+B07vDdX7hEPTvn9pSZO1bcRqHp8mj9pyr+8RVC2GmtEfI2Bi9Ke9Ass0as+zpg==" crossOrigin="anonymous" referrerPolicy="no-referrer" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-
+    
+    <!-- Primary Meta Tags -->
+    <title>SEO Select Components - Advanced Multilingual Select Components with Search</title>
+    <meta name="title" content="SEO Select Components - Advanced Multilingual Select Components with Search">
+    <meta name="description" content="Advanced, lightweight select components with multilingual search, virtual scrolling, multiple selection, and accessibility features. Built with Lit for seamless cross-framework integration. Try our interactive demo with Korean, Japanese, Chinese, and English support.">
+    <meta name="keywords" content="select component, web components, multilingual search, accessibility, virtual scrolling, korean search, japanese search, chinese search, form components, UI library">
+    <meta name="author" content="SEO Select Team">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="en">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://seo-select.netlify.app/">
+    <meta property="og:title" content="SEO Select Components - Advanced Multilingual Select Components">
+    <meta property="og:description" content="Experience advanced select components with multilingual search, virtual scrolling, and accessibility features. Interactive demo with Korean 초성, Japanese romaji, and Chinese pinyin search support.">
+    <meta property="og:image" content="https://github.com/user-attachments/assets/e567ea31-d046-45b3-80d1-9a1e32c7e002">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="SEO Select Components Logo and Demo Preview">
+    <meta property="og:site_name" content="SEO Select Components">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://seo-select.netlify.app/">
+    <meta property="twitter:title" content="SEO Select Components - Advanced Multilingual Select Components">
+    <meta property="twitter:description" content="Advanced select components with multilingual search, virtual scrolling, and accessibility features. Try Korean 초성, Japanese romaji, Chinese pinyin search.">
+    <meta property="twitter:image" content="https://github.com/user-attachments/assets/e567ea31-d046-45b3-80d1-9a1e32c7e002">
+    <meta property="twitter:image:alt" content="SEO Select Components Demo">
+    
+    <!-- Additional SEO Meta Tags -->
+    <meta name="theme-color" content="#3253de">
+    <meta name="msapplication-TileColor" content="#3253de">
+    <meta name="google-site-verification" content="">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://seo-select.netlify.app/">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="https://github.com/user-attachments/assets/e567ea31-d046-45b3-80d1-9a1e32c7e002">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://github.com/user-attachments/assets/e567ea31-d046-45b3-80d1-9a1e32c7e002">
+    <link rel="apple-touch-icon" href="https://github.com/user-attachments/assets/e567ea31-d046-45b3-80d1-9a1e32c7e002">
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://github.com">
+    
+    <!-- DNS prefetch -->
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//github.com">
+    
+    <!-- Critical CSS and external resources -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" integrity="sha512-oHDEc8Xed4hiW6CxD7qjbnI+B07vDdX7hEPTvn9pSZO1bcRqHp8mj9pyr+8RVC2GmtEfI2Bi9Ke9Ass0as+zpg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" href="/style.scss">
+    
+    <!-- Structured Data - Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "SEO Select Components",
+        "url": "https://seo-select.netlify.app",
+        "logo": "https://github.com/user-attachments/assets/e567ea31-d046-45b3-80d1-9a1e32c7e002",
+        "description": "Advanced multilingual select components with search functionality, virtual scrolling, and accessibility features",
+        "sameAs": [
+            "https://github.com/seadonggyun4/seo-select",
+            "https://www.npmjs.com/package/seo-select"
+        ]
+    }
+    </script>
+    
+    <!-- Structured Data - WebApplication -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "SEO Select Components Demo",
+        "url": "https://seo-select.netlify.app",
+        "description": "Interactive demo for advanced multilingual select components with Korean 초성, Japanese romaji, and Chinese pinyin search support",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "featureList": [
+            "Multilingual Search Support",
+            "Virtual Scrolling",
+            "Multiple Selection",
+            "Accessibility Features",
+            "Dark Mode Support",
+            "Dynamic Option Management",
+            "Form Integration",
+            "Cross-Framework Compatibility"
+        ]
+    }
+    </script>
+    
+    <!-- Structured Data - SoftwareLibrary -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "seo-select",
+        "applicationCategory": "WebApplication",
+        "operatingSystem": "Cross-platform",
+        "description": "Lightweight and extensible select component built with Lit, designed to work seamlessly across frameworks",
+        "url": "https://seo-select.netlify.app",
+        "downloadUrl": "https://www.npmjs.com/package/seo-select",
+        "author": {
+            "@type": "Person",
+            "name": "seadonggyun4"
+        },
+        "programmingLanguage": [
+            "TypeScript",
+            "JavaScript",
+            "HTML",
+            "CSS"
+        ],
+        "version": "2.2.x",
+        "license": "MIT",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    }
+    </script>
+    
+    <!-- Breadcrumb Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://seo-select.netlify.app"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Demo",
+                "item": "https://seo-select.netlify.app/#demo"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "Documentation",
+                "item": "https://seo-select.netlify.app/#docs"
+            }
+        ]
+    }
+    </script>
+    
+    <!-- Performance optimization -->
+    <link rel="preload" as="style" href="/style.scss">
+    <link rel="preload" as="script" href="src/main.ts">
 </head>
 <body>
     <div class="container">
@@ -435,7 +592,7 @@
                             <button class="action-btn" onclick="DynamicDemoActions.loadTechStack()">Load Tech Stack</button>
                             <button class="action-btn" onclick="DynamicDemoActions.loadLanguages()">Load Languages</button>
                             <button class="action-btn" onclick="DynamicDemoActions.loadFrameworks()">Load Frameworks</button>
-                            <button class="action-btn" onclick="DynamicDemoActions.clearAllOptions('batch-demo')">Clear All</button>
+                            <button class="action-btn secondary" onclick="DynamicDemoActions.clearAllOptions('batch-demo')">Clear All</button>
                         </div>
                     </div>
                     <div class="demo-description">
