@@ -124,13 +124,24 @@ export class InteractiveVirtualSelect {
     this.wrapper.append(this.topPad, this.botPad);
   }
 
-  // 컨테이너 및 풀 크기 초기화
+  // 컨테이너 및 풀 크기 초기화 - 개선된 버전
   private _initializeContainer(extraHeight: number = 0): void {
+    // 데이터가 없는 경우 early return
+    if (this.total === 0) {
+      this.container.style.height = 'auto';
+      this.container.style.minHeight = '0';
+      this.visibleCount = 0;
+      this.poolSize = 0;
+      return;
+    }
+
     const maxHeight = 360;
     const computedHeight = this.total * this.rowHeight;
     const finalHeight = this.total > 10 ? maxHeight : computedHeight;
 
+    // 정상적인 높이 설정
     this.container.style.height = `${finalHeight + 5 + extraHeight}px`;
+    this.container.style.minHeight = ''; // minHeight 제거
     this.visibleCount = Math.max(1, Math.ceil((finalHeight + extraHeight) / this.rowHeight));
     
     // total이 작을 때는 실제 필요한 만큼만 pool 생성
@@ -453,8 +464,7 @@ export class InteractiveVirtualSelect {
       : null;
   }
 
-  // InteractiveVirtualSelect 클래스의 개선된 setData 및 clearData 메서드
-
+  // 데이터 갱신 및 렌더링 - 개선된 버전
   setData(newData: OptionData[], activeValue?: string): void {
     // 데이터 변경 전 상태 저장
     const wasEmpty = this.total === 0;
@@ -482,14 +492,14 @@ export class InteractiveVirtualSelect {
     // 스크롤 위치 초기화 (데이터가 변경되었으므로)
     this.container.scrollTop = 0;
 
-    // 컨테이너 및 풀 크기 재계산
-    this._initializeContainer();
-    
-    // 풀 크기가 변경되었다면 풀을 다시 빌드
-    this._rebuildPoolIfNeeded();
-    
     if (this.total > 0) {
-      // 데이터가 있는 경우 즉시 렌더링
+      // 데이터가 있는 경우 컨테이너 및 풀 크기 재계산
+      this._initializeContainer();
+      
+      // 풀 크기가 변경되었다면 풀을 다시 빌드
+      this._rebuildPoolIfNeeded();
+      
+      // 즉시 렌더링
       const endIdx = Math.min(this.total, this.poolSize);
       this._setPlaceholders(0, endIdx);
       this._renderPool(0);
@@ -504,14 +514,9 @@ export class InteractiveVirtualSelect {
         }
       });
     } else {
-      // 데이터가 없는 경우 빈 상태로 설정
-      this._setPlaceholders(0, 0);
-      this.pool.forEach(el => {
-        el.style.display = 'none';
-        el.removeAttribute('data-index');
-        el.removeAttribute('aria-posinset');
-        this._resetClass(el);
-      });
+      // 데이터가 없는 경우 clearData와 동일하게 처리
+      this.clearData();
+      return;
     }
     
     // 풀의 모든 요소에 새로운 aria-setsize 설정
@@ -525,11 +530,12 @@ export class InteractiveVirtualSelect {
       this.container.style.display = '';
     } else if (hadData && this.total === 0) {
       // 데이터가 있다가 없어진 경우
-      this.container.style.height = '0px';
+      this.container.style.height = 'auto';
+      this.container.style.minHeight = '0';
     }
   }
 
-  // 데이터 완전 클리어 - 개선된 버전 (즉시 UI 반영)
+  // 데이터 완전 클리어 - 개선된 버전 (height auto 적용)
   clearData(): void {
     this.data = [];
     this.total = 0;
@@ -548,8 +554,9 @@ export class InteractiveVirtualSelect {
       this._resetClass(el);
     });
 
-    // 컨테이너 높이 즉시 최소화
-    this.container.style.height = '0px';
+    // 컨테이너 높이를 auto로 설정하여 자연스럽게 축소되도록 함
+    this.container.style.height = 'auto';
+    this.container.style.minHeight = '0'; // 최소 높이도 0으로 설정
     this.wrapper.style.height = '0px';
     
     // placeholder 즉시 초기화

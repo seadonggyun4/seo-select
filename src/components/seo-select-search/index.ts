@@ -173,19 +173,47 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     }
   }
 
+  // 검색 컴포넌트의 높이 계산 오버라이드
+  public override calculateDropdownHeight(): string {
+    // 검색 입력창 높이 (50px) 추가 고려
+    const searchInputHeight = 50;
+    
+    // 로딩 중인 경우
+    if (this._isLoading) {
+      return `${80 + searchInputHeight}px`; // 로딩 컨테이너 + 검색 입력
+    }
+    
+    if (this._options.length === 0) {
+      if (this.multiple && this._searchText) {
+        return `${60 + searchInputHeight}px`; // no-data + 검색 입력
+      }
+      return 'auto';
+    }
+
+    // 옵션이 있는 경우 높이 계산
+    const rowHeight = 36;
+    const maxHeight = 360;
+    const computedHeight = this._options.length * rowHeight;
+    const finalHeight = this._options.length > 10 ? maxHeight : computedHeight;
+    
+    return `${finalHeight + searchInputHeight + 5}px`;
+  }
+
   private getSearchIcon() {
     return ICONS.SEARCH();
   }
 
-  // 검색 기능이 있는 드롭다운 렌더링
+  // 검색 기능이 있는 드롭다운 렌더링 - 높이 개선
   private renderSearchDropdown() {
     const searchTexts = this.getSearchLocalizedText();
     const hasOptions = this.getAllOptionData().length > 0;
     const showNoData = this.multiple && !this._isLoading && !hasOptions;
     const effectiveWidth = this.getEffectiveWidth();
+    const effectiveHeight = this.getEffectiveHeight();
 
     return html`
-      <div class="${CSS_CLASSES.LISTBOX} ${this.open ? '' : CSS_CLASSES.HIDDEN}" style="width: ${effectiveWidth};">
+      <div class="${CSS_CLASSES.LISTBOX} ${this.open ? '' : CSS_CLASSES.HIDDEN}" 
+           style="width: ${effectiveWidth}; height: ${effectiveHeight};">
         <div class="${CSS_CLASSES.SEARCH_INPUT}">
           <span class="${CSS_CLASSES.SEARCH_ICON}" aria-hidden="true">${this.getSearchIcon()}</span>
           <input
@@ -195,7 +223,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
             @input=${this._handleSearchInput}
           />
         </div>
-        <div class="${CSS_CLASSES.SCROLL}" role="listbox">
+        <div class="${CSS_CLASSES.SCROLL}" role="listbox" style="height: calc(${effectiveHeight} - 50px);">
           ${this._isLoading
             ? this.renderLoadingSpinner()
             : showNoData
@@ -307,6 +335,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     const scrollEl = this.querySelector(`.${CSS_CLASSES.SCROLL}`) as HTMLDivElement;
     const optionData = this.getAllOptionData();
 
+    // 높이 재계산
+    this._calculatedHeight = this.calculateDropdownHeight();
+
     if (this.multiple && optionData.length === 0) {
       return;
     }
@@ -351,7 +382,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     return this.value ?? undefined;
   }
 
-  // 향상된 다국어 검색 필터 적용
+  // 향상된 다국어 검색 필터 적용 - 높이 업데이트 포함
   private _applyFilteredOptions(): void {
     if (!this._virtual) return;
 
@@ -363,11 +394,16 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       this._virtual.setData(allOptions, this.multiple ? undefined : this.getCurrentValue());
       this._noMatchVisible = false;
 
+      // 높이 재계산
+      this._calculatedHeight = this.calculateDropdownHeight();
+
       this.dispatchEvent(new CustomEvent('search-filter', {
         detail: { filteredOptions: allOptions, searchText: rawInput },
         bubbles: true,
         composed: true
       }));
+      
+      this._debouncedUpdate();
       return;
     }
 
@@ -384,22 +420,37 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         noMatchOption,
         this.multiple ? undefined : this.getCurrentValue(),
       );
+      
+      // no-match 상태일 때 높이 설정
+      this._calculatedHeight = `${60 + 50 + 5}px`; // no-data + search + padding
 
       this.dispatchEvent(new CustomEvent('search-filter', {
         detail: { filteredOptions: [], searchText: rawInput, hasResults: false },
         bubbles: true,
         composed: true
       }));
+      
+      this._debouncedUpdate();
       return;
     }
 
     this._virtual.setData(filtered, this.multiple ? undefined : this.getCurrentValue());
+    
+    // 필터링된 결과에 따른 높이 재계산
+    const rowHeight = 36;
+    const maxHeight = 360;
+    const searchInputHeight = 50;
+    const computedHeight = filtered.length * rowHeight;
+    const finalHeight = filtered.length > 10 ? maxHeight : computedHeight;
+    this._calculatedHeight = `${finalHeight + searchInputHeight + 5}px`;
 
     this.dispatchEvent(new CustomEvent('search-filter', {
       detail: { filteredOptions: filtered, searchText: rawInput, hasResults: true },
       bubbles: true,
       composed: true
     }));
+    
+    this._debouncedUpdate();
   }
 
   public override removeTag = (e: Event, valueToRemove: string): void => {
@@ -426,6 +477,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
           });
         }
       }
+      
+      // 높이 재계산
+      this._calculatedHeight = this.calculateDropdownHeight();
     }
 
     triggerDeselectEvent(this, option?.textContent || '', valueToRemove);
@@ -454,6 +508,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
             this._virtual?.setActiveIndex(0);
           });
         }
+        
+        // 높이 재계산
+        this._calculatedHeight = this.calculateDropdownHeight();
       } else {
         this._pendingActiveIndex = 0;
       }
@@ -496,12 +553,15 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
     if (this.hasNoOptions()) {
       this._isLoading = true;
+      this._calculatedHeight = this.calculateDropdownHeight(); // 로딩 상태 높이
       this._debouncedUpdate();
 
       this.loadOptionsAsync().then(() => {
+        this._calculatedHeight = this.calculateDropdownHeight(); // 로딩 완료 후 높이 재계산
         this.initializeVirtualSelect();
       }).catch(() => {
         this._isLoading = false;
+        this._calculatedHeight = this.calculateDropdownHeight();
         this._debouncedUpdate();
       });
     } else {
@@ -510,6 +570,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         this._virtual.destroy();
         this._virtual = null;
       }
+      
+      // 높이 재계산
+      this._calculatedHeight = this.calculateDropdownHeight();
       
       // 새로운 가상 스크롤 초기화
       this.initializeVirtualSelect();
@@ -538,6 +601,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
           });
         }
       }
+      
+      // 높이 재계산
+      this._calculatedHeight = this.calculateDropdownHeight();
 
       triggerSelectEvent(this, label, value);
 
@@ -584,7 +650,18 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._searchText = '';
     this._noMatchVisible = false;
     
+    // 높이 캐시 클리어
+    this._calculatedHeight = null;
+    
     this._debouncedUpdate();
+  }
+
+  // 검색 텍스트 클리어 시 높이 업데이트
+  public clearSearchText(): void {
+    this._searchText = '';
+    this._calculatedHeight = this.calculateDropdownHeight();
+    this._applyFilteredOptions();
+    this.requestUpdate();
   }
 
   public override calculateAutoWidth(): void {
@@ -624,12 +701,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this.requestUpdate();
   }
 
-  public clearSearchText(): void {
-    this._searchText = '';
-    this._applyFilteredOptions();
-    this.requestUpdate();
-  }
-
   public getSearchText(): string {
     return this._searchText;
   }
@@ -639,7 +710,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._applyFilteredOptions();
     this.requestUpdate();
   }
-
 
   /**
    * 가상 스크롤 데이터를 검색 필터와 함께 즉시 업데이트하는 헬퍼 메서드
@@ -748,6 +818,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         this._searchText = '';
       }
 
+      // 높이 재계산
+      this._calculatedHeight = this.calculateDropdownHeight();
+
       // 검색 기능과 함께 가상 스크롤 즉시 업데이트
       this._updateVirtualScrollDataWithSearch();
 
@@ -800,6 +873,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
       this._widthCalculationCache.clear();
       this._isLoading = false;
+
+      // 높이 재계산
+      this._calculatedHeight = this.calculateDropdownHeight();
 
       // 검색 기능과 함께 가상 스크롤 즉시 업데이트
       this._updateVirtualScrollDataWithSearch();
@@ -856,6 +932,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         }
       }
 
+      // 높이 재계산
+      this._calculatedHeight = this.calculateDropdownHeight();
+
       // 검색 기능과 함께 가상 스크롤 즉시 업데이트
       this._updateVirtualScrollDataWithSearch();
 
@@ -909,6 +988,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       // 검색 텍스트 초기화
       this._searchText = '';
       this._noMatchVisible = false;
+
+      // 높이를 auto로 설정
+      this._calculatedHeight = 'auto';
 
       // 가상 스크롤 즉시 클리어
       if (this._virtual) {
@@ -1018,6 +1100,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         this._widthCalculationCache.clear();
         this._isLoading = this._options.length === 0;
 
+        // 높이 재계산
+        this._calculatedHeight = this.calculateDropdownHeight();
+
         // 드롭다운이 열려있는 경우 검색 기능과 함께 가상 스크롤 한 번만 업데이트
         if (this.open) {
           this._updateVirtualScrollDataWithSearch();
@@ -1081,6 +1166,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
   ): Promise<void> {
     this._isLoading = true;
     this._searchText = searchText;
+    this._calculatedHeight = this.calculateDropdownHeight(); // 로딩 상태 높이
     this._debouncedUpdate();
 
     try {
@@ -1095,6 +1181,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     } catch (error) {
       console.error('Failed to load options for search:', error);
       this._isLoading = false;
+      this._calculatedHeight = this.calculateDropdownHeight();
       this._debouncedUpdate();
     }
   }
