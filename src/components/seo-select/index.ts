@@ -90,6 +90,7 @@ export class SeoSelect extends LitElement {
   declare _internals: ElementInternals;
   declare _pendingActiveIndex: number | null;
   declare _calculatedWidth: string | null;
+  declare _calculatedHeight: string | null; // 높이 관리를 위한 새로운 속성
 
   // 최적화를 위한 캐시 및 플래그
   public _optionsCache: Map<string, HTMLOptionElement> = new Map();
@@ -125,6 +126,7 @@ export class SeoSelect extends LitElement {
     this.texts = {};
     this.autoWidth = false;
     this._calculatedWidth = null;
+    this._calculatedHeight = null; // 높이 캐시 초기화
     this._handleKeydownBound = (e: KeyboardEvent) => this._virtual?.handleKeydown(e);
     this.tabIndex = 0;
     this._pendingActiveIndex = null;
@@ -244,6 +246,10 @@ After:  select.removeEventListener('${type}', handler);`);
                             changed.has('optionItems') || 
                             changed.has('_options');
 
+    const needsHeightUpdate = changed.has('_options') || 
+                             changed.has('_isLoading') ||
+                             changed.has('open');
+
     if (needsOptionsUpdate) {
       this.initializeOptionsFromPropsOrSlot();
     }
@@ -251,6 +257,42 @@ After:  select.removeEventListener('${type}', handler);`);
     if (needsWidthUpdate) {
       this.calculateAutoWidth();
     }
+
+    if (needsHeightUpdate) {
+      this._calculatedHeight = this.calculateDropdownHeight();
+    }
+  }
+
+  // 드롭다운 높이 계산 메서드 추가
+  public calculateDropdownHeight(): string {
+    // 로딩 중인 경우
+    if (this._isLoading) {
+      return '80px'; // 로딩 컨테이너 높이
+    }
+
+    // 옵션이 없는 경우
+    if (this._options.length === 0) {
+      if (this.multiple) {
+        return '60px'; // no-data 컨테이너 높이
+      }
+      return 'auto'; // 자연스럽게 축소
+    }
+
+    // 옵션이 있는 경우 높이 계산
+    const rowHeight = 36;
+    const maxHeight = 360;
+    const computedHeight = this._options.length * rowHeight;
+    const finalHeight = this._options.length > 10 ? maxHeight : computedHeight;
+    
+    return `${finalHeight + 5}px`;
+  }
+
+  // 효과적인 높이 반환 메서드
+  public getEffectiveHeight(): string {
+    if (this._calculatedHeight) {
+      return this._calculatedHeight;
+    }
+    return this.calculateDropdownHeight();
   }
 
   // 최적화된 자동 너비 계산 - 캐싱 및 배치 처리
@@ -342,12 +384,17 @@ After:  select.removeEventListener('${type}', handler);`);
     `;
   }
 
+  // 드롭다운 렌더링 메서드 수정 - 높이 적용
   protected renderDropdown() {
     const hasOptions = this.getAllOptionData().length > 0;
     const showNoData = this.multiple && !this._isLoading && !hasOptions;
     const effectiveWidth = this.getEffectiveWidth();
+    const effectiveHeight = this.getEffectiveHeight();
+    
     return html`
-      <div class="${CSS_CLASSES.LISTBOX} ${CSS_CLASSES.SCROLL} ${this.open ? '' : CSS_CLASSES.HIDDEN}" role="listbox" style="width: ${effectiveWidth};">
+      <div class="${CSS_CLASSES.LISTBOX} ${CSS_CLASSES.SCROLL} ${this.open ? '' : CSS_CLASSES.HIDDEN}" 
+           role="listbox" 
+           style="width: ${effectiveWidth}; height: ${effectiveHeight};">
         ${this._isLoading
           ? this.renderLoadingSpinner()
           : showNoData
@@ -467,6 +514,9 @@ After:  select.removeEventListener('${type}', handler);`);
           });
         }
       }
+      
+      // 높이 재계산
+      this._calculatedHeight = this.calculateDropdownHeight();
     }
 
     // 표준 이벤트 발생
@@ -494,6 +544,9 @@ After:  select.removeEventListener('${type}', handler);`);
             this._virtual?.setActiveIndex(0);
           });
         }
+        
+        // 높이 재계산
+        this._calculatedHeight = this.calculateDropdownHeight();
       } else {
         this._pendingActiveIndex = 0;
       }
@@ -540,7 +593,7 @@ After:  select.removeEventListener('${type}', handler);`);
     return this._options.length === 0;
   }
 
-  // 최적화된 옵션 초기화 - 배치 처리 및 캐싱
+  // 옵션 초기화 메서드 수정 - 높이 계산 추가
   public initializeOptionsFromPropsOrSlot(): void {
     if (this._isUpdating) return;
     this._isUpdating = true;
@@ -599,6 +652,9 @@ After:  select.removeEventListener('${type}', handler);`);
           this._setValue(selected.value, false);
         } else if (this._options.length > 0) {
           this._setValue(this._options[0].value, false);
+        } else {
+          this._setValue('', false);
+          this._labelText = '';
         }
       }
 
@@ -607,6 +663,9 @@ After:  select.removeEventListener('${type}', handler);`);
         this._initialLabel = this._options[0].textContent || '';
       }
 
+      // 높이 계산 추가
+      this._calculatedHeight = this.calculateDropdownHeight();
+      
       // 너비 계산을 비동기로 처리
       this.calculateAutoWidth();
       
@@ -623,12 +682,15 @@ After:  select.removeEventListener('${type}', handler);`);
 
     if (this.hasNoOptions()) {
       this._isLoading = true;
+      this._calculatedHeight = this.calculateDropdownHeight(); // 로딩 상태 높이
       this._debouncedUpdate();
 
       this.loadOptionsAsync().then(() => {
+        this._calculatedHeight = this.calculateDropdownHeight(); // 로딩 완료 후 높이 재계산
         this.initializeVirtualSelect();
       }).catch(() => {
         this._isLoading = false;
+        this._calculatedHeight = this.calculateDropdownHeight();
         this._debouncedUpdate();
       });
     } else {
@@ -637,6 +699,9 @@ After:  select.removeEventListener('${type}', handler);`);
         this._virtual.destroy();
         this._virtual = null;
       }
+      
+      // 높이 재계산
+      this._calculatedHeight = this.calculateDropdownHeight();
       
       // 새로운 가상 스크롤 초기화
       this.initializeVirtualSelect();
@@ -652,12 +717,19 @@ After:  select.removeEventListener('${type}', handler);`);
       this._virtual = null;
     }
     
+    // 높이 캐시 클리어
+    this._calculatedHeight = null;
+    
     this._debouncedUpdate();
   }
 
+  // initializeVirtualSelect 메서드 수정 - 높이 재계산 추가
   protected initializeVirtualSelect(): void {
     const scrollEl = this.querySelector(`.${CSS_CLASSES.SCROLL}`) as HTMLDivElement;
     const optionData = this.getAllOptionData();
+
+    // 높이 재계산
+    this._calculatedHeight = this.calculateDropdownHeight();
 
     if (this.multiple && optionData.length === 0) {
       return;
@@ -679,15 +751,18 @@ After:  select.removeEventListener('${type}', handler);`);
     }
   }
 
+  // 로딩 완료 후 높이 업데이트
   public async loadOptionsAsync(): Promise<void> {
     return new Promise((resolve) => {
-      // 더 빠른 로딩을 위해 타이밍 최적화
       const loadingTime = Math.min(
         Math.random() * (TIMING.LOADING_MAX - TIMING.LOADING_MIN) + TIMING.LOADING_MIN,
-        500 // 최대 500ms로 제한
+        500
       );
       
       setTimeout(() => {
+        // 로딩 완료 후 높이 재계산
+        this._calculatedHeight = this.calculateDropdownHeight();
+        this._debouncedUpdate();
         resolve();
       }, loadingTime);
     });
@@ -712,6 +787,9 @@ After:  select.removeEventListener('${type}', handler);`);
           });
         }
       }
+      
+      // 높이 재계산
+      this._calculatedHeight = this.calculateDropdownHeight();
 
       // 표준 이벤트 발생
       triggerSelectEvent(this, label, value);
@@ -981,6 +1059,9 @@ After:  select.removeEventListener('${type}', handler);`);
         }
       }
 
+      // 높이 재계산
+      this._calculatedHeight = this.calculateDropdownHeight();
+
       // 드롭다운이 열려있는 경우 가상 스크롤 즉시 업데이트
       if (this.open) {
         this._updateVirtualScrollData();
@@ -1040,6 +1121,9 @@ After:  select.removeEventListener('${type}', handler);`);
 
       this._widthCalculationCache.clear();
       this._isLoading = false;
+
+      // 높이 재계산
+      this._calculatedHeight = this.calculateDropdownHeight();
 
       // 드롭다운이 열려있는 경우 가상 스크롤 즉시 업데이트
       if (this.open) {
@@ -1103,6 +1187,9 @@ After:  select.removeEventListener('${type}', handler);`);
         }
       }
 
+      // 높이 재계산
+      this._calculatedHeight = this.calculateDropdownHeight();
+
       // 드롭다운이 열려있는 경우 가상 스크롤 즉시 업데이트
       if (this.open) {
         this._updateVirtualScrollData();
@@ -1162,6 +1249,9 @@ After:  select.removeEventListener('${type}', handler);`);
           triggerResetEvent(this, { value: '', label: '' });
         }
       }
+
+      // 높이를 auto로 설정
+      this._calculatedHeight = 'auto';
 
       // 드롭다운이 열려있는 경우 가상 스크롤 즉시 클리어
       if (this.open && this._virtual) {
@@ -1302,6 +1392,9 @@ After:  select.removeEventListener('${type}', handler);`);
         this._widthCalculationCache.clear();
         this._isLoading = this._options.length === 0;
 
+        // 높이 재계산
+        this._calculatedHeight = this.calculateDropdownHeight();
+
         // 드롭다운이 열려있는 경우 가상 스크롤 한 번만 업데이트
         if (this.open) {
           this._updateVirtualScrollData();
@@ -1336,13 +1429,14 @@ After:  select.removeEventListener('${type}', handler);`);
     }
   }
 
-  // 캐시 수동 정리 메서드
+  // 캐시 수동 정리 메서드 - 높이 캐시도 포함
   public clearCaches(): void {
     this._optionsCache.clear();
     this._widthCalculationCache.clear();
     this._localizedTextCache = null;
     this._lastLanguage = '';
     this._lastTextsHash = '';
+    this._calculatedHeight = null; // 높이 캐시도 정리
   }
 
   // 타입 안전한 이벤트 리스너 헬퍼 메서드들 (표준 addEventListener 권장)
