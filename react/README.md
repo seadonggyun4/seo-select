@@ -9,7 +9,10 @@
 
 > Built on top of the powerful [seo-select](https://www.npmjs.com/package/seo-select) Web Component library, providing React developers with a familiar component API while maintaining all the advanced features and performance optimizations.
 
-Demo Site: https://seo-select.netlify.app/
+- **[GitHub](https://github.com/seadonggyun4/seo-select)**
+- **[NPM: seo-select](https://www.npmjs.com/package/seo-select)**
+- **[NPM: seo-select-react](https://www.npmjs.com/package/seo-select-react)**
+- **[DemoSite](https://seo-select.netlify.app/)**
 
 ## Features
 
@@ -469,11 +472,6 @@ We welcome contributions! Please see the [main repository](https://github.com/se
 ## License
 
 MIT License - see [LICENSE](https://github.com/seadonggyun4/seo-select/blob/main/LICENSE) file for details.
-
-## Related Projects
-
-- **[seo-select](https://www.npmjs.com/package/seo-select)** - The core Web Component library
-- **[Demo Site](https://seo-select.netlify.app/)** - Interactive examples and documentation
 
 ## Changelog
 
