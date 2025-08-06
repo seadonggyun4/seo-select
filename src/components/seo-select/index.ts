@@ -2,9 +2,6 @@ import { LitElement, html } from 'lit';
 import { InteractiveVirtualSelect } from '../../core/InteractiveVirtualSelect.js';
 import '../../styles/components/style.scss';
 import {
-  SupportedLanguage,
-  SelectTheme,
-  LocalizedTexts,
   LOCALIZED_TEXTS,
   SUPPORTED_LANGUAGES,
   DEFAULT_CONFIG,
@@ -22,21 +19,14 @@ import {
   SeoSelectEventListener
 } from '../../event/index.js';
 
-interface VirtualSelectOption {
-  value: string;
-  label: string;
-}
-
-// 글로벌 타입 확장 - HTMLElementEventMap에 커스텀 이벤트 추가
-declare global {
-  interface HTMLElementEventMap {
-    [EVENT_NAMES.SELECT]: import('../../event/SeoSelectEvent.js').SeoSelectEvent;
-    [EVENT_NAMES.DESELECT]: import('../../event/SeoSelectEvent.js').SeoDeselectEvent;
-    [EVENT_NAMES.RESET]: import('../../event/SeoSelectEvent.js').SeoResetEvent;
-    [EVENT_NAMES.CHANGE]: import('../../event/SeoSelectEvent.js').SeoChangeEvent;
-    [EVENT_NAMES.SELECT_OPEN]: import('../../event/SeoSelectEvent.js').SeoOpenEvent;
-  }
-}
+// 타입들을 types 디렉토리에서 import
+import type {
+  VirtualSelectOption,
+  BatchUpdateOption,
+  SupportedLanguage,
+  SelectTheme,
+  LocalizedTexts
+} from '../../types/index.js';
 
 export class SeoSelect extends LitElement {
   static formAssociated = true;
@@ -1304,12 +1294,7 @@ After:  select.removeEventListener('${type}', handler);`);
    * 옵션 데이터 일괄 업데이트 (성능 최적화)
    * @param updates - 업데이트할 옵션들의 배열
    */
-  public batchUpdateOptions(updates: Array<{
-    action: 'add' | 'remove' | 'update';
-    option?: VirtualSelectOption;
-    value?: string;
-    index?: number;
-  }>): void {
+  public batchUpdateOptions(updates: Array<BatchUpdateOption>): void {
     if (this._isUpdating) return;
     this._isUpdating = true;
     let hasChanges = false;

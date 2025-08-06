@@ -2,9 +2,6 @@ import { html } from 'lit';
 import { isMultilingualMatch } from '../../utils/search.js';
 import { SeoSelect } from '../seo-select/index.js';
 import {
-  SupportedLanguage,
-  SelectTheme,
-  SearchLocalizedTexts,
   SEARCH_LOCALIZED_TEXTS,
   CSS_CLASSES,
   ICONS,
@@ -22,29 +19,15 @@ import {
   SeoSelectEventListener
 } from '../../event/index.js';
 
-interface OptionItem {
-  value: string;
-  label: string;
-  disabled?: boolean;
-}
-
-interface VirtualSelectOption {
-  value: string;
-  label: string;
-}
-
-// 글로벌 타입 확장 - 검색 이벤트 추가
-declare global {
-  interface HTMLElementEventMap {
-    [EVENT_NAMES.SELECT]: import('../../event/SeoSelectEvent.js').SeoSelectEvent;
-    [EVENT_NAMES.DESELECT]: import('../../event/SeoSelectEvent.js').SeoDeselectEvent;
-    [EVENT_NAMES.RESET]: import('../../event/SeoSelectEvent.js').SeoResetEvent;
-    [EVENT_NAMES.CHANGE]: import('../../event/SeoSelectEvent.js').SeoChangeEvent;
-    [EVENT_NAMES.SELECT_OPEN]: import('../../event/SeoSelectEvent.js').SeoOpenEvent;
-    [EVENT_NAMES.SEARCH_CHANGE]: import('../../event/SeoSearchEvent.js').SeoSearchChangeEvent;
-    [EVENT_NAMES.SEARCH_FILTER]: import('../../event/SeoSearchEvent.js').SeoSearchFilterEvent;
-  }
-}
+// 타입들을 types 디렉토리에서 import
+import type {
+  VirtualSelectOption,
+  OptionItem,
+  BatchUpdateOption,
+  SupportedLanguage,
+  SelectTheme,
+  SearchLocalizedTexts
+} from '../../types/index.js';
 
 export class SeoSelectSearch extends SeoSelect {
   static get properties() {
@@ -1004,12 +987,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
   /**
    * 검색 텍스트와 함께 옵션 데이터 일괄 업데이트
    */
-  public override batchUpdateOptions(updates: Array<{
-    action: 'add' | 'remove' | 'update';
-    option?: VirtualSelectOption;
-    value?: string;
-    index?: number;
-  }>): void {
+  public override batchUpdateOptions(updates: Array<BatchUpdateOption>): void {
     if (this._isUpdating) return;
     this._isUpdating = true;
     let hasChanges = false;
