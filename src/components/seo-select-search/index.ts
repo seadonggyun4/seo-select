@@ -928,6 +928,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
             this._setValue(this._options[0].value, true);
           } else {
             this._setValue('', true);
+            this._labelText = ''; // 라벨 초기화 추가
           }
         }
       }
@@ -946,6 +947,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         this._initialValue = null;
         this._initialLabel = null;
         this._isLoading = true;
+        // 옵션이 없을 때 라벨 초기화
+        if (!this.multiple) {
+          this._labelText = '';
+        }
       }
 
       this.calculateAutoWidth();
@@ -979,6 +984,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       } else {
         const previousValue = this._value;
         this._setValue('', true);
+        this._labelText = ''; // 라벨 초기화 추가 (중요!)
         
         if (previousValue) {
           triggerResetEvent(this, { value: '', label: '' });
@@ -1070,7 +1076,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
                       this._setValue(this._options[0].value, false);
                     } else {
                       this._setValue('', false);
-                      this._labelText = '';
+                      this._labelText = ''; // 라벨 초기화 추가
                     }
                   }
                 }
