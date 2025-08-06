@@ -62,16 +62,28 @@
     "build:types": "tsc --emitDeclarationOnly --outDir dist",
     "build:min": "vite build --config vite.config.min.ts",
     "build:demo": "tsx scripts/build-demo.ts",
+    "build:all": "npm run build && npm run build:react",
     "clean": "rm -rf dist min",
+
     "release": "bash scripts/release.sh",
     "release:patch": "bash scripts/release.sh patch",
     "release:minor": "bash scripts/release.sh minor",
     "release:major": "bash scripts/release.sh major",
+    
     "dev": "vite --config vite.config.demo.ts",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublishOnly": "npm run type-check && npm run build"
+    "prepublishOnly": "npm run type-check && npm run build",
+
+    "build:react": "cd react && npm run build",
+    "dev:react": "cd react && npm run dev",
+    "publish:react": "cd react && npm run publish:npm",
+    "install:react": "cd react && npm install",
+    "clean:all": "npm run clean && cd react && npm run clean",
+    
+    "setup": "npm install && npm run install:react",
+    "build:release": "npm run build:all && echo 'Both packages built successfully'"
   },
   "dependencies": {
     "lit": "^3.0.0"
