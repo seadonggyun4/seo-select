@@ -36,11 +36,22 @@ export default defineConfig({
           'react-dom': 'ReactDOM',
           'react/jsx-runtime': 'jsxRuntime',
         },
+        // CSS 파일을 별도로 추출
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+            return 'styles/[name].[ext]';
+          }
+          return 'assets/[name].[ext]';
+        },
       },
     },
     outDir: 'dist',
     emptyOutDir: true,
     sourcemap: true,
+    // CSS를 별도 파일로 추출
+    cssCodeSplit: false,
+    // 상위 디렉토리의 CSS 파일을 복사
+    copyPublicDir: false,
   },
   resolve: {
     alias: {
