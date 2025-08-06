@@ -6,9 +6,12 @@
 
 A lightweight and extensible select component built with Lit, designed to work seamlessly across frameworks. Supports search, virtual scrolling, multiple selection, i18n, and flexible theming.
 
-> `seo-select` does not officially support React, Vue yet, but I'm doing my best to make it happen soon.
+> `seo-select` does not officially support Vue yet, but I'm doing my best to make it happen soon.
 
-Demo Site: https://seo-select.netlify.app/
+- **[GitHub](https://github.com/seadonggyun4/seo-select)**
+- **[NPM: seo-select](https://www.npmjs.com/package/seo-select)**
+- **[NPM: seo-select-react](https://www.npmjs.com/package/seo-select-react)**
+- **[DemoSite](https://seo-select.netlify.app/)**
 
 ## Features
 
@@ -853,13 +856,6 @@ The component uses a sophisticated color system based on Open Color with primary
 | `--dark-search-input-focus-shadow` | `0 0 0 2px rgba(96, 165, 250, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3)` | Search input focus shadow |
 
 </details>
-
-
-## Repository
-
-- **GitHub**: [https://github.com/seadonggyun4/seo-select](https://github.com/seadonggyun4/seo-select)
-- **NPM**: [https://www.npmjs.com/package/seo-select](https://www.npmjs.com/package/seo-select)
-- **Demo**: [https://seo-select.netlify.app/](https://seo-select.netlify.app/)
 
 ## License
 
