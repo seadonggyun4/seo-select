@@ -104,6 +104,8 @@ export const EVENT_NAMES = {
   DESELECT: 'onDeselect',
   RESET: 'onReset',
   CHANGE: 'onChange',
+  SEARCH_CHANGE: 'onSearchChange',
+  SEARCH_FILTER: 'onSearchFilter',
 } as const;
 
 // CSS 클래스 상수

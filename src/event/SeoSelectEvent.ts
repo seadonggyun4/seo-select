@@ -36,18 +36,10 @@ export class SeoResetEvent extends Event {
   }) {
     super(EVENT_NAMES.RESET, { bubbles: true, composed: true });
     
-    if (data.label !== undefined) {
-      this.label = data.label;
-    }
-    if (data.value !== undefined) {
-      this.value = data.value;
-    }
-    if (data.labels !== undefined) {
-      this.labels = data.labels;
-    }
-    if (data.values !== undefined) {
-      this.values = data.values;
-    }
+    if (data.label !== undefined) this.label = data.label;
+    if (data.value !== undefined) this.value = data.value;
+    if (data.labels !== undefined) this.labels = data.labels;
+    if (data.values !== undefined) this.values = data.values;
   }
 }
 

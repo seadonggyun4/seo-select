@@ -6,7 +6,7 @@
 
 A lightweight and extensible select component built with Lit, designed to work seamlessly across frameworks. Supports search, virtual scrolling, multiple selection, i18n, and flexible theming.
 
-> `seo-select` does not officially support TypeScript and React, Vue yet, but I'm doing my best to make it happen soon.
+> `seo-select` does not officially support React, Vue yet, but I'm doing my best to make it happen soon.
 
 Demo Site: https://seo-select.netlify.app/
 
@@ -115,6 +115,21 @@ Extended component with real-time multilingual search including Korean initial c
 </seo-select-search>
 ```
 
+## TypeScript Support
+
+### Event Type Definitions
+
+For TypeScript projects, import the event type definitions to enable full type safety and IntelliSense support for custom events:
+
+```typescript
+// Import event types (add this once in your project)
+import 'seo-select/types';
+
+// Import components
+import 'seo-select';
+import 'seo-select/components/seo-select-search';
+```
+
 ## Event System
 
 ### Standard addEventListener (Recommended)
@@ -208,6 +223,25 @@ select.onSelect((event) => {
 });
 ```
 
+## Events Reference
+
+### Common Events (Both Components)
+
+| Event Name | Properties | Description |
+|------------|------------|-------------|
+| `onSelect` | `{ label, value }` | User selects an option |
+| `onDeselect` | `{ label, value }` | User removes selected option (multiple mode) |
+| `onChange` | - | Form value changes |
+| `onReset` | `{ value, label }` or `{ values, labels }` | Component resets to default |
+| `onOpen` | - | Dropdown opens |
+
+### Search Component Additional Events (SeoSelectSearch Only)
+
+| Event Name | Properties | Description |
+|------------|------------|-------------|
+| `onSearchChange` | `searchText: string` | Search text changes in real-time |
+| `onSearchFilter` | `filteredOptions: VirtualSelectOption[]` | Search results are filtered |
+
 ## Component Properties
 
 ### Common Properties
@@ -229,15 +263,6 @@ select.onSelect((event) => {
 |----------|------|---------|-------------|
 | `searchTexts` | `Partial<SearchLocalizedTexts>` | `{}` | Custom search-related texts |
 
-## Events Reference
-
-| Event Name | Properties | Description |
-|------------|------------|-------------|
-| `onSelect` | `{ label, value }` | User selects an option |
-| `onDeselect` | `{ label, value }` | User removes selected option (multiple mode) |
-| `onChange` | - | Form value changes |
-| `onReset` | `{ value, label }` or `{ values, labels }` | Component resets to default |
-| `onOpen` | - | Dropdown opens |
 
 ## Methods
 
