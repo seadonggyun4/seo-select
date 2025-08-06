@@ -11,7 +11,8 @@ export default defineConfig({
         index: resolve(__dirname, 'src/index.ts'),
         'components/seo-select/index': resolve(__dirname, 'src/components/seo-select/index.ts'),
         'components/seo-select-search/index': resolve(__dirname, 'src/components/seo-select-search/index.ts'),
-        'event/index': resolve(__dirname, 'src/event/index.ts')
+        'event/index': resolve(__dirname, 'src/event/index.ts'),
+        'types/index': resolve(__dirname, 'src/types/index.ts')
       },
       formats: ['es'],
       fileName: (format, entryName) => `${entryName}.js`,

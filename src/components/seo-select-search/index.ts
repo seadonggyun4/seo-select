@@ -17,6 +17,8 @@ import {
   triggerResetEvent,
   triggerChangeEvent,
   triggerOpenEvent,
+  triggerSearchChangeEvent,
+  triggerSearchFilterEvent,
   SeoSelectEventListener
 } from '../../event/index.js';
 
@@ -31,7 +33,7 @@ interface VirtualSelectOption {
   label: string;
 }
 
-// 글로벌 타입 확장 - SeoSelectSearch도 동일한 이벤트 사용
+// 글로벌 타입 확장 - 검색 이벤트 추가
 declare global {
   interface HTMLElementEventMap {
     [EVENT_NAMES.SELECT]: import('../../event/SeoSelectEvent.js').SeoSelectEvent;
@@ -39,6 +41,8 @@ declare global {
     [EVENT_NAMES.RESET]: import('../../event/SeoSelectEvent.js').SeoResetEvent;
     [EVENT_NAMES.CHANGE]: import('../../event/SeoSelectEvent.js').SeoChangeEvent;
     [EVENT_NAMES.SELECT_OPEN]: import('../../event/SeoSelectEvent.js').SeoOpenEvent;
+    [EVENT_NAMES.SEARCH_CHANGE]: import('../../event/SeoSearchEvent.js').SeoSearchChangeEvent;
+    [EVENT_NAMES.SEARCH_FILTER]: import('../../event/SeoSearchEvent.js').SeoSearchFilterEvent;
   }
 }
 
@@ -141,20 +145,15 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
   /**
    * 검색 텍스트 변경 이벤트 리스너 추가 (검색 컴포넌트 전용)
    */
-  public onSearchChange(handler: (searchText: string) => void): void {
-    // 내부적으로 input 이벤트를 처리하여 검색 텍스트 변경을 감지
-    this.addEventListener('search-text-change', ((event: CustomEvent) => {
-      handler(event.detail.searchText);
-    }) as EventListener);
+  public onSearchChange(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.SEARCH_CHANGE]) => void): void {
+    this.addEventListener(EVENT_NAMES.SEARCH_CHANGE, handler as EventListener);
   }
 
   /**
    * 검색 결과 필터링 이벤트 리스너 추가 (검색 컴포넌트 전용)
    */
-  public onSearchFilter(handler: (filteredOptions: VirtualSelectOption[]) => void): void {
-    this.addEventListener('search-filter', ((event: CustomEvent) => {
-      handler(event.detail.filteredOptions);
-    }) as EventListener);
+  public onSearchFilter(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.SEARCH_FILTER]) => void): void {
+    this.addEventListener(EVENT_NAMES.SEARCH_FILTER, handler as EventListener);
   }
 
   // 검색 관련 다국어 텍스트를 가져오고 커스텀 텍스트로 오버라이드하는 헬퍼 메서드
@@ -367,13 +366,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     const previousSearchText = this._searchText;
     this._searchText = input.value;
 
-    // 검색 텍스트 변경 이벤트 발생
+    // 검색 텍스트 변경 이벤트 발생 (표준 이벤트 사용)
     if (previousSearchText !== this._searchText) {
-      this.dispatchEvent(new CustomEvent('search-text-change', {
-        detail: { searchText: this._searchText, previousSearchText },
-        bubbles: true,
-        composed: true
-      }));
+      triggerSearchChangeEvent(this, this._searchText, previousSearchText);
     }
   };
 
@@ -397,11 +392,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       // 높이 재계산
       this._calculatedHeight = this.calculateDropdownHeight();
 
-      this.dispatchEvent(new CustomEvent('search-filter', {
-        detail: { filteredOptions: allOptions, searchText: rawInput },
-        bubbles: true,
-        composed: true
-      }));
+      // 표준 이벤트 사용
+      triggerSearchFilterEvent(this, allOptions, rawInput, true);
       
       this._debouncedUpdate();
       return;
@@ -424,11 +416,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       // no-match 상태일 때 높이 설정
       this._calculatedHeight = `${60 + 50 + 5}px`; // no-data + search + padding
 
-      this.dispatchEvent(new CustomEvent('search-filter', {
-        detail: { filteredOptions: [], searchText: rawInput, hasResults: false },
-        bubbles: true,
-        composed: true
-      }));
+      // 표준 이벤트 사용
+      triggerSearchFilterEvent(this, [], rawInput, false);
       
       this._debouncedUpdate();
       return;
@@ -444,11 +433,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     const finalHeight = filtered.length > 10 ? maxHeight : computedHeight;
     this._calculatedHeight = `${finalHeight + searchInputHeight + 5}px`;
 
-    this.dispatchEvent(new CustomEvent('search-filter', {
-      detail: { filteredOptions: filtered, searchText: rawInput, hasResults: true },
-      bubbles: true,
-      composed: true
-    }));
+    // 표준 이벤트 사용
+    triggerSearchFilterEvent(this, filtered, rawInput, true);
     
     this._debouncedUpdate();
   }

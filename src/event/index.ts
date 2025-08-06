@@ -7,6 +7,12 @@ export {
   SeoOpenEvent,
 } from './SeoSelectEvent.js';
 
+// 검색 이벤트 클래스들
+export {
+  SeoSearchChangeEvent,
+  SeoSearchFilterEvent,
+} from './SeoSearchEvent.js';
+
 // 헬퍼 함수들
 export {
   triggerSelectEvent,
@@ -14,11 +20,10 @@ export {
   triggerResetEvent,
   triggerChangeEvent,
   triggerOpenEvent,
+  triggerSearchChangeEvent,
+  triggerSearchFilterEvent,
   SeoSelectEventHelpers,
 } from './eventHelpers.js';
-
-// 타입 정의들
-export * from './eventTypes.js';
 
 // 타입 안전한 이벤트 리스너 타입 (선택적 사용)
 export type SeoSelectEventListener<T extends keyof HTMLElementEventMap> = (

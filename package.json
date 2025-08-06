@@ -19,9 +19,9 @@
       "types": "./dist/components/seo-select-search/index.d.ts",
       "import": "./dist/components/seo-select-search/index.js"
     },
-    "./event": {
-      "types": "./dist/event/index.d.ts",
-      "import": "./dist/event/index.js"
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js"
     },
     "./styles": {
       "import": "./dist/styles/components/style.css"
