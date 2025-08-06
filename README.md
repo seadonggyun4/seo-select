@@ -115,109 +115,6 @@ Extended component with real-time multilingual search including Korean initial c
 </seo-select-search>
 ```
 
-## TypeScript Support
-
-### Type Definitions
-
-For TypeScript projects, import the type definitions to enable full type safety and IntelliSense support for custom events and component APIs:
-
-```typescript
-// Import type definitions (add this once in your project)
-import 'seo-select/types';
-
-// Import components
-import 'seo-select';
-import 'seo-select/components/seo-select-search';
-```
-
-**That's it!** With just `import 'seo-select/types';`, you get:
-
-- ✅ **Full type safety** for all event listeners (`addEventListener`)
-- ✅ **IntelliSense support** for event properties (`event.label`, `event.value`)
-- ✅ **Global type extensions** for `HTMLElementEventMap`
-- ✅ **Zero configuration** - works immediately
-
-### Basic Usage with Type Safety
-
-```typescript
-import 'seo-select/types';
-import 'seo-select';
-
-const select = document.createElement('seo-select');
-
-// All event listeners are now fully type-safe
-select.addEventListener('onSelect', (event) => {
-  // TypeScript knows event.label and event.value exist
-  console.log('Selected:', event.label, event.value);
-});
-
-select.addEventListener('onReset', (event) => {
-  // TypeScript automatically infers the correct event type
-  if (event.values) {
-    console.log('Multiple reset:', event.values, event.labels);
-  } else {
-    console.log('Single reset:', event.value, event.label);
-  }
-});
-```
-
-### Advanced Usage with Specific Types
-
-When you need specific types for your application logic, import them explicitly:
-
-```typescript
-import 'seo-select/types';
-import type { 
-  VirtualSelectOption,
-  SeoSelectElement,
-  SeoSelectSearchElement,
-  SupportedLanguage,
-  BatchUpdateOption
-} from 'seo-select/types';
-
-// Type-safe option creation
-const options: VirtualSelectOption[] = [
-  { value: 'us', label: 'United States' },
-  { value: 'kr', label: 'South Korea' }
-];
-
-// Type-safe element creation
-const selectElement = document.createElement('seo-select') as SeoSelectElement;
-selectElement.optionItems = options;
-selectElement.language = 'ko' as SupportedLanguage;
-
-// Type-safe batch operations
-const updates: BatchUpdateOption[] = [
-  { action: 'add', option: { value: 'jp', label: 'Japan' } },
-  { action: 'remove', value: 'us' }
-];
-selectElement.batchUpdateOptions(updates);
-```
-
-### Available Types
-
-| Category | Types |
-|----------|-------|
-| **Component Elements** | `SeoSelectElement`, `SeoSelectSearchElement` |
-| **Options & Data** | `VirtualSelectOption`, `OptionItem`, `BatchUpdateOption` |
-| **Configuration** | `SupportedLanguage`, `SelectTheme`, `LocalizedTexts`, `SearchLocalizedTexts` |
-| **Component Props** | `SeoSelectProps`, `SeoSelectSearchProps` |
-| **Events** | `ResetEventData`, `SeoSelectEventType`, `SeoSelectEvents` |
-
-### Event Constants
-
-```typescript
-import { SeoSelectEvents } from 'seo-select/types';
-
-// Use event constants for consistency
-select.addEventListener(SeoSelectEvents.SELECT, (event) => {
-  console.log('Selected:', event.label);
-});
-
-select.addEventListener(SeoSelectEvents.SEARCH_CHANGE, (event) => {
-  console.log('Search text:', event.detail);
-});
-```
 
 ## Event System
 
@@ -530,6 +427,111 @@ searchSelect.clearCaches();
 // Use preserveSelection for better UX when updating options
 searchSelect.addOptions(newOptions, true); // Preserves current selection
 ```
+
+## TypeScript Support
+
+### Type Definitions
+
+For TypeScript projects, import the type definitions to enable full type safety and IntelliSense support for custom events and component APIs:
+
+```typescript
+// Import type definitions (add this once in your project)
+import 'seo-select/types';
+
+// Import components
+import 'seo-select';
+import 'seo-select/components/seo-select-search';
+```
+
+**That's it!** With just `import 'seo-select/types';`, you get:
+
+- ✅ **Full type safety** for all event listeners (`addEventListener`)
+- ✅ **IntelliSense support** for event properties (`event.label`, `event.value`)
+- ✅ **Global type extensions** for `HTMLElementEventMap`
+- ✅ **Zero configuration** - works immediately
+
+### Basic Usage with Type Safety
+
+```typescript
+import 'seo-select/types';
+import 'seo-select';
+
+const select = document.createElement('seo-select');
+
+// All event listeners are now fully type-safe
+select.addEventListener('onSelect', (event) => {
+  // TypeScript knows event.label and event.value exist
+  console.log('Selected:', event.label, event.value);
+});
+
+select.addEventListener('onReset', (event) => {
+  // TypeScript automatically infers the correct event type
+  if (event.values) {
+    console.log('Multiple reset:', event.values, event.labels);
+  } else {
+    console.log('Single reset:', event.value, event.label);
+  }
+});
+```
+
+### Advanced Usage with Specific Types
+
+When you need specific types for your application logic, import them explicitly:
+
+```typescript
+import 'seo-select/types';
+import type { 
+  VirtualSelectOption,
+  SeoSelectElement,
+  SeoSelectSearchElement,
+  SupportedLanguage,
+  BatchUpdateOption
+} from 'seo-select/types';
+
+// Type-safe option creation
+const options: VirtualSelectOption[] = [
+  { value: 'us', label: 'United States' },
+  { value: 'kr', label: 'South Korea' }
+];
+
+// Type-safe element creation
+const selectElement = document.createElement('seo-select') as SeoSelectElement;
+selectElement.optionItems = options;
+selectElement.language = 'ko' as SupportedLanguage;
+
+// Type-safe batch operations
+const updates: BatchUpdateOption[] = [
+  { action: 'add', option: { value: 'jp', label: 'Japan' } },
+  { action: 'remove', value: 'us' }
+];
+selectElement.batchUpdateOptions(updates);
+```
+
+### Available Types
+
+| Category | Types |
+|----------|-------|
+| **Component Elements** | `SeoSelectElement`, `SeoSelectSearchElement` |
+| **Options & Data** | `VirtualSelectOption`, `OptionItem`, `BatchUpdateOption` |
+| **Configuration** | `SupportedLanguage`, `SelectTheme`, `LocalizedTexts`, `SearchLocalizedTexts` |
+| **Component Props** | `SeoSelectProps`, `SeoSelectSearchProps` |
+| **Events** | `ResetEventData`, `SeoSelectEventType`, `SeoSelectEvents` |
+
+### Event Constants
+
+```typescript
+import { SeoSelectEvents } from 'seo-select/types';
+
+// Use event constants for consistency
+select.addEventListener(SeoSelectEvents.SELECT, (event) => {
+  console.log('Selected:', event.label);
+});
+
+select.addEventListener(SeoSelectEvents.SEARCH_CHANGE, (event) => {
+  console.log('Search text:', event.detail);
+});
+```
+
 
 ## Styling and Customization
 
@@ -852,15 +854,6 @@ The component uses a sophisticated color system based on Open Color with primary
 
 </details>
 
-## Troubleshooting
-
-### Common Issues
-
-**Events not working**: Use `select.onSelect(handler)` or ensure DOM is ready when using `addEventListener`.
-
-**TypeScript errors**: Add type declarations for custom elements.
-
-**Styling not applied**: Check CSS variable names in documentation.
 
 ## Repository
 
