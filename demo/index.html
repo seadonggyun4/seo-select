@@ -59,7 +59,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" integrity="sha512-oHDEc8Xed4hiW6CxD7qjbnI+B07vDdX7hEPTvn9pSZO1bcRqHp8mj9pyr+8RVC2GmtEfI2Bi9Ke9Ass0as+zpg==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" href="/style.scss">
-    <link rel="stylesheet" href="/animated-header.scss">
     
     <!-- Structured Data - Organization -->
     <script type="application/ld+json">
@@ -163,12 +162,6 @@
         ]
     }
     </script>
-    
-    <!-- Performance optimization -->
-    <link rel="preload" as="style" href="/style.scss">
-    <link rel="preload" as="style" href="/animated-header.scss">
-    <link rel="preload" as="script" href="src/main.ts">
-    <link rel="preload" as="script" href="/animated-header.ts">
 </head>
 <body>
     <div class="container">
@@ -176,10 +169,10 @@
             <div class="header-content">
                 <div class="header-title-container">
                     <h1 class="header-title">SEO Select</h1>
-                    <div class="framework-text-container">
-                        <span class="framework-text javascript active">JavaScript</span>
-                        <span class="framework-text react">React</span>
-                        <span class="framework-text typescript">TypeScript</span>
+                    <div class="text-container">
+                        <span class="text-item javascript active">JavaScript</span>
+                        <span class="text-item react">React</span>
+                        <span class="text-item typescript">TypeScript</span>
                     </div>
                 </div>
                 <p class="header-subtitle">
@@ -900,13 +893,12 @@
             <h2>
                 <img src="/logo_header.png" alt="Logo" />
             </h2>
-            <div class="loader-text">Loading page...</div>
+            <div class="loader-text">Loading...</div>
             <div class="loader-progress"></div>
         </div>
     </div>
 
     <script type="module" src="src/main.ts"></script>
     <script src="/demo.ts"></script>
-    <script src="/animated-header.js"></script>
 </body>
 </html>

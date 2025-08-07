@@ -2,157 +2,51 @@
    Framework Text Animation Styles (Improved)
 ========================================== */
 
-/* Header Title Container */
-.header-title-container {
-  position: relative;
-  margin-bottom: 16px;
+.text-container {
+    position: relative;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
 }
 
-/* Framework Text Container */
-.framework-text-container {
-  position: relative;
-  height: 36px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  
-  /* Performance optimizations */
-  will-change: transform;
-  transform: translateZ(0);
-  
-  /* Focus styles for accessibility */
-  &:focus-within {
-    outline: 2px solid rgba(97, 218, 251, 0.5);
-    outline-offset: 4px;
-    border-radius: 4px;
-  }
-  
-  /* Loading state */
-  &.loading {
-    .framework-text {
-      opacity: 0;
-      transform: translateY(20px) scale(0.9);
-    }
-  }
+/* 텍스트 요소들 */
+.text-item {
+    position: absolute;
+    font-size: 2rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity;
 }
 
-/* Framework Text Elements */
-.framework-text {
-  position: absolute;
-  font-size: 2rem;
-  font-weight: 500;
-  white-space: nowrap;
-  
-  /* Performance optimizations */
-  will-change: opacity, transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  
-  /* Default hidden state */
-  opacity: 0;
-  transform: translateY(15px) scale(0.95);
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: none;
-  
-  /* Active state - clean and smooth */
-  &.active {
+/* 활성 상태 */
+.text-item.active {
     opacity: 1;
     transform: translateY(0) scale(1);
-    pointer-events: auto;
-    
-    /* Subtle hover effect */
-    &:hover {
-      transform: translateY(0) scale(1.02);
-      transition: transform 0.2s ease;
-    }
-  }
-  
-  /* Leaving state - smooth fade out */
-  &.leaving {
+}
+
+/* 연기 효과로 사라지는 상태 */
+.text-item.smoke-out {
     opacity: 0;
     transform: translateY(-15px) scale(0.95);
-    pointer-events: none;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.6, 1);
-  }
+    filter: blur(2px);
+    transition: all 0.6s cubic-bezier(0.6, 0.04, 0.98, 0.335);
 }
 
-/* Language/Framework Specific Colors */
-.framework-text {
-  &.javascript {
+/* 언어별 색상 */
+.text-item.javascript {
     color: #F7DF1E;
-  }
-  
-  &.react {
+}
+
+.text-item.react {
     color: #61DAFB;
-  }
-  
-  &.typescript {
+}
+
+.text-item.typescript {
     color: #3178C6;
-  }
-}
-
-/* Performance Mode Optimizations */
-.framework-text-container[data-performance="low"] {
-  .framework-text {
-    transition: opacity 0.4s ease, transform 0.4s ease;
-  }
-}
-
-.framework-text-container[data-performance="medium"] {
-  .framework-text {
-    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-  }
-}
-
-.framework-text-container[data-performance="high"] {
-  .framework-text {
-    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-}
-
-/* Reduced Motion Support */
-@media (prefers-reduced-motion: reduce) {
-  .framework-text-container {
-    .framework-text {
-      transition: opacity 0.3s ease;
-      
-      &.active,
-      &.leaving {
-        transform: translateY(0) scale(1) !important;
-      }
-    }
-  }
-}
-
-/* High Contrast Mode Support */
-@media (prefers-contrast: high) {
-  .framework-text {
-    &.javascript {
-      color: #ffff00;
-    }
-    
-    &.react {
-      color: #00ffff;
-    }
-    
-    &.typescript {
-      color: #0099ff;
-    }
-  }
-}
-
-/* Screen Reader Only Content */
-.sr-only {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
 }
 
 /* Demo Content Styles */
@@ -1051,10 +945,13 @@ code {
   
   h2 {
     width: 10rem;
+    height: 3rem;
     margin: 0;
     
     img {
+      height: 100%;
       width: 100%;
+      object-fit: cover;
     }
   }
 }
@@ -1226,11 +1123,11 @@ code {
     font-size: 1.8rem;
   }
 
-  .framework-text {
-    font-size: 1rem;
+  .text-item {
+    font-size: 1.5rem;
   }
 
-  .framework-text-container {
+  .text-container {
     height: 32px;
     justify-content: center;
   }
