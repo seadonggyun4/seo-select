@@ -348,12 +348,171 @@ namespace DemoActions {
 }
 
 // ==========================================
+// Page Loader Manager (개선된 버전)
+// ==========================================
+class PageLoaderManager {
+  private readonly LOADER_TIMEOUT = 5000; // 최대 5초 대기
+
+  public initialize(): void {
+    const hasLoaded = sessionStorage.getItem('page-loaded');
+    const pageLoader = document.querySelector('.page-loder') as HTMLElement | null;
+    
+    if (!pageLoader) {
+      console.warn('Page loader element not found');
+      return;
+    }
+
+    // 이미 로드된 적이 있다면 즉시 숨김
+    if (hasLoaded) {
+      this.hideLoader(pageLoader, true);
+      return;
+    }
+
+    // 로딩 애니메이션 시작
+    this.startLoadingAnimation(pageLoader);
+  }
+
+  private startLoadingAnimation(pageLoader: HTMLElement): void {
+    // 최소 로딩 시간과 실제 컴포넌트 로딩 완료 시점 중 늦은 시점에 숨김
+    Promise.all([
+      this.waitForMinimumTime(),
+      this.waitForComponentsReady()
+    ]).then(() => {
+      this.hideLoader(pageLoader, false);
+    }).catch((error) => {
+      console.error('Loading error:', error);
+      // 에러가 발생해도 최대 시간 후에는 로더를 숨김
+      setTimeout(() => this.hideLoader(pageLoader, false), this.LOADER_TIMEOUT);
+    });
+  }
+
+  private waitForMinimumTime(): Promise<void> {
+    return new Promise(resolve => {
+      setTimeout(resolve, 1500); // 최소 1.5초 대기
+    });
+  }
+
+  private async waitForComponentsReady(): Promise<void> {
+    // Web Components가 로드될 때까지 대기
+    await this.waitForWebComponents();
+    
+    // DOM이 완전히 준비될 때까지 대기
+    await this.waitForDOMReady();
+    
+    // 중요한 요소들이 렌더링될 때까지 대기
+    await this.waitForCriticalElements();
+  }
+
+  private waitForWebComponents(): Promise<void> {
+    return new Promise((resolve) => {
+      const checkComponents = () => {
+        const seoSelectDefined = customElements.get('seo-select');
+        const seoSelectSearchDefined = customElements.get('seo-select-search');
+        
+        if (seoSelectDefined && seoSelectSearchDefined) {
+          resolve();
+        } else {
+          setTimeout(checkComponents, 100);
+        }
+      };
+      
+      checkComponents();
+      
+      // 최대 3초 대기 후 타임아웃
+      setTimeout(() => {
+        console.warn('Web Components loading timeout');
+        resolve();
+      }, 3000);
+    });
+  }
+
+  private waitForDOMReady(): Promise<void> {
+    return new Promise((resolve) => {
+      if (document.readyState === 'complete') {
+        resolve();
+      } else {
+        window.addEventListener('load', () => resolve(), { once: true });
+        
+        // 최대 2초 대기 후 타임아웃
+        setTimeout(() => {
+          console.warn('DOM ready timeout');
+          resolve();
+        }, 2000);
+      }
+    });
+  }
+
+  private waitForCriticalElements(): Promise<void> {
+    return new Promise((resolve) => {
+      const startTime = Date.now();
+      
+      const checkElements = () => {
+        // 중요한 요소들이 존재하는지 확인
+        const headerDemo = document.querySelector('seo-select-search[name="welcome"]');
+        const demoNav = document.querySelector('.demo-nav');
+        const content = document.querySelector('.content');
+        
+        if (headerDemo && demoNav && content) {
+          // 추가로 요소들이 실제로 렌더링되었는지 확인
+          requestAnimationFrame(() => {
+            resolve();
+          });
+        } else {
+          // 최대 2초 대기
+          if (Date.now() - startTime > 2000) {
+            console.warn('Critical elements timeout');
+            resolve();
+          } else {
+            setTimeout(checkElements, 100);
+          }
+        }
+      };
+      
+      checkElements();
+    });
+  }
+
+  private hideLoader(pageLoader: HTMLElement, immediate: boolean = false): void {
+    if (immediate) {
+      pageLoader.style.display = 'none';
+      sessionStorage.setItem('page-loaded', 'true');
+      return;
+    }
+
+    pageLoader.classList.add('hide');
+    
+    const handleAnimationEnd = () => {
+      pageLoader.classList.add('full-hide');
+      pageLoader.style.display = 'none';
+      sessionStorage.setItem('page-loaded', 'true');
+      pageLoader.removeEventListener('animationend', handleAnimationEnd);
+    };
+    
+    pageLoader.addEventListener('animationend', handleAnimationEnd);
+    
+    // 애니메이션이 실행되지 않을 경우를 대비한 fallback
+    setTimeout(() => {
+      if (!pageLoader.classList.contains('full-hide')) {
+        console.warn('Animation fallback triggered');
+        handleAnimationEnd();
+      }
+    }, 1000);
+  }
+}
+
+// ==========================================
 // Main Demo Setup
 // ==========================================
 class DemoManager {
   private eventCount = 0;
+  private pageLoaderManager: PageLoaderManager;
 
   constructor() {
+    // PageLoaderManager 먼저 초기화
+    this.pageLoaderManager = new PageLoaderManager();
+    this.pageLoaderManager.initialize();
+    
+    // 다른 초기화 작업
     this.initialize();
   }
 
@@ -369,6 +528,9 @@ class DemoManager {
     this.setupGlobalEventListeners();
     
     showNotification('Documentation loaded successfully!');
+    
+    // 환영 메시지 출력
+    printWelcomeMessage();
   }
 
   private setupNavigation(): void {
@@ -815,35 +977,6 @@ class GlobalEventManager {
       childList: true,
       subtree: true
     });
-  }
-}
-
-// ==========================================
-// Page Loader Manager
-// ==========================================
-class PageLoaderManager {
-  public initialize(): void {
-    const hasLoaded = sessionStorage.getItem('page-loaded');
-    const pageLoader = document.querySelector('.page-loder') as HTMLElement | null;
-    
-    if (hasLoaded && pageLoader) {
-      pageLoader.style.display = 'none';
-      return;
-    }
-
-    if (pageLoader) {
-      setTimeout(() => {
-        pageLoader.classList.add('hide');
-        
-        const handleAnimationEnd = () => {
-          pageLoader.classList.add('full-hide');
-          sessionStorage.setItem('page-loaded', 'true');
-          pageLoader.removeEventListener('animationend', handleAnimationEnd);
-        };
-        
-        pageLoader.addEventListener('animationend', handleAnimationEnd);
-      }, CONFIG.PAGE_LOAD_TIME);
-    }
   }
 }
 
@@ -1339,271 +1472,82 @@ namespace DynamicDemoActions {
 // Framework Text Animator TypeScript
 // ==========================================
 
-interface FrameworkConfig {
-  selector: string;
-  text: string;
-  color: string;
-  displayDuration: number;
-}
-
-interface AnimationConfig {
-  cycleDuration: number;
-  transitionDuration: number;
-  pauseOnHover: boolean;
-  enableKeyboardNavigation: boolean;
-  enableClickNavigation: boolean;
-  performanceMode: 'high' | 'medium' | 'low' | 'auto';
-}
-
-interface DeviceCapabilities {
-  cores: number;
-  memory: number;
-  isMobile: boolean;
-  prefersReducedMotion: boolean;
-}
-
-class FrameworkTextAnimator {
+/**
+ * 간단한 텍스트 애니메이터 클래스 - 브라우저 직접 사용 버전
+ * 텍스트 순환 애니메이션과 연기 효과를 제공합니다.
+ */
+class SimpleTextAnimator {
   private texts: NodeListOf<HTMLElement>;
-  private container: HTMLElement | null;
   private currentIndex: number = 0;
   private isAnimating: boolean = false;
   private isPaused: boolean = false;
   private intervalId: number | null = null;
-  private config: AnimationConfig;
-  private frameworks: FrameworkConfig[];
-  private deviceCapabilities: DeviceCapabilities;
+  private speed: number = 3000; // 기본 3초
+  private isHighSpeed: boolean = false;
 
-  constructor(config: Partial<AnimationConfig> = {}) {
-    // Default configuration
-    this.config = {
-      cycleDuration: 3000,
-      transitionDuration: 600,
-      pauseOnHover: true,
-      enableKeyboardNavigation: true,
-      enableClickNavigation: true,
-      performanceMode: 'auto',
-      ...config
-    };
-
-    // Framework configurations
-    this.frameworks = [
-      {
-        selector: 'javascript',
-        text: 'JavaScript',
-        color: '#F7DF1E',
-        displayDuration: this.config.cycleDuration
-      },
-      {
-        selector: 'react',
-        text: 'React',
-        color: '#61DAFB',
-        displayDuration: this.config.cycleDuration
-      },
-      {
-        selector: 'typescript',
-        text: 'TypeScript',
-        color: '#3178C6',
-        displayDuration: this.config.cycleDuration
-      }
-    ];
-
-    this.texts = document.querySelectorAll('.framework-text');
-    this.container = document.querySelector('.framework-text-container');
-    this.deviceCapabilities = this.detectDeviceCapabilities();
-
-    this.initialize();
-  }
-
-  private detectDeviceCapabilities(): DeviceCapabilities {
-    return {
-      cores: navigator.hardwareConcurrency || 2,
-      memory: (navigator as any).deviceMemory || 4,
-      isMobile: /Android|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent),
-      prefersReducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    };
-  }
-
-  private initialize(): void {
-    if (!this.container || this.texts.length === 0) {
-      console.warn('FrameworkTextAnimator: Required elements not found');
+  constructor(selector: string = '.text-item') {
+    this.texts = document.querySelectorAll(selector);
+    
+    if (this.texts.length === 0) {
+      console.warn(`텍스트 요소를 찾을 수 없습니다: ${selector}`);
       return;
     }
-
-    this.optimizePerformanceMode();
-    this.setupEventListeners();
-    this.setupAccessibility();
-    this.startAnimation();
-
-    // Remove loading class after setup
-    requestAnimationFrame(() => {
-      this.container?.classList.remove('loading');
-    });
-  }
-
-  private optimizePerformanceMode(): void {
-    if (this.config.performanceMode === 'auto') {
-      if (this.deviceCapabilities.prefersReducedMotion) {
-        this.config.performanceMode = 'low';
-      } else if (this.isSlowDevice()) {
-        this.config.performanceMode = 'medium';
-      } else {
-        this.config.performanceMode = 'high';
-      }
-    }
-
-    // Apply performance mode to container
-    this.container?.setAttribute('data-performance', this.config.performanceMode);
     
-    // Adjust transition duration based on performance
-    if (this.config.performanceMode === 'low') {
-      this.config.transitionDuration = 400;
-    } else if (this.config.performanceMode === 'medium') {
-      this.config.transitionDuration = 500;
-    }
+    this.start();
   }
 
-  private isSlowDevice(): boolean {
-    const { cores, memory, isMobile } = this.deviceCapabilities;
-    return cores < 4 || (isMobile && memory < 4);
-  }
-
-  private setupEventListeners(): void {
-    if (!this.container) return;
-
-    // Hover events
-    if (this.config.pauseOnHover) {
-      this.container.addEventListener('mouseenter', () => this.pauseAnimation());
-      this.container.addEventListener('mouseleave', () => this.resumeAnimation());
-    }
-
-    // Focus events for accessibility
-    this.container.addEventListener('focusin', () => this.pauseAnimation());
-    this.container.addEventListener('focusout', () => this.resumeAnimation());
-
-    // Click navigation
-    if (this.config.enableClickNavigation) {
-      this.texts.forEach((text, index) => {
-        text.style.cursor = 'pointer';
-        text.addEventListener('click', (e) => {
-          e.preventDefault();
-          this.navigateToIndex(index);
-        });
-      });
-    }
-
-    // Keyboard navigation
-    if (this.config.enableKeyboardNavigation) {
-      this.container.addEventListener('keydown', (e) => this.handleKeydown(e));
-      this.makeContainerFocusable();
-    }
-
-    // Media query listeners
-    this.setupMediaQueryListeners();
-
-    // Visibility API
-    this.setupVisibilityHandler();
-  }
-
-  private setupAccessibility(): void {
-    if (!this.container) return;
-
-    // Add ARIA attributes
-    this.container.setAttribute('role', 'region');
-    this.container.setAttribute('aria-label', 'Supported frameworks rotation');
-    this.container.setAttribute('aria-describedby', 'framework-description');
-
-    // Create screen reader description
-    this.createScreenReaderElements();
-  }
-
-  private createScreenReaderElements(): void {
-    const description = document.createElement('div');
-    description.id = 'framework-description';
-    description.className = 'sr-only';
-    description.textContent = 'Automatically rotating list of supported frameworks. Use arrow keys to navigate or press space to pause.';
-    
-    const instructions = document.createElement('div');
-    instructions.className = 'sr-only';
-    instructions.textContent = 'Press arrow keys to navigate, space to pause, or click to select specific framework.';
-    
-    this.container?.appendChild(description);
-    this.container?.appendChild(instructions);
-  }
-
-  private makeContainerFocusable(): void {
-    if (this.container && !this.container.hasAttribute('tabindex')) {
-      this.container.setAttribute('tabindex', '0');
-    }
-  }
-
-  private setupMediaQueryListeners(): void {
-    // Reduced motion preference changes
-    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    reducedMotionQuery.addEventListener('change', () => {
-      this.deviceCapabilities.prefersReducedMotion = reducedMotionQuery.matches;
-      this.optimizePerformanceMode();
-      
-      if (reducedMotionQuery.matches) {
-        this.pauseAnimation();
-      } else {
-        this.resumeAnimation();
-      }
-    });
-  }
-
-  private setupVisibilityHandler(): void {
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        this.pauseAnimation();
-      } else {
-        this.resumeAnimation();
-      }
-    });
-  }
-
-  private handleKeydown(e: KeyboardEvent): void {
-    if (!this.config.enableKeyboardNavigation) return;
-
-    switch (e.key) {
-      case 'ArrowLeft':
-      case 'ArrowUp':
-        e.preventDefault();
-        this.navigateToPrevious();
-        break;
-      case 'ArrowRight':
-      case 'ArrowDown':
-        e.preventDefault();
-        this.navigateToNext();
-        break;
-      case 'Home':
-        e.preventDefault();
-        this.navigateToIndex(0);
-        break;
-      case 'End':
-        e.preventDefault();
-        this.navigateToIndex(this.texts.length - 1);
-        break;
-      case ' ':
-      case 'Enter':
-        e.preventDefault();
-        this.togglePause();
-        break;
-    }
-  }
-
-  private startAnimation(): void {
+  /**
+   * 애니메이션 시작
+   */
+  public start(): void {
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
 
     this.intervalId = window.setInterval(() => {
       if (!this.isAnimating && !this.isPaused) {
-        this.navigateToNext();
+        this.next();
       }
-    }, this.config.cycleDuration);
+    }, this.speed);
   }
 
-  private pauseAnimation(): void {
+  /**
+   * 다음 텍스트로 전환
+   */
+  public next(): void {
+    if (this.isAnimating || this.texts.length === 0) return;
+
+    this.isAnimating = true;
+    const currentText = this.texts[this.currentIndex];
+    const nextIndex = (this.currentIndex + 1) % this.texts.length;
+    const nextText = this.texts[nextIndex];
+
+    // 현재 텍스트를 연기 효과로 사라지게
+    currentText.classList.add('smoke-out');
+    currentText.classList.remove('active');
+
+    // 잠시 후 새 텍스트 표시
+    setTimeout(() => {
+      // 모든 텍스트 숨기기
+      this.texts.forEach(text => {
+        text.classList.remove('active', 'smoke-out');
+      });
+
+      // 새 텍스트 표시
+      nextText.classList.add('active');
+      this.currentIndex = nextIndex;
+
+      // 애니메이션 완료
+      setTimeout(() => {
+        this.isAnimating = false;
+      }, 100);
+    }, 400);
+  }
+
+  /**
+   * 애니메이션 일시정지
+   */
+  public pause(): void {
     this.isPaused = true;
     if (this.intervalId) {
       clearInterval(this.intervalId);
@@ -1611,418 +1555,425 @@ class FrameworkTextAnimator {
     }
   }
 
-  private resumeAnimation(): void {
+  /**
+   * 애니메이션 재개
+   */
+  public resume(): void {
     if (this.isPaused) {
       this.isPaused = false;
-      this.startAnimation();
+      this.start();
     }
   }
 
-  private togglePause(): void {
-    if (this.isPaused) {
-      this.resumeAnimation();
-    } else {
-      this.pauseAnimation();
+  /**
+   * 속도 전환 (빠름/보통)
+   */
+  public toggleSpeed(): void {
+    this.isHighSpeed = !this.isHighSpeed;
+    this.speed = this.isHighSpeed ? 1000 : 3000;
+    
+    if (!this.isPaused) {
+      this.start(); // 새 속도로 재시작
     }
   }
 
-  private navigateToNext(): void {
-    if (this.isAnimating) return;
-    const nextIndex = (this.currentIndex + 1) % this.texts.length;
-    this.animateToIndex(nextIndex);
-  }
-
-  private navigateToPrevious(): void {
-    if (this.isAnimating) return;
-    const prevIndex = this.currentIndex === 0 ? this.texts.length - 1 : this.currentIndex - 1;
-    this.animateToIndex(prevIndex);
-  }
-
-  private navigateToIndex(targetIndex: number): void {
-    if (this.isAnimating || targetIndex === this.currentIndex || 
-        targetIndex < 0 || targetIndex >= this.texts.length) {
+  /**
+   * 커스텀 속도 설정
+   * @param speed 밀리초 단위의 속도
+   */
+  public setSpeed(speed: number): void {
+    if (speed < 100) {
+      console.warn('속도는 100ms 이상이어야 합니다.');
       return;
     }
-    this.animateToIndex(targetIndex);
+    
+    this.speed = speed;
+    this.isHighSpeed = speed <= 1500;
+    
+    if (!this.isPaused) {
+      this.start();
+    }
   }
 
-  private animateToIndex(targetIndex: number): void {
+  /**
+   * 특정 인덱스로 즉시 이동
+   * @param index 이동할 텍스트 인덱스
+   */
+  public goToIndex(index: number): void {
+    if (index < 0 || index >= this.texts.length) {
+      console.warn('유효하지 않은 인덱스입니다.');
+      return;
+    }
+
     if (this.isAnimating) return;
 
-    this.isAnimating = true;
-    const currentText = this.texts[this.currentIndex];
-    const nextText = this.texts[targetIndex];
-
-    // Start smooth transition
-    this.startSmoothTransition(currentText, nextText);
-
-    // Update index and announce change
-    this.currentIndex = targetIndex;
-    this.announceChange(nextText);
-
-    // Reset animation state
-    setTimeout(() => {
-      this.isAnimating = false;
-    }, this.config.transitionDuration + 100);
-  }
-
-  private startSmoothTransition(currentText: HTMLElement, nextText: HTMLElement): void {
-    // Phase 1: Fade out current text
-    currentText.classList.add('leaving');
-    currentText.classList.remove('active');
-
-    // Phase 2: Prepare next text
-    this.prepareNextText(nextText);
-
-    // Phase 3: Smooth transition
-    setTimeout(() => {
-      this.hideAllTexts();
-      this.showNextText(nextText);
-    }, this.config.transitionDuration / 2);
-  }
-
-  private prepareNextText(nextText: HTMLElement): void {
-    nextText.style.opacity = '0';
-    nextText.style.transform = 'translateY(10px) scale(0.95)';
-  }
-
-  private hideAllTexts(): void {
+    // 모든 텍스트 숨기기
     this.texts.forEach(text => {
-      text.classList.remove('active', 'leaving');
-      text.style.opacity = '0';
-      text.style.transform = 'translateY(0) scale(1)';
+      text.classList.remove('active', 'smoke-out');
     });
+
+    // 지정된 텍스트 표시
+    this.texts[index].classList.add('active');
+    this.currentIndex = index;
   }
 
-  private showNextText(nextText: HTMLElement): void {
-    nextText.classList.add('active');
-    
-    // Smooth fade in animation
-    requestAnimationFrame(() => {
-      nextText.style.transition = `all ${this.config.transitionDuration / 2}ms cubic-bezier(0.4, 0, 0.2, 1)`;
-      nextText.style.opacity = '1';
-      nextText.style.transform = 'translateY(0) scale(1)';
-    });
-  }
-
-  private announceChange(element: HTMLElement): void {
-    let announcer = document.getElementById('framework-announcer') as HTMLElement;
-    
-    if (!announcer) {
-      announcer = document.createElement('div');
-      announcer.id = 'framework-announcer';
-      announcer.setAttribute('aria-live', 'polite');
-      announcer.setAttribute('aria-atomic', 'true');
-      announcer.style.cssText = `
-        position: absolute;
-        left: -10000px;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-      `;
-      document.body.appendChild(announcer);
+  /**
+   * 페이지 visibility 변경 처리
+   */
+  public handleVisibilityChange(): void {
+    if (document.hidden) {
+      this.pause();
+    } else {
+      this.resume();
     }
-
-    announcer.textContent = `SEO Select for ${element.textContent}`;
   }
 
-  // Public API methods
-  public goToIndex(index: number): void {
-    this.navigateToIndex(index);
-  }
-
-  public pause(): void {
-    this.pauseAnimation();
-  }
-
-  public resume(): void {
-    this.resumeAnimation();
-  }
-
+  /**
+   * 애니메이터 정리 (메모리 누수 방지)
+   */
   public destroy(): void {
-    this.pauseAnimation();
+    this.pause();
     
-    // Remove event listeners by cloning nodes
+    // 모든 클래스 제거
     this.texts.forEach(text => {
-      text.style.cursor = '';
-      const newText = text.cloneNode(true) as HTMLElement;
-      text.parentNode?.replaceChild(newText, text);
+      text.classList.remove('active', 'smoke-out');
     });
-
-    if (this.container) {
-      const newContainer = this.container.cloneNode(true) as HTMLElement;
-      this.container.parentNode?.replaceChild(newContainer, this.container);
-    }
-
-    // Clean up announcer
-    const announcer = document.getElementById('framework-announcer');
-    announcer?.remove();
   }
 
-  public updateConfig(newConfig: Partial<AnimationConfig>): void {
-    this.config = { ...this.config, ...newConfig };
-    
-    if (newConfig.cycleDuration) {
-      this.startAnimation();
-    }
-    
-    if (newConfig.performanceMode) {
-      this.optimizePerformanceMode();
-    }
-  }
-
-  public getCurrentFramework(): FrameworkConfig | null {
-    const currentText = this.texts[this.currentIndex];
-    if (!currentText) return null;
-
-    return this.frameworks.find(fw => 
-      currentText.classList.contains(fw.selector)
-    ) || null;
-  }
-
-  public getAllFrameworks(): FrameworkConfig[] {
-    return [...this.frameworks];
-  }
-
-  public getPerformanceInfo(): object {
+  /**
+   * 현재 상태 조회
+   */
+  public getState(): {
+    currentIndex: number;
+    isAnimating: boolean;
+    isPaused: boolean;
+    speed: number;
+    isHighSpeed: boolean;
+    totalTexts: number;
+  } {
     return {
-      performanceMode: this.config.performanceMode,
-      deviceCapabilities: this.deviceCapabilities,
       currentIndex: this.currentIndex,
-      totalFrameworks: this.texts.length,
       isAnimating: this.isAnimating,
       isPaused: this.isPaused,
-      config: { ...this.config }
+      speed: this.speed,
+      isHighSpeed: this.isHighSpeed,
+      totalTexts: this.texts.length
     };
   }
-}
 
-// ==========================================
-// Animation Manager
-// ==========================================
-class FrameworkAnimationManager {
-  private animator: FrameworkTextAnimator | null = null;
-
-  public initialize(): void {
-    if (this.animator) {
-      this.animator.destroy();
-    }
-
-    const config = this.createOptimalConfig();
-    this.animator = new FrameworkTextAnimator(config);
-
-    // Make globally accessible for debugging
-    (window as any).frameworkAnimator = this.animator;
+  /**
+   * 현재 활성 텍스트 내용 반환
+   */
+  public getCurrentText(): string {
+    return this.texts[this.currentIndex]?.textContent || '';
   }
 
-  private createOptimalConfig(): Partial<AnimationConfig> {
-    const config: Partial<AnimationConfig> = {
-      cycleDuration: 3000,
-      transitionDuration: 600,
-      pauseOnHover: true,
-      enableKeyboardNavigation: true,
-      enableClickNavigation: true,
-      performanceMode: 'auto'
-    };
-
-    // Override config based on URL parameters for testing
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    if (urlParams.has('animation-speed')) {
-      const speed = urlParams.get('animation-speed');
-      if (speed === 'fast') {
-        config.cycleDuration = 1500;
-        config.transitionDuration = 300;
-      } else if (speed === 'slow') {
-        config.cycleDuration = 5000;
-        config.transitionDuration = 900;
-      }
-    }
-
-    if (urlParams.has('performance')) {
-      const performance = urlParams.get('performance') as 'high' | 'medium' | 'low';
-      if (['high', 'medium', 'low'].includes(performance)) {
-        config.performanceMode = performance;
-      }
-    }
-
-    return config;
-  }
-
-  public getAnimator(): FrameworkTextAnimator | null {
-    return this.animator;
+  /**
+   * 모든 텍스트 내용 배열로 반환
+   */
+  public getAllTexts(): string[] {
+    return Array.from(this.texts).map(text => text.textContent || '');
   }
 }
 
-// ==========================================
-// Utility Functions
-// ==========================================
-function createFrameworkConfig(
-  selector: string,
-  text: string,
-  color: string,
-  displayDuration: number = 3000
-): FrameworkConfig {
-  return { selector, text, color, displayDuration };
-}
+/**
+ * 애니메이터 초기화 함수
+ * @param selector 텍스트 요소 선택자 (기본: '.text-item')
+ * @param autoSetupEvents 자동으로 이벤트 리스너 설정 여부 (기본: true)
+ * @returns SimpleTextAnimator 인스턴스
+ */
+function initializeTextAnimator(
+  selector: string = '.text-item', 
+  autoSetupEvents: boolean = true
+): SimpleTextAnimator {
+  const animator = new SimpleTextAnimator(selector);
 
-function validateFrameworkConfig(config: FrameworkConfig): boolean {
-  return !!(
-    config.selector &&
-    config.text &&
-    config.color &&
-    typeof config.displayDuration === 'number' &&
-    config.displayDuration > 0
-  );
-}
-
-function monitorAnimationPerformance(): void {
-  if (!window.performance || !window.PerformanceObserver) return;
-
-  const observer = new PerformanceObserver((list) => {
-    for (const entry of list.getEntries()) {
-      if (entry.name.includes('framework') || entry.name.includes('animation')) {
-        console.log('Framework Animation Performance:', {
-          name: entry.name,
-          duration: entry.duration,
-          startTime: entry.startTime
-        });
-      }
-    }
-  });
-
-  try {
-    observer.observe({ entryTypes: ['measure', 'navigation'] });
-  } catch (error) {
-    console.warn('Performance monitoring not supported:', error);
-  }
-}
-
-function enhanceAccessibility(): void {
-  const container = document.querySelector('.framework-text-container') as HTMLElement;
-  if (!container) return;
-
-  // Add ARIA labels if not already present
-  if (!container.hasAttribute('role')) {
-    container.setAttribute('role', 'region');
-  }
-  
-  if (!container.hasAttribute('aria-label')) {
-    container.setAttribute('aria-label', 'Supported frameworks rotation');
-  }
-
-  // Ensure proper keyboard navigation
-  container.addEventListener('focus', () => {
-    container.style.outline = '2px solid rgba(97, 218, 251, 0.5)';
-    container.style.outlineOffset = '4px';
-  });
-
-  container.addEventListener('blur', () => {
-    container.style.outline = '';
-    container.style.outlineOffset = '';
-  });
-}
-
-function integrateWithThemeSystem(): void {
-  const themeObserver = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
-        const animationManager = (window as any).frameworkAnimationManager as FrameworkAnimationManager;
-        const animator = animationManager?.getAnimator();
-        
-        if (animator) {
-          const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-          animator.updateConfig({
-            performanceMode: isDark ? 'medium' : 'high'
-          });
-        }
-      }
+  if (autoSetupEvents) {
+    // 페이지가 보이지 않을 때 애니메이션 정지
+    document.addEventListener('visibilitychange', () => {
+      animator.handleVisibilityChange();
     });
-  });
 
-  themeObserver.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['data-theme', 'class']
-  });
-}
+    // Reduced motion 사용자 설정 확인
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (prefersReducedMotion.matches) {
+      animator.pause(); // 애니메이션 자동 정지
+    }
 
-// ==========================================
-// Global Setup and Initialization
-// ==========================================
-let frameworkAnimationManager: FrameworkAnimationManager | null = null;
-
-function initializeFrameworkAnimator(): void {
-  frameworkAnimationManager = new FrameworkAnimationManager();
-  frameworkAnimationManager.initialize();
-  
-  // Make globally accessible
-  (window as any).frameworkAnimationManager = frameworkAnimationManager;
-}
-
-function setupUtilities(): void {
-  enhanceAccessibility();
-  integrateWithThemeSystem();
-  
-  // Optional performance monitoring in development
-  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
-    monitorAnimationPerformance();
+    // 페이지 언로드 시 정리
+    window.addEventListener('beforeunload', () => {
+      animator.destroy();
+    });
   }
+
+  return animator;
 }
 
-// Make utilities globally available
-(window as any).FrameworkAnimatorUtils = {
-  createFrameworkConfig,
-  validateFrameworkConfig,
-  monitorAnimationPerformance,
-  enhanceAccessibility,
-  integrateWithThemeSystem
-};
+// 전역 변수로 등록
+let globalAnimator: SimpleTextAnimator | null = null;
 
-// ==========================================
-// Auto-initialization
-// ==========================================
-function initialize(): void {
-  initializeFrameworkAnimator();
-  setupUtilities();
+/**
+ * 전역 애니메이터 초기화
+ * @param selector 텍스트 요소 선택자
+ * @returns SimpleTextAnimator 인스턴스
+ */
+function createGlobalAnimator(selector?: string): SimpleTextAnimator {
+  if (globalAnimator) {
+    globalAnimator.destroy();
+  }
+  
+  globalAnimator = initializeTextAnimator(selector);
+  return globalAnimator;
 }
 
-// DOM ready check
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initialize);
-} else {
-  initialize();
+/**
+ * 전역 애니메이터 반환
+ */
+function getGlobalAnimator(): SimpleTextAnimator | null {
+  return globalAnimator;
 }
 
 // ==========================================
-// Global Exports and Initialization
+// 통합 앱 초기화 시스템
 // ==========================================
+
+/**
+ * 전체 애플리케이션 초기화 함수
+ */
+function initializeApp(): void {
+  console.log('🚀 Initializing SEO Select Demo App...');
+
+  // Text Animator 초기화
+  if (document.querySelector('.text-item')) {
+    globalAnimator = createGlobalAnimator();
+    console.log('✅ Text Animator initialized');
+  }
+  
+  // Demo Manager 초기화 (Page Loader 포함)
+  new DemoManager();
+  console.log('✅ Demo Manager initialized');
+}
+
+// Window 객체에 등록 (전역 접근 가능)
 declare global {
   interface Window {
+    SimpleTextAnimator: typeof SimpleTextAnimator;
+    initializeTextAnimator: typeof initializeTextAnimator;
+    createGlobalAnimator: typeof createGlobalAnimator;
+    getGlobalAnimator: typeof getGlobalAnimator;
     DemoActions: typeof DemoActions;
     DynamicDemoActions: typeof DynamicDemoActions;
-    FrameworkTextAnimator: typeof FrameworkTextAnimator;
-    FrameworkAnimationManager: typeof FrameworkAnimationManager;
-    frameworkAnimationManager: FrameworkAnimationManager | null;
-    frameworkAnimator: FrameworkTextAnimator | null;
-    FrameworkAnimatorUtils: {
-      createFrameworkConfig: typeof createFrameworkConfig;
-      validateFrameworkConfig: typeof validateFrameworkConfig;
-      monitorAnimationPerformance: typeof monitorAnimationPerformance;
-      enhanceAccessibility: typeof enhanceAccessibility;
-      integrateWithThemeSystem: typeof integrateWithThemeSystem;
-    };
+    initializeApp: typeof initializeApp;
   }
 }
 
-// Make available globally
-window.DemoActions = DemoActions;
-window.DynamicDemoActions = DynamicDemoActions;
-window.FrameworkTextAnimator = FrameworkTextAnimator;
-window.FrameworkAnimationManager = FrameworkAnimationManager;
+// 브라우저 환경에서 전역 등록
+if (typeof window !== 'undefined') {
+  window.SimpleTextAnimator = SimpleTextAnimator;
+  window.initializeTextAnimator = initializeTextAnimator;
+  window.createGlobalAnimator = createGlobalAnimator;
+  window.getGlobalAnimator = getGlobalAnimator;
+  window.DemoActions = DemoActions;
+  window.DynamicDemoActions = DynamicDemoActions;
+  window.initializeApp = initializeApp;
+}
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  new DemoManager();
-  new PageLoaderManager().initialize();
-  printWelcomeMessage();
-});
+// ==========================================
+// 메인 애플리케이션 시작점
+// ==========================================
+
+// Page Loader 안전 장치 (즉시 실행)
+(function() {
+  // 최대 10초 후 강제로 로더 숨김
+  setTimeout(function() {
+    const loader = document.querySelector('.page-loder') as HTMLElement | null;
+    if (loader && loader.style.display !== 'none' && !loader.classList.contains('full-hide')) {
+      loader.style.display = 'none';
+      console.warn('Page loader hidden by safety timeout (10s)');
+    }
+  }, 10000);
+  
+  // 에러 발생 시 로더 숨김
+  window.addEventListener('error', function(event) {
+    const loader = document.querySelector('.page-loder') as HTMLElement | null;
+    if (loader && loader.style.display !== 'none') {
+      loader.style.display = 'none';
+      console.warn('Page loader hidden due to error:', event.error);
+    }
+  });
+
+  // 스크립트 로드 에러 시 로더 숨김
+  window.addEventListener('unhandledrejection', function(event) {
+    const loader = document.querySelector('.page-loder') as HTMLElement | null;
+    if (loader && loader.style.display !== 'none') {
+      loader.style.display = 'none';
+      console.warn('Page loader hidden due to unhandled rejection:', event.reason);
+    }
+  });
+})();
+
+// DOM 준비 상태에 따른 초기화
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('📄 DOM Content Loaded');
+    // 약간의 지연을 두어 다른 스크립트들이 로드되도록 함
+    setTimeout(() => {
+      try {
+        initializeApp();
+      } catch (error) {
+        console.error('❌ Failed to initialize app:', error);
+        // 에러가 발생해도 로더는 숨김
+        const loader = document.querySelector('.page-loder') as HTMLElement | null;
+        if (loader) {
+          loader.style.display = 'none';
+        }
+      }
+    }, 100);
+  });
+} else {
+  console.log('📄 DOM already loaded');
+  // DOM이 이미 로드된 경우 즉시 초기화
+  setTimeout(() => {
+    try {
+      initializeApp();
+    } catch (error) {
+      console.error('❌ Failed to initialize app:', error);
+      // 에러가 발생해도 로더는 숨김
+      const loader = document.querySelector('.page-loder') as HTMLElement | null;
+      if (loader) {
+        loader.style.display = 'none';
+      }
+    }
+  }, 50);
+}
+
+// ==========================================
+// 추가 안전 장치 및 디버깅 도구
+// ==========================================
+
+// 개발 환경 디버깅 도구
+if (typeof window !== 'undefined') {
+  // 전역 디버깅 함수
+  (window as any).debugSeoSelect = {
+    // 모든 SEO Select 컴포넌트 찾기
+    findAllComponents: () => {
+      const components = document.querySelectorAll('seo-select, seo-select-search');
+      console.log(`Found ${components.length} SEO Select components:`, components);
+      return components;
+    },
+    
+    // 컴포넌트 상태 확인
+    checkComponent: (nameOrId: string) => {
+      const element = document.querySelector(`seo-select[name="${nameOrId}"], seo-select-search[name="${nameOrId}"], #${nameOrId}`) as SeoSelectElement | null;
+      if (element && isSeoSelectElement(element)) {
+        console.log(`Component ${nameOrId} state:`, {
+          name: element.name,
+          value: element.value,
+          selectedValues: element.selectedValues,
+          optionItems: element.optionItems,
+          dark: element.dark,
+          showReset: element.showReset
+        });
+        return element;
+      } else {
+        console.warn(`Component ${nameOrId} not found or not a SEO Select component`);
+        return null;
+      }
+    },
+    
+    // 페이지 로더 강제 숨김
+    hideLoader: () => {
+      const loader = document.querySelector('.page-loder') as HTMLElement | null;
+      if (loader) {
+        loader.style.display = 'none';
+        loader.classList.add('full-hide');
+        console.log('✅ Page loader manually hidden');
+      } else {
+        console.log('ℹ️ Page loader not found');
+      }
+    },
+    
+    // 페이지 로더 상태 확인
+    checkLoader: () => {
+      const loader = document.querySelector('.page-loder') as HTMLElement | null;
+      if (loader) {
+        console.log('Page loader status:', {
+          display: loader.style.display,
+          classList: Array.from(loader.classList),
+          offsetHeight: loader.offsetHeight,
+          offsetWidth: loader.offsetWidth
+        });
+      } else {
+        console.log('Page loader element not found');
+      }
+    },
+    
+    // 애니메이터 상태 확인
+    checkAnimator: () => {
+      const animator = getGlobalAnimator();
+      if (animator) {
+        const state = animator.getState();
+        console.log('Text animator state:', state);
+        console.log('Current text:', animator.getCurrentText());
+        return state;
+      } else {
+        console.log('Text animator not initialized');
+        return null;
+      }
+    },
+    
+    // 모든 이벤트 리스너가 초기화된 컴포넌트 확인
+    checkEventListeners: () => {
+      const components = document.querySelectorAll('seo-select, seo-select-search');
+      const initialized: Element[] = [];
+      const notInitialized: Element[] = [];
+      
+      components.forEach(component => {
+        if (isSeoSelectElement(component) && component.dataset.eventListenersInitialized) {
+          initialized.push(component);
+        } else {
+          notInitialized.push(component);
+        }
+      });
+      
+      console.log(`Event listeners initialized: ${initialized.length}, Not initialized: ${notInitialized.length}`);
+      console.log('Initialized components:', initialized);
+      console.log('Not initialized components:', notInitialized);
+      
+      return { initialized, notInitialized };
+    },
+    
+    // 성능 메트릭 확인
+    getPerformanceMetrics: () => {
+      const metrics = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      console.log('Page load performance:', {
+        domContentLoaded: `${metrics.domContentLoadedEventEnd - metrics.navigationStart}ms`,
+        loadComplete: `${metrics.loadEventEnd - metrics.navigationStart}ms`,
+        domInteractive: `${metrics.domInteractive - metrics.navigationStart}ms`
+      });
+      return metrics;
+    }
+  };
+  
+  console.log(`
+🛠️  SEO Select Debug Tools Available:
+• window.debugSeoSelect.findAllComponents() - Find all components
+• window.debugSeoSelect.checkComponent('component-name') - Check component state
+• window.debugSeoSelect.hideLoader() - Manually hide page loader
+• window.debugSeoSelect.checkLoader() - Check loader status
+• window.debugSeoSelect.checkAnimator() - Check text animator
+• window.debugSeoSelect.checkEventListeners() - Check event initialization
+• window.debugSeoSelect.getPerformanceMetrics() - Get performance data
+`);
+}
+
+// 환경 정보 출력
+console.log(`
+🌐 Environment Info:
+• User Agent: ${navigator.userAgent}
+• Screen: ${screen.width}x${screen.height}
+• Viewport: ${window.innerWidth}x${window.innerHeight}
+• DOM Ready State: ${document.readyState}
+• Page Loaded: ${document.readyState === 'complete'}
+• Custom Elements Support: ${typeof customElements !== 'undefined'}
+`);
