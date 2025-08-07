@@ -10,6 +10,7 @@ A lightweight and extensible select component built with Lit, designed to work s
 
 - **[GitHub](https://github.com/seadonggyun4/seo-select)**
 - **[NPM: seo-select](https://www.npmjs.com/package/seo-select)**
+- **[NPM: seo-select-react](https://www.npmjs.com/package/seo-select-react)**
 - **[DemoSite](https://seo-select.netlify.app/)**
 
 ## Features
