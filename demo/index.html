@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Primary Meta Tags -->
@@ -59,6 +59,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" integrity="sha512-oHDEc8Xed4hiW6CxD7qjbnI+B07vDdX7hEPTvn9pSZO1bcRqHp8mj9pyr+8RVC2GmtEfI2Bi9Ke9Ass0as+zpg==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" href="/style.scss">
+    <link rel="stylesheet" href="/animated-header.scss">
     
     <!-- Structured Data - Organization -->
     <script type="application/ld+json">
@@ -165,13 +166,22 @@
     
     <!-- Performance optimization -->
     <link rel="preload" as="style" href="/style.scss">
+    <link rel="preload" as="style" href="/animated-header.scss">
     <link rel="preload" as="script" href="src/main.ts">
+    <link rel="preload" as="script" href="/animated-header.ts">
 </head>
 <body>
     <div class="container">
         <header class="header">
             <div class="header-content">
-                <h1 class="header-title">SEO Select</h1>
+                <div class="header-title-container">
+                    <h1 class="header-title">SEO Select</h1>
+                    <div class="framework-text-container">
+                        <span class="framework-text javascript active">JavaScript</span>
+                        <span class="framework-text react">React</span>
+                        <span class="framework-text typescript">TypeScript</span>
+                    </div>
+                </div>
                 <p class="header-subtitle">
                     Discover a new kind of lightweight and modern select component intuitive search, multilingual support, and fully accessible by design.
                 </p>
@@ -189,6 +199,28 @@
                 </seo-select-search>
             </div>
         </header>
+
+        <div class="demo-content">
+            <h2 style="color: #ffffff; margin-bottom: 16px;">Cross-Framework Compatibility</h2>
+            <p class="demo-info">
+                SEO Select is built as a Web Component, making it compatible with all modern frameworks and vanilla JavaScript.
+            </p>
+            
+            <div class="tech-list">
+                <div class="tech-item">
+                    <div class="tech-name" style="color: #F7DF1E;">JavaScript</div>
+                    <div class="tech-desc">Native ES6+ support</div>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-name" style="color: #61DAFB;">React</div>
+                    <div class="tech-desc">React wrapper available</div>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-name" style="color: #3178C6;">TypeScript</div>
+                    <div class="tech-desc">Full type definitions</div>
+                </div>
+            </div>
+        </div>
 
         <nav class="demo-nav">
             <button class="nav-btn active" data-section="basic">Basic Usage</button>
@@ -652,8 +684,6 @@
                     </div>
                 </div>
 
-
-
                 <div class="use-case">
                     <h3>Performance Monitoring</h3>
                     <p>
@@ -675,8 +705,6 @@
                         <span>Performance monitoring for dynamic operations and virtual scrolling</span>
                     </div>
                 </div>
-
-
             </section>
 
             <!-- Advanced Features Section -->
@@ -879,5 +907,6 @@
 
     <script type="module" src="src/main.ts"></script>
     <script src="/demo.ts"></script>
+    <script src="/animated-header.js"></script>
 </body>
 </html>
