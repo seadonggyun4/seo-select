@@ -1,6 +1,6 @@
 {
   "name": "seo-select-react",
-  "version": "1.0.14",
+  "version": "1.0.22",
   "description": "React wrapper components for seo-select - A customizable and accessible select component with search functionality",
   "type": "module",
   "main": "./dist/index.js",
@@ -21,8 +21,7 @@
       "types": "./dist/SeoSelectSearch.d.ts",
       "import": "./dist/SeoSelectSearch.js",
       "require": "./dist/SeoSelectSearch.cjs"
-    },
-    "./styles": "./dist/styles/style.css"
+    }
   },
   "files": [
     "dist/**/*",
@@ -52,20 +51,19 @@
   },
   "homepage": "https://seo-select.netlify.app/",
   "scripts": {
-    "build": "npm run clean && npm run build:parent && npm run build:lib && npm run copy:styles",
-    "build:parent": "cd .. && npm run build",
+    "build": "npm run clean && npm run build:lib",
     "build:lib": "vite build && npm run build:types",
     "build:types": "tsc --project ./tsconfig.json --emitDeclarationOnly --skipLibCheck",
-    "copy:styles": "tsx ../scripts/copy-styles.ts react",
     "clean": "rm -rf dist",
-    "dev": "npm run build:parent && vite",
+    "dev": "vite",
     "type-check": "tsc --project ./tsconfig.json --noEmit --skipLibCheck",
     "prepublishOnly": "npm run type-check && npm run build",
     "publish:npm": "npm publish --access public"
   },
   "peerDependencies": {
     "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "react-dom": ">=16.8.0",
+    "seo-select": ">=2.2.0"
   },
   "peerDependenciesMeta": {
     "typescript": {
@@ -78,6 +76,7 @@
     "@types/node": "^22.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
+    "seo-select": ">=2.2.0",
     "typescript": "^5.0.0",
     "tsx": "^4.19.2",
     "vite": "^7.0.6",
