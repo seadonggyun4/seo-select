@@ -79,7 +79,8 @@
     "install:react": "cd react && npm install",
     "clean:all": "npm run clean && cd react && npm run clean",
     "setup": "npm install && npm run install:react",
-    "build:release": "npm run build:all && echo 'Both packages built successfully'"
+    "build:release": "npm run build:all && echo 'Both packages built successfully'",
+    "copy:styles:react": "tsx scripts/copy-styles.ts react"
   },
   "dependencies": {
     "lit": "^3.0.0"
