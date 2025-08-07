@@ -8,28 +8,35 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
     "module": "ESNext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": false,
     "jsx": "react-jsx",
+    "jsxImportSource": "react",
     "declaration": true,
     "declarationMap": true,
+    "sourceMap": false,
     "outDir": "./dist",
-    "rootDir": "./wrapper",
-    "baseUrl": "./wrapper",
+    "rootDir": ".",
+    "baseUrl": ".",
     "paths": {
-      "../../dist/types/index.js": ["../../dist/types/index.d.ts"],
-      "../../dist/index.js": ["../../dist/index.d.ts"],
-      "../../dist/components/seo-select-search/index.js": ["../../dist/components/seo-select-search/index.d.ts"]
+      "@parent": [".."],
+      "@parent-dist": ["../dist"],
+      "@parent-types": ["../dist/types"]
     }
   },
   "include": [
-    "wrapper/**/*"
+    "./wrapper/SeoSelect.tsx",
+    "./wrapper/SeoSelectSearch.tsx",
+    "./index.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "**/*.test.*",
+    "**/*.spec.*"
   ]
 }

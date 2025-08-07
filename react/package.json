@@ -1,6 +1,6 @@
 {
   "name": "seo-select-react",
-  "version": "1.0.2",
+  "version": "1.0.14",
   "description": "React wrapper components for seo-select - A customizable and accessible select component with search functionality",
   "type": "module",
   "main": "./dist/index.js",
@@ -54,12 +54,12 @@
   "scripts": {
     "build": "npm run clean && npm run build:parent && npm run build:lib && npm run copy:styles",
     "build:parent": "cd .. && npm run build",
-    "build:lib": "vite build",
-    "build:types": "tsc --project ./tsconfig.json",
+    "build:lib": "vite build && npm run build:types",
+    "build:types": "tsc --project ./tsconfig.json --emitDeclarationOnly --skipLibCheck",
     "copy:styles": "tsx ../scripts/copy-styles.ts react",
     "clean": "rm -rf dist",
     "dev": "npm run build:parent && vite",
-    "type-check": "tsc --project ./tsconfig.json --noEmit",
+    "type-check": "tsc --project ./tsconfig.json --noEmit --skipLibCheck",
     "prepublishOnly": "npm run type-check && npm run build",
     "publish:npm": "npm publish --access public"
   },
@@ -81,7 +81,7 @@
     "typescript": "^5.0.0",
     "tsx": "^4.19.2",
     "vite": "^7.0.6",
-    "vite-plugin-dts": "^4.0.0"
+    "vite-plugin-dts": "^4.3.0"
   },
   "engines": {
     "node": ">=16.0.0"
@@ -89,5 +89,6 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
-  }
+  },
+  "sideEffects": false
 }
