@@ -29,6 +29,19 @@ import type {
   SearchLocalizedTexts
 } from '../../types/index.js';
 
+// 글로벌 타입 확장 - 검색 이벤트 추가
+declare global {
+  interface HTMLElementEventMap {
+    [EVENT_NAMES.SELECT]: import('../../event/SeoSelectEvent.js').SeoSelectEvent;
+    [EVENT_NAMES.DESELECT]: import('../../event/SeoSelectEvent.js').SeoDeselectEvent;
+    [EVENT_NAMES.RESET]: import('../../event/SeoSelectEvent.js').SeoResetEvent;
+    [EVENT_NAMES.CHANGE]: import('../../event/SeoSelectEvent.js').SeoChangeEvent;
+    [EVENT_NAMES.SELECT_OPEN]: import('../../event/SeoSelectEvent.js').SeoOpenEvent;
+    [EVENT_NAMES.SEARCH_CHANGE]: import('../../event/SeoSearchEvent.js').SeoSearchChangeEvent;
+    [EVENT_NAMES.SEARCH_FILTER]: import('../../event/SeoSearchEvent.js').SeoSearchFilterEvent;
+  }
+}
+
 export class SeoSelectSearch extends SeoSelect {
   static get properties() {
     return {
@@ -155,19 +168,24 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     }
   }
 
-  // 검색 컴포넌트의 높이 계산 오버라이드
+  // 검색 컴포넌트의 높이 계산 오버라이드 - 수정된 버전
   public override calculateDropdownHeight(): string {
-    // 검색 입력창 높이 (50px) 추가 고려
     const searchInputHeight = 50;
     
     // 로딩 중인 경우
     if (this._isLoading) {
-      return `${80 + searchInputHeight}px`; // 로딩 컨테이너 + 검색 입력
+      return `${80 + searchInputHeight}px`;
     }
-    
+
+    // 옵션이 없는 경우 - 기본 SeoSelect와 일관성 있게 처리
     if (this._options.length === 0) {
-      if (this.multiple && this._searchText) {
-        return `${60 + searchInputHeight}px`; // no-data + 검색 입력
+      if (this.multiple) {
+        // 멀티셀렉트에서 검색 텍스트가 있을 때만 no-data 영역 표시
+        if (this._searchText.trim()) {
+          return `${60 + searchInputHeight}px`; // no-data + 검색 입력
+        }
+        // 검색 텍스트가 없고 옵션도 없으면 최소 높이로 축소
+        return `${searchInputHeight + 20}px`; // 검색 입력 + 최소 패딩
       }
       return 'auto';
     }
@@ -175,8 +193,11 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     // 옵션이 있는 경우 높이 계산
     const rowHeight = 36;
     const maxHeight = 360;
-    const computedHeight = this._options.length * rowHeight;
-    const finalHeight = this._options.length > 10 ? maxHeight : computedHeight;
+    
+    // 실제 표시될 옵션 수를 기준으로 계산 (멀티셀렉트는 선택된 항목 제외)
+    const availableOptions = this.getAllOptionData();
+    const computedHeight = availableOptions.length * rowHeight;
+    const finalHeight = availableOptions.length > 10 ? maxHeight : computedHeight;
     
     return `${finalHeight + searchInputHeight + 5}px`;
   }
@@ -185,11 +206,11 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     return ICONS.SEARCH();
   }
 
-  // 검색 기능이 있는 드롭다운 렌더링 - 높이 개선
+  // 검색 기능이 있는 드롭다운 렌더링 - 수정된 버전
   private renderSearchDropdown() {
     const searchTexts = this.getSearchLocalizedText();
     const hasOptions = this.getAllOptionData().length > 0;
-    const showNoData = this.multiple && !this._isLoading && !hasOptions;
+    const showNoData = this.multiple && !this._isLoading && !hasOptions && this._searchText.trim();
     const effectiveWidth = this.getEffectiveWidth();
     const effectiveHeight = this.getEffectiveHeight();
 
@@ -360,7 +381,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     return this.value ?? undefined;
   }
 
-  // 향상된 다국어 검색 필터 적용 - 높이 업데이트 포함
+  // 향상된 다국어 검색 필터 적용 - 수정된 버전
   private _applyFilteredOptions(): void {
     if (!this._virtual) return;
 
@@ -372,18 +393,14 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       this._virtual.setData(allOptions, this.multiple ? undefined : this.getCurrentValue());
       this._noMatchVisible = false;
 
-      // 높이 재계산
+      // 높이 재계산 - 검색 텍스트가 없을 때 정확한 높이 계산
       this._calculatedHeight = this.calculateDropdownHeight();
-
-      // 표준 이벤트 사용
       triggerSearchFilterEvent(this, allOptions, rawInput, true);
-      
       this._debouncedUpdate();
       return;
     }
 
     const allOptions: OptionItem[] = this.getAllOptionData();
-    
     const filtered = allOptions.filter(opt => {
       const label = (opt.label ?? '').toString();
       return isMultilingualMatch(rawInput, label);
@@ -391,24 +408,18 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
     if (filtered.length === 0) {
       const noMatchOption = [{ value: 'no_match', label: searchTexts.noMatchText, disabled: true }];
-      this._virtual.setData(
-        noMatchOption,
-        this.multiple ? undefined : this.getCurrentValue(),
-      );
+      this._virtual.setData(noMatchOption, this.multiple ? undefined : this.getCurrentValue());
       
-      // no-match 상태일 때 높이 설정
-      this._calculatedHeight = `${60 + 50 + 5}px`; // no-data + search + padding
-
-      // 표준 이벤트 사용
+      // no-match 상태 높이
+      this._calculatedHeight = `${60 + 50 + 5}px`;
       triggerSearchFilterEvent(this, [], rawInput, false);
-      
       this._debouncedUpdate();
       return;
     }
 
     this._virtual.setData(filtered, this.multiple ? undefined : this.getCurrentValue());
     
-    // 필터링된 결과에 따른 높이 재계산
+    // 필터링된 결과에 따른 정확한 높이 계산
     const rowHeight = 36;
     const maxHeight = 360;
     const searchInputHeight = 50;
@@ -416,12 +427,11 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     const finalHeight = filtered.length > 10 ? maxHeight : computedHeight;
     this._calculatedHeight = `${finalHeight + searchInputHeight + 5}px`;
 
-    // 표준 이벤트 사용
     triggerSearchFilterEvent(this, filtered, rawInput, true);
-    
     this._debouncedUpdate();
   }
 
+  // removeTag 메서드 수정 - 높이 재계산 강화
   public override removeTag = (e: Event, valueToRemove: string): void => {
     e.stopPropagation();
     this._selectedValues = this._selectedValues.filter(value => value !== valueToRemove);
@@ -438,17 +448,23 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         const scrollEl = this.querySelector(`.${CSS_CLASSES.SCROLL}`) as HTMLDivElement;
         if (scrollEl) {
           this._virtual = this._createVirtualSelect(optionData, scrollEl);
-          if (this._searchText) {
+          
+          // 검색 필터 재적용 (검색 텍스트가 있는 경우)
+          if (this._searchText.trim()) {
             this._applyFilteredOptions();
+          } else {
+            // 검색 텍스트가 없으면 바로 높이 재계산
+            this._calculatedHeight = this.calculateDropdownHeight();
           }
+          
           requestAnimationFrame(() => {
             this._virtual?.setActiveIndex(0);
           });
         }
+      } else {
+        // 옵션이 없을 때도 높이 재계산
+        this._calculatedHeight = this.calculateDropdownHeight();
       }
-      
-      // 높이 재계산
-      this._calculatedHeight = this.calculateDropdownHeight();
     }
 
     triggerDeselectEvent(this, option?.textContent || '', valueToRemove);
@@ -548,6 +564,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     }
   }
 
+  // selectOption 메서드 수정 - 높이 재계산 강화
   public override selectOption(value: string, label: string): void {
     if (this.multiple) {
       this._selectedValues = [...this._selectedValues, value];
@@ -562,25 +579,29 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         const optionData = this.getAllOptionData();
         if (optionData.length > 0) {
           this._virtual = this._createVirtualSelect(optionData, scrollEl);
-          if (this._searchText) {
+          
+          // 검색 필터 재적용 (검색 텍스트가 있는 경우)
+          if (this._searchText.trim()) {
             this._applyFilteredOptions();
+          } else {
+            // 검색 텍스트가 없으면 바로 높이 재계산
+            this._calculatedHeight = this.calculateDropdownHeight();
           }
+          
           requestAnimationFrame(() => {
             this._virtual?.setActiveIndex(0);
           });
+        } else {
+          // 선택 가능한 옵션이 모두 선택되어 없을 때 높이 재계산
+          this._calculatedHeight = this.calculateDropdownHeight();
         }
       }
-      
-      // 높이 재계산
-      this._calculatedHeight = this.calculateDropdownHeight();
 
       triggerSelectEvent(this, label, value);
-
     } else {
       this._labelText = label;
       this._setValue(value);
       this.closeDropdown();
-
       triggerSelectEvent(this, label, value);
     }
   }
