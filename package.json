@@ -23,6 +23,10 @@
       "types": "./dist/types/index.d.ts",
       "import": "./dist/types/index.js"
     },
+    "./constants": {
+      "types": "./dist/constants/constants.d.ts",
+      "import": "./dist/constants/constants.js"
+    },
     "./styles": {
       "import": "./dist/styles/components/style.css"
     }
