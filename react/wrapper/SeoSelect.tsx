@@ -361,23 +361,63 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     const element = webComponentInstance;
 
     const handleSelect = (event: Event) => {
-      const customEvent = event as CustomEvent<{ label: string; value: string }>;
-      onSelect?.(customEvent.detail);
+      console.log('Select event received:', event);
+      const customEvent = event as CustomEvent;
+      console.log('Event detail:', customEvent.detail);
+      
+      // detail이 없는 경우 기본값 처리
+      if (!customEvent.detail) {
+        console.warn('No detail in select event');
+        return;
+      }
+      
+      // detail이 객체인지 확인
+      if (typeof customEvent.detail === 'object' && customEvent.detail !== null) {
+        const { label = '', value = '' } = customEvent.detail;
+        onSelect?.({ label: String(label), value: String(value) });
+      } else {
+        console.warn('Invalid detail format in select event:', customEvent.detail);
+      }
     };
     
     const handleDeselect = (event: Event) => {
-      const customEvent = event as CustomEvent<{ label: string; value: string }>;
-      onDeselect?.(customEvent.detail);
+      console.log('Deselect event received:', event);
+      const customEvent = event as CustomEvent;
+      
+      if (!customEvent.detail) {
+        console.warn('No detail in deselect event');
+        return;
+      }
+      
+      if (typeof customEvent.detail === 'object' && customEvent.detail !== null) {
+        const { label = '', value = '' } = customEvent.detail;
+        onDeselect?.({ label: String(label), value: String(value) });
+      }
     };
     
     const handleReset = (event: Event) => {
+      console.log('Reset event received:', event);
       const customEvent = event as CustomEvent;
+      
+      if (!customEvent.detail) {
+        console.warn('No detail in reset event');
+        return;
+      }
+      
       onReset?.(customEvent.detail);
     };
     
-    const handleChange = () => onChange?.();
-    const handleOpen = () => onOpen?.();
+    const handleChange = (event: Event) => {
+      console.log('Change event received:', event);
+      onChange?.();
+    };
+    
+    const handleOpen = (event: Event) => {
+      console.log('Open event received:', event);
+      onOpen?.();
+    };
 
+    // 이벤트 리스너 등록
     if (onSelect) element.addEventListener('onSelect', handleSelect);
     if (onDeselect) element.addEventListener('onDeselect', handleDeselect);
     if (onReset) element.addEventListener('onReset', handleReset);
@@ -385,6 +425,7 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     if (onOpen) element.addEventListener('onOpen', handleOpen);
 
     return () => {
+      // 이벤트 리스너 제거
       if (onSelect) element.removeEventListener('onSelect', handleSelect);
       if (onDeselect) element.removeEventListener('onDeselect', handleDeselect);
       if (onReset) element.removeEventListener('onReset', handleReset);
@@ -393,7 +434,7 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     };
   }, [webComponentInstance, onSelect, onDeselect, onReset, onChange, onOpen]);
 
-  // Props 동기화
+  // Props 동기화 - optionItems와 value만 동적으로 처리
   useEffect(() => {
     if (webComponentInstance && optionItems && Array.isArray(optionItems)) {
       try {
@@ -417,24 +458,6 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
       }
     }
   }, [webComponentInstance, value]);
-
-  // 속성 동기화
-  useEffect(() => {
-    if (!webComponentInstance) return;
-    
-    const element = webComponentInstance;
-    
-    // 속성 설정
-    if (theme) element.setAttribute('theme', theme);
-    if (typeof dark === 'boolean') element.setAttribute('dark', dark.toString());
-    if (language) element.setAttribute('language', language);
-    if (typeof showReset === 'boolean') element.setAttribute('show-reset', showReset.toString());
-    if (width) element.setAttribute('width', width);
-    if (typeof multiple === 'boolean') element.setAttribute('multiple', multiple.toString());
-    if (typeof required === 'boolean') element.setAttribute('required', required.toString());
-    if (typeof disabled === 'boolean') element.setAttribute('disabled', disabled.toString());
-    if (name) element.setAttribute('name', name);
-  }, [webComponentInstance, theme, dark, language, showReset, width, multiple, required, disabled, name]);
 
   // children 처리 - selected 속성 제거 (useMemo로 최적화)
   const processedChildren = React.useMemo(() => {
@@ -464,13 +487,14 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     if (className) attributes.push(`class="${className}"`);
     if (name) attributes.push(`name="${name}"`);
     if (theme) attributes.push(`theme="${theme}"`);
-    if (typeof dark === 'boolean') attributes.push(`dark="${dark}"`);
+    // Boolean 속성은 true일 때만 추가 (속성 존재 자체가 true를 의미)
+    if (dark === true) attributes.push('dark');
     if (language) attributes.push(`language="${language}"`);
-    if (typeof showReset === 'boolean') attributes.push(`show-reset="${showReset}"`);
+    if (showReset === true) attributes.push('show-reset');
     if (width) attributes.push(`width="${width}"`);
-    if (typeof multiple === 'boolean') attributes.push(`multiple="${multiple}"`);
-    if (typeof required === 'boolean') attributes.push(`required="${required}"`);
-    if (typeof disabled === 'boolean') attributes.push(`disabled="${disabled}"`);
+    if (multiple === true) attributes.push('multiple');
+    if (required === true) attributes.push('required');
+    if (disabled === true) attributes.push('disabled');
     
     const attributeString = attributes.join(' ');
     
@@ -550,7 +574,7 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
         display: 'inline-block',
         minWidth: '120px'
       }}>
-        Loading seo-select...
+        Loading
       </div>
     );
   }
