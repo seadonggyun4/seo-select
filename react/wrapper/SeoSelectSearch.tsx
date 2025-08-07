@@ -400,33 +400,83 @@ const SeoSelectSearch = forwardRef<SeoSelectSearchRef, SeoSelectSearchProps>((pr
     const element = webComponentInstance;
 
     const handleSelect = (event: Event) => {
-      const customEvent = event as CustomEvent<{ label: string; value: string }>;
-      onSelect?.(customEvent.detail);
+      console.log('Select event received:', event);
+      const customEvent = event as CustomEvent;
+      console.log('Event detail:', customEvent.detail);
+      
+      // detail이 없는 경우 기본값 처리
+      if (!customEvent.detail) {
+        console.warn('No detail in select event');
+        return;
+      }
+      
+      // detail이 객체인지 확인
+      if (typeof customEvent.detail === 'object' && customEvent.detail !== null) {
+        const { label = '', value = '' } = customEvent.detail;
+        onSelect?.({ label: String(label), value: String(value) });
+      } else {
+        console.warn('Invalid detail format in select event:', customEvent.detail);
+      }
     };
     
     const handleDeselect = (event: Event) => {
-      const customEvent = event as CustomEvent<{ label: string; value: string }>;
-      onDeselect?.(customEvent.detail);
+      console.log('Deselect event received:', event);
+      const customEvent = event as CustomEvent;
+      
+      if (!customEvent.detail) {
+        console.warn('No detail in deselect event');
+        return;
+      }
+      
+      if (typeof customEvent.detail === 'object' && customEvent.detail !== null) {
+        const { label = '', value = '' } = customEvent.detail;
+        onDeselect?.({ label: String(label), value: String(value) });
+      }
     };
     
     const handleReset = (event: Event) => {
+      console.log('Reset event received:', event);
       const customEvent = event as CustomEvent;
+      
+      if (!customEvent.detail) {
+        console.warn('No detail in reset event');
+        return;
+      }
+      
       onReset?.(customEvent.detail);
     };
     
-    const handleChange = () => onChange?.();
-    const handleOpen = () => onOpen?.();
+    const handleChange = (event: Event) => {
+      console.log('Change event received:', event);
+      onChange?.();
+    };
+    
+    const handleOpen = (event: Event) => {
+      console.log('Open event received:', event);
+      onOpen?.();
+    };
     
     const handleSearchChange = (event: Event) => {
-      const customEvent = event as CustomEvent<string>;
-      onSearchChange?.(customEvent.detail);
+      console.log('Search change event received:', event);
+      const customEvent = event as CustomEvent;
+      
+      if (customEvent.detail !== undefined) {
+        onSearchChange?.(String(customEvent.detail));
+      }
     };
     
     const handleSearchFilter = (event: Event) => {
-      const customEvent = event as CustomEvent<VirtualSelectOption[]>;
-      onSearchFilter?.(customEvent.detail);
+      console.log('Search filter event received:', event);
+      const customEvent = event as CustomEvent;
+      
+      if (Array.isArray(customEvent.detail)) {
+        onSearchFilter?.(customEvent.detail);
+      } else {
+        console.warn('Invalid detail format in search filter event:', customEvent.detail);
+      }
     };
 
+    // 이벤트 리스너 등록
     if (onSelect) element.addEventListener('onSelect', handleSelect);
     if (onDeselect) element.addEventListener('onDeselect', handleDeselect);
     if (onReset) element.addEventListener('onReset', handleReset);
@@ -436,6 +486,7 @@ const SeoSelectSearch = forwardRef<SeoSelectSearchRef, SeoSelectSearchProps>((pr
     if (onSearchFilter) element.addEventListener('onSearchFilter', handleSearchFilter);
 
     return () => {
+      // 이벤트 리스너 제거
       if (onSelect) element.removeEventListener('onSelect', handleSelect);
       if (onDeselect) element.removeEventListener('onDeselect', handleDeselect);
       if (onReset) element.removeEventListener('onReset', handleReset);
@@ -446,7 +497,7 @@ const SeoSelectSearch = forwardRef<SeoSelectSearchRef, SeoSelectSearchProps>((pr
     };
   }, [webComponentInstance, onSelect, onDeselect, onReset, onChange, onOpen, onSearchChange, onSearchFilter]);
 
-  // Props 동기화
+  // Props 동기화 - optionItems, value, searchTexts만 동적으로 처리
   useEffect(() => {
     if (webComponentInstance && optionItems && Array.isArray(optionItems)) {
       try {
@@ -509,13 +560,14 @@ const SeoSelectSearch = forwardRef<SeoSelectSearchRef, SeoSelectSearchProps>((pr
     if (className) attributes.push(`class="${className}"`);
     if (name) attributes.push(`name="${name}"`);
     if (theme) attributes.push(`theme="${theme}"`);
-    if (typeof dark === 'boolean') attributes.push(`dark="${dark}"`);
+    // Boolean 속성은 true일 때만 추가 (속성 존재 자체가 true를 의미)
+    if (dark === true) attributes.push('dark');
     if (language) attributes.push(`language="${language}"`);
-    if (typeof showReset === 'boolean') attributes.push(`show-reset="${showReset}"`);
+    if (showReset === true) attributes.push('show-reset');
     if (width) attributes.push(`width="${width}"`);
-    if (typeof multiple === 'boolean') attributes.push(`multiple="${multiple}"`);
-    if (typeof required === 'boolean') attributes.push(`required="${required}"`);
-    if (typeof disabled === 'boolean') attributes.push(`disabled="${disabled}"`);
+    if (multiple === true) attributes.push('multiple');
+    if (required === true) attributes.push('required');
+    if (disabled === true) attributes.push('disabled');
     
     const attributeString = attributes.join(' ');
     
@@ -595,7 +647,7 @@ const SeoSelectSearch = forwardRef<SeoSelectSearchRef, SeoSelectSearchProps>((pr
         display: 'inline-block',
         minWidth: '120px'
       }}>
-        Loading seo-select-search...
+        Loading
       </div>
     );
   }
