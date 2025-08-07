@@ -14,12 +14,15 @@ export default defineConfig({
       formats: ['es', 'cjs']
     },
     rollupOptions: {
-      // React와 React-DOM을 외부 의존성으로 처리 (중요!)
+      // React와 seo-select를 외부 의존성으로 처리 (중요!)
       external: [
         'react', 
         'react-dom',
         'react/jsx-runtime',
-        'react/jsx-dev-runtime'
+        'react/jsx-dev-runtime',
+        'seo-select',
+        'seo-select/components/seo-select-search',
+        'seo-select/types'
       ],
       output: [
         {
@@ -29,7 +32,10 @@ export default defineConfig({
           globals: {
             'react': 'React',
             'react-dom': 'ReactDOM',
-            'react/jsx-runtime': 'jsxRuntime'
+            'react/jsx-runtime': 'jsxRuntime',
+            'seo-select': 'SeoSelect',
+            'seo-select/components/seo-select-search': 'SeoSelectSearch',
+            'seo-select/types': 'SeoSelectTypes'
           }
         },
         {
@@ -39,7 +45,10 @@ export default defineConfig({
           globals: {
             'react': 'React',
             'react-dom': 'ReactDOM',
-            'react/jsx-runtime': 'jsxRuntime'
+            'react/jsx-runtime': 'jsxRuntime',
+            'seo-select': 'SeoSelect',
+            'seo-select/components/seo-select-search': 'SeoSelectSearch',
+            'seo-select/types': 'SeoSelectTypes'
           }
         }
       ]
@@ -54,12 +63,14 @@ export default defineConfig({
       include: ['wrapper/**/*.tsx', 'index.ts'],
       outDir: 'dist',
       insertTypesEntry: true,
-      // React 타입도 외부화
+      // React와 seo-select 타입도 외부화
       compilerOptions: {
         baseUrl: '.',
         paths: {
           'react': ['node_modules/@types/react'],
-          'react-dom': ['node_modules/@types/react-dom']
+          'react-dom': ['node_modules/@types/react-dom'],
+          'seo-select': ['../dist/types'],
+          'seo-select/*': ['../dist/*']
         }
       }
     })
@@ -74,8 +85,8 @@ export default defineConfig({
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
   },
-  // 개발 서버에서도 React 외부화 적용
+  // 개발 서버에서도 React와 seo-select 외부화 적용
   optimizeDeps: {
-    exclude: ['react', 'react-dom']
+    exclude: ['react', 'react-dom', 'seo-select']
   }
 });

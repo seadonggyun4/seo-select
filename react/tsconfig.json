@@ -24,8 +24,8 @@
     "baseUrl": ".",
     "paths": {
       "@parent": [".."],
-      "@parent-dist": ["../dist"],
-      "@parent-types": ["../dist/types"]
+      "seo-select": ["../dist"],
+      "seo-select/*": ["../dist/*"]
     }
   },
   "include": [
