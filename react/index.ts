@@ -7,14 +7,10 @@ export type {
   SeoSelectProps,
   SeoSelectRef,
   SeoSelectElement,
-  VirtualSelectOption,
-  SupportedLanguage,
-  SelectTheme
 } from './wrapper/SeoSelect';
 
 export type {
   SeoSelectSearchProps,
   SeoSelectSearchRef,
   SeoSelectSearchElement,
-  SearchLocalizedTexts
 } from './wrapper/SeoSelectSearch';
