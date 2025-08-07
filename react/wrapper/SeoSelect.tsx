@@ -2,14 +2,15 @@
 import * as React from 'react';
 import { useEffect, useRef, useImperativeHandle, forwardRef, useState, useLayoutEffect } from 'react';
 
-// 타입 정의
-export interface VirtualSelectOption {
-  value: string;
-  label: string;
-}
-
-export type SupportedLanguage = 'en' | 'ko' | 'ja' | 'zh';
-export type SelectTheme = 'basic' | 'float';
+// seo-select/types에서 타입들 import
+import type { 
+  VirtualSelectOption,
+  SupportedLanguage,
+  SelectTheme,
+  LocalizedTexts,
+  BatchUpdateOption,
+  SeoSelectElement as BaseSeoSelectElement
+} from 'seo-select/types';
 
 // React option element props 타입 정의
 interface OptionElementProps {
@@ -19,69 +20,57 @@ interface OptionElementProps {
   [key: string]: any;
 }
 
-// 배치 업데이트 타입 정의
-export interface BatchUpdateOption {
-  action: 'add' | 'remove' | 'update';
-  option?: VirtualSelectOption;
+// ResetEventData 타입 정의 (React용 확장)
+export interface ResetEventData {
   value?: string;
-  index?: number;
+  label?: string;
+  values?: string[];
+  labels?: string[];
 }
 
-export interface SeoSelectElement extends HTMLElement {
-  optionItems: VirtualSelectOption[];
-  value: string;
-  selectedValues: string[];
-  multiple: boolean;
-  theme: SelectTheme;
-  dark: boolean;
-  language: SupportedLanguage;
-  showReset: boolean;
-  width: string | null;
-  
-  // 메서드들
-  addOptions: (options: VirtualSelectOption[], preserveSelection?: boolean) => void;
-  addOption: (option: VirtualSelectOption, index?: number) => void;
-  clearOption: (value: string) => void;
-  clearAllOptions: () => void;
-  resetToDefaultValue: () => void;
-  setLanguage: (language: SupportedLanguage) => void;
-  setTexts: (texts: any) => void;
-  setAutoWidth: (enabled: boolean) => void;
-  clearCaches: () => void;
-  batchUpdateOptions: (updates: BatchUpdateOption[]) => void;
-  
-  // 유틸리티 메서드들
-  hasNoOptions: () => boolean;
-  options: HTMLOptionElement[];
-  selectedIndex: number;
-  defaultValue: string | null;
+// SeoSelectElement 인터페이스를 BaseSeoSelectElement로 확장
+export interface SeoSelectElement extends BaseSeoSelectElement {
+  // 추가적인 React 전용 속성이나 메서드가 있다면 여기에 정의
 }
 
 export interface SeoSelectProps {
+  // 기본 HTML 속성
   name?: string;
+  id?: string;
   required?: boolean;
   disabled?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+  
+  // seo-select 특화 속성
   multiple?: boolean;
   theme?: SelectTheme;
   dark?: boolean;
   language?: SupportedLanguage;
   showReset?: boolean;
   width?: string;
+  height?: string;
+  autoWidth?: boolean;
+  
+  // 데이터 관련
   optionItems?: VirtualSelectOption[];
   value?: string | string[];
+  
+  // 다국어 지원
+  texts?: Partial<LocalizedTexts>;
   
   // React 이벤트 핸들러
   onSelect?: (event: { label: string; value: string }) => void;
   onDeselect?: (event: { label: string; value: string }) => void;
-  onReset?: (event: { value?: string; label?: string; values?: string[]; labels?: string[] }) => void;
+  onReset?: (event: ResetEventData) => void;
   onChange?: () => void;
   onOpen?: () => void;
   
-  // HTML 속성
+  // HTML option elements
   children?: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-  id?: string;
+  
+  // 기타 속성들
+  [key: string]: any;
 }
 
 export interface SeoSelectRef {
@@ -94,7 +83,7 @@ export interface SeoSelectRef {
   clearAllOptions: () => void;
   resetToDefaultValue: () => void;
   setLanguage: (language: SupportedLanguage) => void;
-  setTexts: (texts: any) => void;
+  setTexts: (texts: Partial<LocalizedTexts>) => void;
   setAutoWidth: (enabled: boolean) => void;
   clearCaches: () => void;
   batchUpdateOptions: (updates: BatchUpdateOption[]) => void;
@@ -116,10 +105,23 @@ export interface SeoSelectRef {
   closeDropdown: () => void;
   toggleDropdown: () => void;
   
-  // 고급 메서드들
+  // 계산 메서드들
   calculateAutoWidth: () => void;
+  calculateDropdownHeight: () => string;
   getEffectiveWidth: () => string;
   getEffectiveHeight: () => string;
+  
+  // 고급 메서드들
+  getLocalizedText: () => LocalizedTexts;
+  getAllOptionData: () => VirtualSelectOption[];
+  
+  // 상태 접근
+  isOpen: () => boolean;
+  isLoading: () => boolean;
+  getTheme: () => SelectTheme;
+  isDark: () => boolean;
+  getLanguage: () => SupportedLanguage;
+  isAutoWidth: () => boolean;
 }
 
 // React에서 웹 컴포넌트 JSX 타입 선언
@@ -136,6 +138,8 @@ declare global {
         language?: SupportedLanguage;
         'show-reset'?: boolean;
         width?: string;
+        height?: string;
+        'auto-width'?: boolean;
         ref?: React.Ref<SeoSelectElement>;
       };
     }
@@ -196,7 +200,7 @@ const loadSeoSelect = async (): Promise<boolean> => {
 const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
   // 🔥 모든 Hook을 맨 앞에 선언 - 조건부 return 전에 호출
   const elementRef = useRef<SeoSelectElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null); // 이 Hook을 맨 앞으로 이동
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -223,6 +227,9 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     language = 'en',
     showReset = false,
     width,
+    height,
+    autoWidth = false,
+    texts,
     ...restProps
   } = props;
 
@@ -275,7 +282,7 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     };
   }, []);
 
-  // imperative handle 설정
+  // imperative handle 설정 - 모든 기능 포함
   useImperativeHandle(ref, () => ({
     element: webComponentInstance,
     
@@ -298,7 +305,7 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     setLanguage: (language: SupportedLanguage) => {
       webComponentInstance?.setLanguage(language);
     },
-    setTexts: (texts: any) => {
+    setTexts: (texts: Partial<LocalizedTexts>) => {
       webComponentInstance?.setTexts(texts);
     },
     setAutoWidth: (enabled: boolean) => {
@@ -333,25 +340,52 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     
     // 드롭다운 제어 메서드
     openDropdown: () => {
-      (webComponentInstance as any)?.openDropdown?.();
+      webComponentInstance?.openDropdown?.();
     },
     closeDropdown: () => {
-      (webComponentInstance as any)?.closeDropdown?.();
+      webComponentInstance?.closeDropdown?.();
     },
     toggleDropdown: () => {
-      (webComponentInstance as any)?.toggleDropdown?.();
+      webComponentInstance?.toggleDropdown?.();
+    },
+    
+    // 계산 메서드들
+    calculateAutoWidth: () => {
+      webComponentInstance?.calculateAutoWidth?.();
+    },
+    calculateDropdownHeight: () => {
+      return webComponentInstance?.calculateDropdownHeight?.() || 'auto';
+    },
+    getEffectiveWidth: () => {
+      return webComponentInstance?.getEffectiveWidth?.() || 'auto';
+    },
+    getEffectiveHeight: () => {
+      return webComponentInstance?.getEffectiveHeight?.() || 'auto';
     },
     
     // 고급 메서드들
-    calculateAutoWidth: () => {
-      (webComponentInstance as any)?.calculateAutoWidth?.();
+    getLocalizedText: () => {
+      return webComponentInstance?.getLocalizedText?.() || {
+        placeholder: 'Select...',
+        noDataText: 'No data available',
+        loadingText: 'Loading...',
+        removeTag: 'Remove',
+        clearAll: 'Clear all',
+        resetToDefault: 'Reset to default',
+        required: 'This field is required'
+      };
     },
-    getEffectiveWidth: () => {
-      return (webComponentInstance as any)?.getEffectiveWidth?.() || 'auto';
+    getAllOptionData: () => {
+      return webComponentInstance?.getAllOptionData?.() || [];
     },
-    getEffectiveHeight: () => {
-      return (webComponentInstance as any)?.getEffectiveHeight?.() || 'auto';
-    },
+    
+    // 상태 접근
+    isOpen: () => webComponentInstance?.open || false,
+    isLoading: () => (webComponentInstance as any)?._isLoading || false,
+    getTheme: () => webComponentInstance?.theme || 'float',
+    isDark: () => webComponentInstance?.dark || false,
+    getLanguage: () => webComponentInstance?.language || 'en',
+    isAutoWidth: () => webComponentInstance?.autoWidth || false,
   }), [webComponentInstance]);
 
   // 이벤트 리스너 설정
@@ -361,17 +395,13 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     const element = webComponentInstance;
 
     const handleSelect = (event: Event) => {
-      console.log('Select event received:', event);
       const customEvent = event as CustomEvent;
-      console.log('Event detail:', customEvent.detail);
       
-      // detail이 없는 경우 기본값 처리
       if (!customEvent.detail) {
         console.warn('No detail in select event');
         return;
       }
       
-      // detail이 객체인지 확인
       if (typeof customEvent.detail === 'object' && customEvent.detail !== null) {
         const { label = '', value = '' } = customEvent.detail;
         onSelect?.({ label: String(label), value: String(value) });
@@ -381,7 +411,6 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     };
     
     const handleDeselect = (event: Event) => {
-      console.log('Deselect event received:', event);
       const customEvent = event as CustomEvent;
       
       if (!customEvent.detail) {
@@ -396,7 +425,6 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     };
     
     const handleReset = (event: Event) => {
-      console.log('Reset event received:', event);
       const customEvent = event as CustomEvent;
       
       if (!customEvent.detail) {
@@ -408,12 +436,10 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     };
     
     const handleChange = (event: Event) => {
-      console.log('Change event received:', event);
       onChange?.();
     };
     
     const handleOpen = (event: Event) => {
-      console.log('Open event received:', event);
       onOpen?.();
     };
 
@@ -434,17 +460,40 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     };
   }, [webComponentInstance, onSelect, onDeselect, onReset, onChange, onOpen]);
 
-  // Props 동기화 - optionItems와 value만 동적으로 처리
+  // Props 동기화 - 모든 속성 처리
   useEffect(() => {
-    if (webComponentInstance && optionItems && Array.isArray(optionItems)) {
-      try {
-        webComponentInstance.optionItems = optionItems;
-      } catch (err) {
-        console.error('Failed to set optionItems:', err);
-      }
-    }
-  }, [webComponentInstance, optionItems]);
+    if (!webComponentInstance) return;
 
+    try {
+      // 데이터 관련 속성
+      if (optionItems && Array.isArray(optionItems)) {
+        webComponentInstance.optionItems = optionItems;
+      }
+
+      // 테마 및 외관 관련 속성
+      if (theme) webComponentInstance.theme = theme;
+      if (typeof dark === 'boolean') webComponentInstance.dark = dark;
+      if (language) webComponentInstance.language = language;
+      if (typeof showReset === 'boolean') webComponentInstance.showReset = showReset;
+      if (typeof autoWidth === 'boolean') webComponentInstance.autoWidth = autoWidth;
+      
+      // 크기 관련 속성
+      if (width) webComponentInstance.width = width;
+      if (height) webComponentInstance.height = height;
+      
+      // 다국어 텍스트
+      if (texts) webComponentInstance.texts = texts;
+      
+      // 폼 관련 속성
+      if (typeof required === 'boolean') webComponentInstance.required = required;
+      if (typeof multiple === 'boolean') webComponentInstance.multiple = multiple;
+
+    } catch (err) {
+      console.error('Failed to sync props:', err);
+    }
+  }, [webComponentInstance, optionItems, theme, dark, language, showReset, autoWidth, width, height, texts, required, multiple]);
+
+  // 값 동기화 (별도 useEffect로 분리)
   useEffect(() => {
     if (webComponentInstance && value !== undefined) {
       try {
@@ -492,6 +541,8 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     if (language) attributes.push(`language="${language}"`);
     if (showReset === true) attributes.push('show-reset');
     if (width) attributes.push(`width="${width}"`);
+    if (height) attributes.push(`height="${height}"`);
+    if (autoWidth === true) attributes.push('auto-width');
     if (multiple === true) attributes.push('multiple');
     if (required === true) attributes.push('required');
     if (disabled === true) attributes.push('disabled');
@@ -540,7 +591,7 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
       container.innerHTML = '';
       setWebComponentInstance(null);
     };
-  }, [isReady, hasError, id, className, name, theme, dark, language, showReset, width, multiple, required, disabled, style, processedChildren]);
+  }, [isReady, hasError, id, className, name, theme, dark, language, showReset, width, height, autoWidth, multiple, required, disabled, style, processedChildren]);
 
   // 🔥 조건부 렌더링을 Hook 호출 이후에 배치
   // SSR 환경에서는 플레이스홀더 렌더링
@@ -574,7 +625,7 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
         display: 'inline-block',
         minWidth: '120px'
       }}>
-        Loading
+        Loading seo-select...
       </div>
     );
   }
@@ -601,4 +652,51 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
 });
 
 SeoSelect.displayName = 'SeoSelect';
+
+// 정적 메서드들 추가
+(SeoSelect as any).getSupportedLanguages = (): SupportedLanguage[] => {
+  return ['en', 'ko', 'ja', 'zh'];
+};
+
+(SeoSelect as any).getDefaultTexts = (): Record<SupportedLanguage, LocalizedTexts> => {
+  return {
+    en: {
+      placeholder: 'Select...',
+      noDataText: 'No data available',
+      loadingText: 'Loading...',
+      removeTag: 'Remove',
+      clearAll: 'Clear all',
+      resetToDefault: 'Reset to default',
+      required: 'This field is required'
+    },
+    ko: {
+      placeholder: '선택하세요...',
+      noDataText: '데이터가 없습니다',
+      loadingText: '로딩 중...',
+      removeTag: '제거',
+      clearAll: '모두 지우기',
+      resetToDefault: '기본값으로 재설정',
+      required: '필수 입력 항목입니다'
+    },
+    ja: {
+      placeholder: '選択してください...',
+      noDataText: 'データがありません',
+      loadingText: '読み込み中...',
+      removeTag: '削除',
+      clearAll: 'すべてクリア',
+      resetToDefault: 'デフォルトにリセット',
+      required: 'この項目は必須です'
+    },
+    zh: {
+      placeholder: '请选择...',
+      noDataText: '无数据',
+      loadingText: '加载中...',
+      removeTag: '删除',
+      clearAll: '清除全部',
+      resetToDefault: '重置为默认值',
+      required: '此字段为必填项'
+    }
+  };
+};
+
 export default SeoSelect;
