@@ -1,6 +1,6 @@
 // react/wrapper/SeoSelectSearch.tsx
 import * as React from 'react';
-import { useEffect, useRef, useImperativeHandle, forwardRef, useState, useLayoutEffect } from 'react';
+import { useEffect, useRef, useImperativeHandle, forwardRef, useState, useLayoutEffect, useCallback } from 'react';
 
 // seo-select/types에서 기본 타입들 import
 import type { 
@@ -218,6 +218,11 @@ const SeoSelectSearch = forwardRef<SeoSelectSearchRef, SeoSelectSearchProps>((pr
   const [loadError, setLoadError] = useState<string | null>(null);
   const [webComponentInstance, setWebComponentInstance] = useState<SeoSelectSearchElement | null>(null);
   
+  // 이전 값들을 추적하기 위한 ref들
+  const prevValueRef = useRef<string | string[] | undefined>();
+  const prevOptionItemsRef = useRef<VirtualSelectOption[] | undefined>();
+  const isInitializingRef = useRef(false);
+  
   const {
     onSelect, 
     onDeselect, 
@@ -295,6 +300,38 @@ const SeoSelectSearch = forwardRef<SeoSelectSearchRef, SeoSelectSearchProps>((pr
     return () => {
       mounted = false;
     };
+  }, []);
+
+  // optionItems 변경 감지를 위한 안전한 비교 함수
+  const optionItemsChanged = useCallback((
+    prev: VirtualSelectOption[] | undefined, 
+    current: VirtualSelectOption[] | undefined
+  ): boolean => {
+    if (!prev && !current) return false;
+    if (!prev || !current) return true;
+    if (prev.length !== current.length) return true;
+    
+    return prev.some((item, index) => 
+      item.value !== current[index]?.value || 
+      item.label !== current[index]?.label
+    );
+  }, []);
+
+  // 값 변경 감지를 위한 안전한 비교 함수
+  const valueChanged = useCallback((
+    prev: string | string[] | undefined, 
+    current: string | string[] | undefined
+  ): boolean => {
+    if (prev === current) return false;
+    if (!prev && !current) return false;
+    if (!prev || !current) return true;
+    
+    if (Array.isArray(prev) && Array.isArray(current)) {
+      if (prev.length !== current.length) return true;
+      return prev.some((val, idx) => val !== current[idx]);
+    }
+    
+    return String(prev) !== String(current);
   }, []);
 
   // imperative handle 설정 - 모든 기능 포함
@@ -520,52 +557,128 @@ const SeoSelectSearch = forwardRef<SeoSelectSearchRef, SeoSelectSearchProps>((pr
 
   // Props 동기화 - 모든 속성 처리
   useEffect(() => {
-    if (!webComponentInstance) return;
+    if (!webComponentInstance || isInitializingRef.current) return;
 
     try {
-      // 데이터 관련 속성
-      if (optionItems && Array.isArray(optionItems)) {
-        webComponentInstance.optionItems = optionItems;
-      }
-
       // 테마 및 외관 관련 속성
-      if (theme) webComponentInstance.theme = theme;
-      if (typeof dark === 'boolean') webComponentInstance.dark = dark;
-      if (language) webComponentInstance.language = language;
-      if (typeof showReset === 'boolean') webComponentInstance.showReset = showReset;
-      if (typeof autoWidth === 'boolean') webComponentInstance.autoWidth = autoWidth;
+      if (theme && webComponentInstance.theme !== theme) {
+        webComponentInstance.theme = theme;
+      }
+      if (typeof dark === 'boolean' && webComponentInstance.dark !== dark) {
+        webComponentInstance.dark = dark;
+      }
+      if (language && webComponentInstance.language !== language) {
+        webComponentInstance.language = language;
+      }
+      if (typeof showReset === 'boolean' && webComponentInstance.showReset !== showReset) {
+        webComponentInstance.showReset = showReset;
+      }
+      if (typeof autoWidth === 'boolean' && webComponentInstance.autoWidth !== autoWidth) {
+        webComponentInstance.autoWidth = autoWidth;
+      }
       
       // 크기 관련 속성
-      if (width) webComponentInstance.width = width;
-      if (height) webComponentInstance.height = height;
+      if (width && webComponentInstance.width !== width) {
+        webComponentInstance.width = width;
+      }
+      if (height && webComponentInstance.height !== height) {
+        webComponentInstance.height = height;
+      }
       
       // 다국어 텍스트
-      if (texts) webComponentInstance.texts = texts;
-      if (searchTexts) webComponentInstance.searchTexts = searchTexts;
+      if (texts && JSON.stringify(webComponentInstance.texts) !== JSON.stringify(texts)) {
+        webComponentInstance.texts = texts;
+      }
+      if (searchTexts && JSON.stringify(webComponentInstance.searchTexts) !== JSON.stringify(searchTexts)) {
+        webComponentInstance.searchTexts = searchTexts;
+      }
       
       // 폼 관련 속성
-      if (typeof required === 'boolean') webComponentInstance.required = required;
-      if (typeof multiple === 'boolean') webComponentInstance.multiple = multiple;
+      if (typeof required === 'boolean' && webComponentInstance.required !== required) {
+        webComponentInstance.required = required;
+      }
+      if (typeof multiple === 'boolean' && webComponentInstance.multiple !== multiple) {
+        webComponentInstance.multiple = multiple;
+      }
 
     } catch (err) {
       console.error('Failed to sync props:', err);
     }
-  }, [webComponentInstance, optionItems, theme, dark, language, showReset, autoWidth, width, height, texts, searchTexts, required, multiple]);
+  }, [webComponentInstance, theme, dark, language, showReset, autoWidth, width, height, texts, searchTexts, required, multiple]);
 
-  // 값 동기화 (별도 useEffect로 분리)
+  // optionItems 동기화 (별도 useEffect로 분리하여 더 정확한 감지)
   useEffect(() => {
-    if (webComponentInstance && value !== undefined) {
+    if (!webComponentInstance || isInitializingRef.current) return;
+    
+    if (optionItemsChanged(prevOptionItemsRef.current, optionItems)) {
+      prevOptionItemsRef.current = optionItems ? [...optionItems] : undefined;
+      
+      try {
+        if (optionItems && Array.isArray(optionItems)) {
+          // 기존 선택값 보존 여부 결정
+          const hasCurrentSelection = multiple 
+            ? (webComponentInstance.selectedValues || []).length > 0
+            : Boolean(webComponentInstance.value);
+          
+          webComponentInstance.optionItems = optionItems;
+          
+          // 선택값이 있었다면 유효성 검사 후 복원
+          if (hasCurrentSelection) {
+            if (multiple) {
+              const currentSelectedValues = webComponentInstance.selectedValues || [];
+              const validValues = currentSelectedValues.filter(val => 
+                optionItems.some(opt => opt.value === val)
+              );
+              if (validValues.length !== currentSelectedValues.length) {
+                webComponentInstance.selectedValues = validValues;
+              }
+            } else {
+              const currentValue = webComponentInstance.value;
+              if (currentValue && !optionItems.some(opt => opt.value === currentValue)) {
+                // 현재 값이 새 옵션에 없으면 첫 번째 옵션으로 설정
+                if (optionItems.length > 0) {
+                  webComponentInstance.value = optionItems[0].value;
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to sync optionItems:', err);
+      }
+    }
+  }, [webComponentInstance, optionItems, multiple, optionItemsChanged]);
+
+  // 값 동기화 (별도 useEffect로 분리하여 더 정확한 감지)
+  useEffect(() => {
+    if (!webComponentInstance || isInitializingRef.current) return;
+    
+    if (value !== undefined && valueChanged(prevValueRef.current, value)) {
+      prevValueRef.current = value;
+      
       try {
         if (Array.isArray(value)) {
-          webComponentInstance.selectedValues = value;
+          // 다중 선택의 경우
+          if (multiple) {
+            const currentSelectedValues = webComponentInstance.selectedValues || [];
+            if (JSON.stringify(currentSelectedValues) !== JSON.stringify(value)) {
+              webComponentInstance.selectedValues = [...value];
+            }
+          }
         } else {
-          webComponentInstance.value = String(value);
+          // 단일 선택의 경우
+          if (!multiple) {
+            const stringValue = String(value);
+            if (webComponentInstance.value !== stringValue) {
+              webComponentInstance.value = stringValue;
+            }
+          }
         }
       } catch (err) {
         console.error('Failed to set value:', err);
       }
     }
-  }, [webComponentInstance, value]);
+  }, [webComponentInstance, value, multiple, valueChanged]);
 
   // children 처리 - selected 속성 제거 (useMemo로 최적화)
   const processedChildren = React.useMemo(() => {
@@ -638,17 +751,51 @@ const SeoSelectSearch = forwardRef<SeoSelectSearchRef, SeoSelectSearchProps>((pr
     // 생성된 요소에 대한 참조 설정
     const webComponent = container.querySelector('seo-select-search') as SeoSelectSearchElement;
     if (webComponent) {
+      // 초기화 플래그 설정
+      isInitializingRef.current = true;
+      
       setWebComponentInstance(webComponent);
       
       // 스타일 적용
       if (style) {
         Object.assign(webComponent.style, style);
       }
+      
+      // 초기값 설정 (웹 컴포넌트가 준비된 후)
+      requestAnimationFrame(() => {
+        try {
+          // optionItems 설정
+          if (optionItems && Array.isArray(optionItems)) {
+            webComponent.optionItems = optionItems;
+            prevOptionItemsRef.current = [...optionItems];
+          }
+          
+          // 초기 값 설정
+          if (value !== undefined) {
+            if (Array.isArray(value) && multiple) {
+              webComponent.selectedValues = [...value];
+            } else if (!Array.isArray(value) && !multiple) {
+              webComponent.value = String(value);
+            }
+            prevValueRef.current = value;
+          }
+          
+          // Props 동기화
+          if (texts) webComponent.texts = texts;
+          if (searchTexts) webComponent.searchTexts = searchTexts;
+          
+        } catch (err) {
+          console.error('Failed to initialize web component:', err);
+        } finally {
+          isInitializingRef.current = false;
+        }
+      });
     }
     
     return () => {
       container.innerHTML = '';
       setWebComponentInstance(null);
+      isInitializingRef.current = false;
     };
   }, [isReady, hasError, id, className, name, theme, dark, language, showReset, width, height, autoWidth, multiple, required, disabled, style, processedChildren]);
 
