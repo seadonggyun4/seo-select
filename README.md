@@ -401,13 +401,20 @@ The `seo-select-search` component extends the basic component with advanced sear
 
 #### Search-Specific Methods
 ```typescript
-// Set search text programmatically
+// ► Set search text programmatically (fires `onSearchChange` if the value changed)
+
+// Property style (recommended)
+searchSelect.searchText = 'search term';
+
+// Or method style (equivalent)
 searchSelect.setSearchText('search term');
 
-// Get current search text
-const currentSearch = searchSelect.getSearchText();
+// ► Read current search text
+const currentSearch = searchSelect.searchText;          // getter
+// or:
+const currentSearch2 = searchSelect.getSearchText();    // method
 
-// Clear search text
+// ► Clear search text (fires `onSearchChange` with empty string)
 searchSelect.clearSearchText();
 ```
 
