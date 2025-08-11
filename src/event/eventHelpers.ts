@@ -1,55 +1,23 @@
-import { 
-  SeoSelectEvent, 
-  SeoDeselectEvent, 
-  SeoResetEvent, 
-  SeoChangeEvent,
-  SeoOpenEvent
-} from './SeoSelectEvent.js';
 import {
-  SeoSearchChangeEvent,
-  SeoSearchFilterEvent
-} from './SeoSearchEvent.js';
-import { EVENT_NAMES } from '../constants/constants.js';
+  SeoSelectEvent, SeoDeselectEvent, SeoResetEvent, SeoChangeEvent, SeoOpenEvent
+} from './SeoSelectEvent';
+import { SeoSearchChangeEvent, SeoSearchFilterEvent } from './SeoSearchEvent';
 
-// 선택
-export function triggerSelectEvent(element: HTMLElement, label: string, value: string) {
-  element.dispatchEvent(new SeoSelectEvent(EVENT_NAMES.SELECT, label, value));
-}
+// 선택/해제
+export const triggerSelectEvent    = (host: HTMLElement, label: string, value: string) => host.dispatchEvent(new SeoSelectEvent(label, value));
+export const triggerDeselectEvent  = (host: HTMLElement, label: string, value: string) => host.dispatchEvent(new SeoDeselectEvent(label, value));
 
-// 선택 해제
-export function triggerDeselectEvent(element: HTMLElement, label: string, value: string) {
-  element.dispatchEvent(new SeoDeselectEvent(EVENT_NAMES.DESELECT, label, value));
-}
+// 리셋(단일/다중 모두 지원)
+export const triggerResetEvent     = (host: HTMLElement, detail: { value: string; label: string } | { values: string[]; labels: string[] }) =>
+  host.dispatchEvent(new SeoResetEvent(detail));
 
-// 리셋
-export function triggerResetEvent(element: HTMLElement, detail?: unknown) {
-  element.dispatchEvent(new SeoResetEvent(detail));
-}
+// 값 변경/열림
+export const triggerChangeEvent    = (host: HTMLElement) => host.dispatchEvent(new SeoChangeEvent());
+export const triggerOpenEvent      = (host: HTMLElement, selectInstance?: any) => host.dispatchEvent(new SeoOpenEvent(selectInstance));
 
-// 변경
-export function triggerChangeEvent(element: HTMLElement) {
-  element.dispatchEvent(new SeoChangeEvent());
-}
+// 검색 전용
+export const triggerSearchChangeEvent  = (host: HTMLElement, searchText: string, previousSearchText?: string) =>
+  host.dispatchEvent(new SeoSearchChangeEvent(searchText, previousSearchText));
 
-// 열림 — 호환성 위해 'open'과 'select-open' 둘 다 쏴주기(원하면 유지)
-export function triggerOpenEvent(element: HTMLElement, selectInstance?: any) {
-  // select-open
-  element.dispatchEvent(new SeoOpenEvent(selectInstance));
-  // open (레거시/호환)
-  element.dispatchEvent(new CustomEvent('open', { bubbles: true, composed: true }));
-}
-
-// 검색 변경
-export function triggerSearchChangeEvent(element: HTMLElement, searchText: string, previousSearchText?: string) {
-  element.dispatchEvent(new SeoSearchChangeEvent(searchText, previousSearchText));
-}
-
-// 검색 필터링
-export function triggerSearchFilterEvent(
-  element: HTMLElement,
-  filteredOptions: Array<{ value: string; label: string }>,
-  searchText: string,
-  hasResults: boolean
-) {
-  element.dispatchEvent(new SeoSearchFilterEvent(filteredOptions, searchText, hasResults));
-}
+export const triggerSearchFilterEvent  = (host: HTMLElement, filteredOptions: Array<{ value: string; label: string }>, searchText: string, hasResults: boolean) =>
+  host.dispatchEvent(new SeoSearchFilterEvent(filteredOptions, searchText, hasResults));
