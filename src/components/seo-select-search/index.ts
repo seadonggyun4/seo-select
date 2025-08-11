@@ -381,13 +381,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   private _handleSearchInput = (e: Event): void => {
     const input = e.target as HTMLInputElement;
-    const previousSearchText = this._searchText;
-    this._searchText = input.value;
-
-    // 검색 텍스트 변경 이벤트 발생 (표준 이벤트 사용)
-    if (previousSearchText !== this._searchText) {
-      triggerSearchChangeEvent(this, this._searchText, previousSearchText);
-    }
+    this.setSearchText(input.value);  
   };
 
   // null을 undefined로 변환하는 헬퍼 함수
@@ -733,10 +727,29 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     return this._searchText;
   }
 
+  private _emitSearchChange(prev: string, next: string) {
+    // exactOptionalPropertyTypes 대응: prev가 빈 문자열이면 생략
+    triggerSearchChangeEvent(this, next, prev === '' ? undefined : prev);
+  }
+
   public setSearchText(searchText: string): void {
-    this._searchText = searchText;
-    this._applyFilteredOptions();
-    this.requestUpdate();
+    const prev = this._searchText ?? '';
+    const next = (searchText ?? '').toString();
+    if (prev === next) return;
+
+    this._searchText = next;
+    this._applyFilteredOptions();   // 여기서 onSearchFilter도 발생하도록 유지
+    this.requestUpdate?.();
+
+    this._emitSearchChange(prev, next);
+  }
+
+  get searchText(): string {
+    return this._searchText;
+  }
+
+  set searchText(v: string) {
+    this.setSearchText(v);
   }
 
   /**

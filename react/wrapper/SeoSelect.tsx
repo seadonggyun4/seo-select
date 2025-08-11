@@ -446,16 +446,11 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
 
     // ✅ 실제 이벤트 이름들
     const added: Array<[string, EventListener]> = [];
-
-    if (onSelect)   { el.addEventListener('select', handleSelect);         added.push(['select', handleSelect]); }
-    if (onDeselect) { el.addEventListener('deselect', handleDeselect);     added.push(['deselect', handleDeselect]); }
-    if (onReset)    { el.addEventListener('reset', handleReset);           added.push(['reset', handleReset]); }
-    if (onChange)   { el.addEventListener('change', handleChange);         added.push(['change', handleChange]); }
-    if (onOpen)     {
-      // 구현체별 호환: open 또는 select-open 둘 다 들어줌
-      el.addEventListener('open', handleOpen);           added.push(['open', handleOpen]);
-      el.addEventListener('select-open', handleOpen);    added.push(['select-open', handleOpen]);
-    }
+    if (onSelect)   { el.addEventListener('onSelect', handleSelect); }
+    if (onDeselect) { el.addEventListener('onDeselect', handleDeselect); }
+    if (onReset)    { el.addEventListener('onReset', handleReset); }
+    if (onChange)   { el.addEventListener('onChange', handleChange); }
+    if (onOpen)     { el.addEventListener('onOpen', handleOpen); }
 
     return () => { added.forEach(([name, h]) => el.removeEventListener(name, h)); };
   }, [webComponentInstance, onSelect, onDeselect, onReset, onChange, onOpen]);
