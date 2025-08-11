@@ -72,6 +72,7 @@ seo-select, seo-select-search {
     .seo-select-listbox {
       border-radius: select.$dropdown-basic-border-radius;
       box-shadow: select.$dropdown-box-shadow;
+      overflow: hidden;
     }
   }
 
@@ -91,6 +92,7 @@ seo-select, seo-select-search {
       border-radius: select.$dropdown-float-border-radius;
       box-shadow: select.$dropdown-float-box-shadow;
       top: select.$dropdown-float-top;
+      overflow: hidden;
 
       &:not(.hidden) {
         animation: float-dropdown-slide-in select.$dropdown-float-animation-duration select.$dropdown-float-animation-easing forwards;
