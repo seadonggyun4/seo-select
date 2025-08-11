@@ -22,7 +22,6 @@ export {
   triggerOpenEvent,
   triggerSearchChangeEvent,
   triggerSearchFilterEvent,
-  SeoSelectEventHelpers,
 } from './eventHelpers.js';
 
 // 타입 안전한 이벤트 리스너 타입 (선택적 사용)
