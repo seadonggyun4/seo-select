@@ -1,6 +1,6 @@
 {
   "name": "seo-select-react",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "React wrapper components for seo-select - A customizable and accessible select component with search functionality",
   "type": "module",
   "main": "./dist/index.js",
