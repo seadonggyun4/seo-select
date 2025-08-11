@@ -189,11 +189,14 @@ import type {
 
 ### SeoSelectSearch Additional Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `searchTexts` | `Partial<SearchLocalizedTexts>` | `{}` | Custom search-related texts |
-| `onSearchChange` | `(searchText: string) => void` | - | Search text change handler |
-| `onSearchFilter` | `(filteredOptions: VirtualSelectOption[], searchText: string, hasMatches: boolean) => void` | - | Search filter event handler |
+| Prop                | Type                                                                                        | Default | Description                                                                                                                                            |
+| ------------------- | ------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `searchTexts`       | `Partial<SearchLocalizedTexts>`                                                             | `{}`    | Override search-related localized texts (e.g., placeholder, no-match).                                                                                 |
+| `defaultSearchText` | `string`                                                                                    | `-`     | **Uncontrolled** initial search text. Applied once **after listeners attach** and triggers `onSearchChange` once. Ignored if `searchText` is provided. |
+| `searchText`        | `string`                                                                                    | `-`     | **Controlled** search text. Keeps the component in sync with React state; changing it triggers `onSearchChange`.                                       |
+| `onSearchChange`    | `(searchText: string) => void`                                                              | `-`     | Fired when the search text changes (typing or programmatic updates).                                                                                   |
+| `onSearchFilter`    | `(filteredOptions: VirtualSelectOption[], searchText: string, hasMatches: boolean) => void` | `-`     | Fired after filtering with the results, current text, and match flag.                                                                                  |
+
 
 ## Event Handlers
 
