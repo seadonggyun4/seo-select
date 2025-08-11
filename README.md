@@ -127,64 +127,95 @@ Extended component with real-time multilingual search including Korean initial c
 ### Standard addEventListener (Recommended)
 
 ```typescript
-// Standard way - works in all frameworks
-searchSelect.addEventListener('onSelect', (event) => {
-  console.log('Selected:', event.label, event.value);
+// Works in any framework — listen to custom events emitted by the component.
+// All event payloads are provided in `event.detail`.
+
+searchSelect.addEventListener('onSelect', (event: CustomEvent<{ label: string; value: string }>) => {
+  console.log('Selected:', event.detail.label, event.detail.value);
 });
 
-searchSelect.addEventListener('onDeselect', (event) => {
-  console.log('Deselected:', event.label, event.value);
+searchSelect.addEventListener('onDeselect', (event: CustomEvent<{ label: string; value: string }>) => {
+  console.log('Deselected:', event.detail.label, event.detail.value);
 });
 
-searchSelect.addEventListener('onReset', (event) => {
-  if (event.values && event.labels) {
-    console.log('Reset multiple:', event.values, event.labels);
-  } else {
-    console.log('Reset single:', event.value, event.label);
+searchSelect.addEventListener(
+  'onReset',
+  ( event: CustomEvent<{ value: string; label: string } | { values: string[]; labels: string[] } >) => {
+    if ('values' in event.detail) {
+      console.log('Reset multiple:', event.detail.values, event.detail.labels);
+    } else {
+      console.log('Reset single:', event.detail.value, event.detail.label);
+    }
   }
-});
+);
 
-searchSelect.addEventListener('onChange', (event) => {
+searchSelect.addEventListener('onChange', () => {
   console.log('Value changed');
 });
 
-searchSelect.addEventListener('onOpen', (event) => {
-  console.log('Dropdown opened');
+searchSelect.addEventListener('onOpen', (event: CustomEvent<{ selectInstance?: any }>) => {
+  console.log('Dropdown opened', event.detail);
 });
+
+// Search-specific events (seo-select-search only)
+searchSelect.addEventListener(
+  'onSearchChange',
+  ( event: CustomEvent<{ searchText: string } | { searchText: string; previousSearchText: string } > ) => {
+    console.log('Search text changed:', event.detail.searchText);
+  }
+);
+
+searchSelect.addEventListener(
+  'onSearchFilter',
+  (
+    event: CustomEvent<{
+      filteredOptions: VirtualSelectOption[];
+      searchText: string;
+      hasResults: boolean;
+    }>
+  ) => {
+    console.log(
+      `Search filtered: ${event.detail.filteredOptions.length} results for "${event.detail.searchText}"`
+    );
+  }
+);
 ```
 
 ### Type-Safe Helper Methods (Built-in)
 
 ```typescript
-// These methods are always available for better DX
-searchSelect.onSelect((event) => {
-  console.log('Selected:', event.label, event.value);
+// These helper methods wrap `addEventListener` for better DX (Developer Experience).
+// They provide typed callbacks and cleaner syntax.
+
+searchSelect.onSelect(({ label, value }) => {
+  console.log('Selected:', label, value);
 });
 
-searchSelect.onDeselect((event) => {
-  console.log('Deselected:', event.label, event.value);
+searchSelect.onDeselect(({ label, value }) => {
+  console.log('Deselected:', label, value);
 });
 
-searchSelect.onReset((event) => {
-  console.log('Reset event:', event);
+searchSelect.onReset((detail) => {
+  console.log('Reset event:', detail);
 });
 
-searchSelect.onChange((event) => {
+searchSelect.onChange(() => {
   console.log('Value changed');
 });
 
-searchSelect.onOpen((event) => {
+searchSelect.onOpen(() => {
   console.log('Dropdown opened');
 });
 
-// Search-specific events (seo-select-search only)
+// Search-specific helpers
 searchSelect.onSearchChange((searchText) => {
-  console.log('Search text:', searchText);
+  console.log('Search text changed:', searchText);
 });
 
 searchSelect.onSearchFilter((filteredOptions) => {
-  console.log('Filtered results:', filteredOptions.length);
+  console.log('Filtered results count:', filteredOptions.length);
 });
+
 ```
 
 ### JavaScript/TypeScript Usage
@@ -192,7 +223,7 @@ searchSelect.onSearchFilter((filteredOptions) => {
 ```typescript
 import 'seo-select/components/seo-select-search';
 
-// Create programmatically
+// Create the element programmatically
 const select = document.createElement('seo-select-search');
 select.optionItems = [
   { value: 'option1', label: 'Option 1' },
@@ -202,16 +233,17 @@ select.multiple = true;
 select.theme = 'float';
 select.language = 'ko';
 
+// Append to the DOM
 document.body.appendChild(select);
 
-// Event handling
-select.addEventListener('onSelect', (event) => {
-  console.log('Selected:', event.label, event.value);
+// Handle events using addEventListener
+select.addEventListener('onSelect', (event: CustomEvent<{ label: string; value: string }>) => {
+  console.log('Selected:', event.detail.label, event.detail.value);
 });
 
-// Or use helper methods
-select.onSelect((event) => {
-  console.log('Selected:', event.label, event.value);
+// Or use the built-in helper methods
+select.onSelect(({ label, value }) => {
+  console.log('Selected:', label, value);
 });
 ```
 
@@ -867,10 +899,14 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## Changelog
 
 ### Version 2.2.x
-- **Dynamic Option Management**: Advanced methods for real-time option manipulation
-- **Real-time Virtual Scroll Sync**: Instant UI updates for option changes
-- **nhanced State Management**: Improved consistency and reliability
-- **Search Component Enhancements** 
+- **Dynamic Option Management**: Advanced methods for real-time option manipulation without re-rendering the entire component.
+- **Real-time Virtual Scroll Sync**: Instant UI updates for option changes with virtual scrolling.
+- **Enhanced State Management**: Improved consistency, reliability, and reduced state desynchronization issues.
+- **Search Component Enhancements**: Better handling of multilingual search, optimized filtering performance, and improved accuracy for Korean, Japanese, and Chinese search modes.
+- **Custom Event System Update**: All events now consistently use `CustomEvent` with payloads in `event.detail`, keeping the `on…` naming convention (e.g., `onSelect`, `onDeselect`, `onSearchChange`).  
+  This ensures compatibility with React, Angular, Vue, and other framework wrappers.
+- **Optional Property Type Safety**: Fixed issues with `exactOptionalPropertyTypes` by omitting undefined properties in event payloads.
+
 
 ### Version 2.1.x
 - **Built Distribution**: Now distributes pre-built files optimized for production use
