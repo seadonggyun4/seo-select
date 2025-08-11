@@ -898,7 +898,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
-### Version 2.2.x
+### Version 2.x
 - **Dynamic Option Management**: Advanced methods for real-time option manipulation without re-rendering the entire component.
 - **Real-time Virtual Scroll Sync**: Instant UI updates for option changes with virtual scrolling.
 - **Enhanced State Management**: Improved consistency, reliability, and reduced state desynchronization issues.
