@@ -1,20 +1,21 @@
-import { EVENT_NAMES } from '../constants/constants.js';
+import { EVENT_NAMES } from '../constants/constants';
 
-export class SeoSearchChangeEvent extends CustomEvent<
-  { searchText: string } | { searchText: string; previousSearchText: string }
-> {
+type SearchChangeDetail = { searchText: string } | { searchText: string; previousSearchText: string };
+
+export class SeoSearchChangeEvent extends CustomEvent<SearchChangeDetail> {
   constructor(searchText: string, previousSearchText?: string) {
-    const detail = { searchText, ...(previousSearchText !== undefined ? { previousSearchText } : {}) };
+    const detail: SearchChangeDetail =
+      previousSearchText === undefined ? { searchText } : { searchText, previousSearchText };
     super(EVENT_NAMES.SEARCH_CHANGE, { detail, bubbles: true, composed: true });
   }
 }
 
-export class SeoSearchFilterEvent extends CustomEvent<{ 
-  filteredOptions: Array<{ value: string; label: string }>; 
-  searchText: string; 
-  hasResults: boolean 
+export class SeoSearchFilterEvent extends CustomEvent<{
+  filteredOptions: Array<{ value: string; label: string }>;
+  searchText: string;
+  hasResults: boolean;
 }> {
-  constructor(filteredOptions: Array<{ value: string; label: string }>, searchText: string, hasResults: boolean = true) {
+  constructor(filteredOptions: Array<{ value: string; label: string }>, searchText: string, hasResults: boolean) {
     super(EVENT_NAMES.SEARCH_FILTER, { detail: { filteredOptions, searchText, hasResults }, bubbles: true, composed: true });
   }
 }
