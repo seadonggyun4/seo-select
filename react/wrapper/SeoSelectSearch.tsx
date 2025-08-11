@@ -465,94 +465,48 @@ const SeoSelectSearch = forwardRef<SeoSelectSearchRef, SeoSelectSearchProps>((pr
     isNoMatchVisible: () => (webComponentInstance as any)?._noMatchVisible || false,
   }), [webComponentInstance]);
 
-  // 이벤트 리스너 설정
+  // 🔥 이벤트 리스너 설정 - 실제 seo-select-search 이벤트 이름으로 구독
   useEffect(() => {
     if (!webComponentInstance) return;
-    
-    const element = webComponentInstance;
+    const el = webComponentInstance;
 
-    const handleSelect = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      
-      if (!customEvent.detail) {
-        console.warn('No detail in select event');
-        return;
-      }
-      
-      if (typeof customEvent.detail === 'object' && customEvent.detail !== null) {
-        const { label = '', value = '' } = customEvent.detail;
-        onSelect?.({ label: String(label), value: String(value) });
-      }
+    const handleSelect = (e: Event) => {
+      const { label = '', value = '' } = (e as CustomEvent).detail ?? {};
+      onSelect?.({ label: String(label), value: String(value) });
     };
-    
-    const handleDeselect = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      
-      if (!customEvent.detail) {
-        console.warn('No detail in deselect event');
-        return;
-      }
-      
-      if (typeof customEvent.detail === 'object' && customEvent.detail !== null) {
-        const { label = '', value = '' } = customEvent.detail;
-        onDeselect?.({ label: String(label), value: String(value) });
-      }
+    const handleDeselect = (e: Event) => {
+      const { label = '', value = '' } = (e as CustomEvent).detail ?? {};
+      onDeselect?.({ label: String(label), value: String(value) });
     };
-    
-    const handleReset = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      
-      if (!customEvent.detail) {
-        console.warn('No detail in reset event');
-        return;
-      }
-      
-      onReset?.(customEvent.detail);
+    const handleReset = (e: Event) => onReset?.((e as CustomEvent).detail);
+    const handleChange = () => onChange?.();
+    const handleOpen = () => onOpen?.();
+
+    const handleSearchChange = (e: Event) => {
+      const text = (e as CustomEvent).detail as string;
+      if (typeof text === 'string') onSearchChange?.(text);
     };
-    
-    const handleChange = (event: Event) => {
-      onChange?.();
-    };
-    
-    const handleOpen = (event: Event) => {
-      onOpen?.();
+    const handleSearchFilter = (e: Event) => {
+      const { filteredOptions = [], searchText = '', hasMatches = false } =
+        (e as CustomEvent).detail ?? {};
+      onSearchFilter?.(filteredOptions, searchText, hasMatches);
     };
 
-    // 검색 전용 이벤트 핸들러
-    const handleSearchChange = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      if (customEvent.detail && typeof customEvent.detail === 'string') {
-        onSearchChange?.(customEvent.detail);
-      }
-    };
+    // ✅ 실제 이벤트 이름들
+    const added: Array<[string, EventListener]> = [];
 
-    const handleSearchFilter = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      if (customEvent.detail) {
-        const { filteredOptions = [], searchText = '', hasMatches = false } = customEvent.detail;
-        onSearchFilter?.(filteredOptions, searchText, hasMatches);
-      }
-    };
+    if (onSelect)        { el.addEventListener('select', handleSelect);           added.push(['select', handleSelect]); }
+    if (onDeselect)      { el.addEventListener('deselect', handleDeselect);       added.push(['deselect', handleDeselect]); }
+    if (onReset)         { el.addEventListener('reset', handleReset);             added.push(['reset', handleReset]); }
+    if (onChange)        { el.addEventListener('change', handleChange);           added.push(['change', handleChange]); }
+    if (onOpen)          {
+      el.addEventListener('open', handleOpen);           added.push(['open', handleOpen]);
+      el.addEventListener('select-open', handleOpen);    added.push(['select-open', handleOpen]);
+    }
+    if (onSearchChange)  { el.addEventListener('search-change', handleSearchChange); added.push(['search-change', handleSearchChange]); }
+    if (onSearchFilter)  { el.addEventListener('search-filter', handleSearchFilter); added.push(['search-filter', handleSearchFilter]); }
 
-    // 이벤트 리스너 등록
-    if (onSelect) element.addEventListener('onSelect', handleSelect);
-    if (onDeselect) element.addEventListener('onDeselect', handleDeselect);
-    if (onReset) element.addEventListener('onReset', handleReset);
-    if (onChange) element.addEventListener('onChange', handleChange);
-    if (onOpen) element.addEventListener('onOpen', handleOpen);
-    if (onSearchChange) element.addEventListener('onSearchChange', handleSearchChange);
-    if (onSearchFilter) element.addEventListener('onSearchFilter', handleSearchFilter);
-
-    return () => {
-      // 이벤트 리스너 제거
-      if (onSelect) element.removeEventListener('onSelect', handleSelect);
-      if (onDeselect) element.removeEventListener('onDeselect', handleDeselect);
-      if (onReset) element.removeEventListener('onReset', handleReset);
-      if (onChange) element.removeEventListener('onChange', handleChange);
-      if (onOpen) element.removeEventListener('onOpen', handleOpen);
-      if (onSearchChange) element.removeEventListener('onSearchChange', handleSearchChange);
-      if (onSearchFilter) element.removeEventListener('onSearchFilter', handleSearchFilter);
-    };
+    return () => { added.forEach(([name, h]) => el.removeEventListener(name, h)); };
   }, [webComponentInstance, onSelect, onDeselect, onReset, onChange, onOpen, onSearchChange, onSearchFilter]);
 
   // Props 동기화 - 모든 속성 처리
@@ -783,7 +737,6 @@ const SeoSelectSearch = forwardRef<SeoSelectSearchRef, SeoSelectSearchProps>((pr
           // Props 동기화
           if (texts) webComponent.texts = texts;
           if (searchTexts) webComponent.searchTexts = searchTexts;
-          
         } catch (err) {
           console.error('Failed to initialize web component:', err);
         } finally {
@@ -916,7 +869,7 @@ SeoSelectSearch.displayName = 'SeoSelectSearch';
       noMatchText: '검색 결과가 없습니다'
     },
     ja: {
-      searchPlaceholder: '検索してください...',
+      searchPlaceholder: '検색してください...',
       noMatchText: '該当する結果がありません'
     },
     zh: {
