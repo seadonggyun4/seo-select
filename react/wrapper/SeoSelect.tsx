@@ -198,7 +198,7 @@ const loadSeoSelect = async (): Promise<boolean> => {
 };
 
 const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
-  // 🔥 모든 Hook을 맨 앞에 선언 - 조건부 return 전에 호출
+  // 모든 Hook을 맨 앞에 선언 - 조건부 return 전에 호출
   const elementRef = useRef<SeoSelectElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
@@ -210,6 +210,7 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
   const prevValueRef = useRef<string | string[] | undefined>();
   const prevOptionItemsRef = useRef<VirtualSelectOption[] | undefined>();
   const isInitializingRef = useRef(false);
+  const syncInProgressRef = useRef(false);
   
   const {
     onSelect, 
@@ -377,13 +378,29 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     
     // 드롭다운 제어 메서드
     openDropdown: () => {
-      webComponentInstance?.openDropdown?.();
+      if (webComponentInstance) {
+        try {
+          webComponentInstance.openDropdown?.();
+          if (!webComponentInstance.open) {
+            (webComponentInstance as any).open = true;
+            webComponentInstance.requestUpdate?.();
+          }
+        } catch (error) {
+          console.error('Failed to open dropdown:', error);
+        }
+      }
     },
     closeDropdown: () => {
       webComponentInstance?.closeDropdown?.();
     },
     toggleDropdown: () => {
-      webComponentInstance?.toggleDropdown?.();
+      if (webComponentInstance) {
+        if (webComponentInstance.open) {
+          webComponentInstance.closeDropdown?.();
+        } else {
+          webComponentInstance.openDropdown?.();
+        }
+      }
     },
     
     // 계산 메서드들
@@ -425,7 +442,7 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     isAutoWidth: () => webComponentInstance?.autoWidth || false,
   }), [webComponentInstance]);
 
-  // 🔥 이벤트 리스너 설정 - 실제 seo-select 이벤트 이름으로 구독
+  // 이벤트 리스너 설정 - React 이벤트 충돌 방지 최적화
   useEffect(() => {
     if (!webComponentInstance) return;
     const el = webComponentInstance;
@@ -434,33 +451,68 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
       const { label = '', value = '' } = (e as CustomEvent).detail ?? {};
       onSelect?.({ label: String(label), value: String(value) });
     };
+    
     const handleDeselect = (e: Event) => {
       const { label = '', value = '' } = (e as CustomEvent).detail ?? {};
       onDeselect?.({ label: String(label), value: String(value) });
     };
+    
     const handleReset = (e: Event) => {
       onReset?.((e as CustomEvent).detail);
     };
-    const handleChange = () => onChange?.();
-    const handleOpen = () => onOpen?.();
+    
+    const handleChange = () => {
+      onChange?.();
+    };
+    
+    const handleOpen = () => {
+      onOpen?.();
+    };
 
-    // ✅ 실제 이벤트 이름들
-    const added: Array<[string, EventListener]> = [];
-    if (onSelect)   { el.addEventListener('onSelect', handleSelect); }
-    if (onDeselect) { el.addEventListener('onDeselect', handleDeselect); }
-    if (onReset)    { el.addEventListener('onReset', handleReset); }
-    if (onChange)   { el.addEventListener('onChange', handleChange); }
-    if (onOpen)     { el.addEventListener('onOpen', handleOpen); }
+    // 이벤트 리스너 등록
+    const eventListeners: Array<[string, EventListener]> = [];
+    
+    if (onSelect) { 
+      el.addEventListener('onSelect', handleSelect); 
+      eventListeners.push(['onSelect', handleSelect]);
+    }
+    if (onDeselect) { 
+      el.addEventListener('onDeselect', handleDeselect); 
+      eventListeners.push(['onDeselect', handleDeselect]);
+    }
+    if (onReset) { 
+      el.addEventListener('onReset', handleReset); 
+      eventListeners.push(['onReset', handleReset]);
+    }
+    if (onChange) { 
+      el.addEventListener('onChange', handleChange); 
+      eventListeners.push(['onChange', handleChange]);
+    }
+    if (onOpen) { 
+      el.addEventListener('onOpen', handleOpen); 
+      eventListeners.push(['onOpen', handleOpen]);
+    }
 
-    return () => { added.forEach(([name, h]) => el.removeEventListener(name, h)); };
+    return () => { 
+      eventListeners.forEach(([name, handler]) => {
+        el.removeEventListener(name, handler);
+      });
+    };
   }, [webComponentInstance, onSelect, onDeselect, onReset, onChange, onOpen]);
 
-
-  // Props 동기화 - 모든 속성 처리
+  // Props 동기화 - 다중 선택 최적화
   useEffect(() => {
-    if (!webComponentInstance || isInitializingRef.current) return;
+    if (!webComponentInstance || isInitializingRef.current || syncInProgressRef.current) return;
+
+    syncInProgressRef.current = true;
 
     try {
+      // 다중 선택 속성을 가장 먼저 설정
+      if (typeof multiple === 'boolean' && webComponentInstance.multiple !== multiple) {
+        webComponentInstance.multiple = multiple;
+        webComponentInstance.requestUpdate?.();
+      }
+
       // 테마 및 외관 관련 속성
       if (theme && webComponentInstance.theme !== theme) {
         webComponentInstance.theme = theme;
@@ -495,21 +547,27 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
       if (typeof required === 'boolean' && webComponentInstance.required !== required) {
         webComponentInstance.required = required;
       }
-      if (typeof multiple === 'boolean' && webComponentInstance.multiple !== multiple) {
-        webComponentInstance.multiple = multiple;
-      }
+
+      // 마지막에 한 번 더 강제 업데이트
+      setTimeout(() => {
+        webComponentInstance.requestUpdate?.();
+      }, 0);
 
     } catch (err) {
       console.error('Failed to sync props:', err);
+    } finally {
+      syncInProgressRef.current = false;
     }
   }, [webComponentInstance, theme, dark, language, showReset, autoWidth, width, height, texts, required, multiple]);
 
-  // optionItems 동기화 (별도 useEffect로 분리하여 더 정확한 감지)
+  // optionItems 동기화
   useEffect(() => {
-    if (!webComponentInstance || isInitializingRef.current) return;
+    if (!webComponentInstance || isInitializingRef.current || syncInProgressRef.current) return;
     
     if (optionItemsChanged(prevOptionItemsRef.current, optionItems)) {
       prevOptionItemsRef.current = optionItems ? [...optionItems] : undefined;
+      
+      syncInProgressRef.current = true;
       
       try {
         if (optionItems && Array.isArray(optionItems)) {
@@ -520,7 +578,7 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
           
           webComponentInstance.optionItems = optionItems;
           
-          // 선택값이 있었다면 유효성 검사 후 복원
+          // 다중 선택에서 선택값 유효성 검사
           if (hasCurrentSelection) {
             if (multiple) {
               const currentSelectedValues = webComponentInstance.selectedValues || [];
@@ -533,26 +591,33 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
             } else {
               const currentValue = webComponentInstance.value;
               if (currentValue && !optionItems.some(opt => opt.value === currentValue)) {
-                // 현재 값이 새 옵션에 없으면 첫 번째 옵션으로 설정
                 if (optionItems.length > 0) {
                   webComponentInstance.value = optionItems[0].value;
                 }
               }
             }
           }
+          
+          Promise.resolve().then(() => {
+            webComponentInstance.requestUpdate?.();
+          });
         }
       } catch (err) {
         console.error('Failed to sync optionItems:', err);
+      } finally {
+        syncInProgressRef.current = false;
       }
     }
   }, [webComponentInstance, optionItems, multiple, optionItemsChanged]);
 
-  // 값 동기화 (별도 useEffect로 분리하여 더 정확한 감지)
+  // 값 동기화 - 다중 선택 최적화
   useEffect(() => {
-    if (!webComponentInstance || isInitializingRef.current) return;
+    if (!webComponentInstance || isInitializingRef.current || syncInProgressRef.current) return;
     
     if (value !== undefined && valueChanged(prevValueRef.current, value)) {
       prevValueRef.current = value;
+      
+      syncInProgressRef.current = true;
       
       try {
         if (Array.isArray(value)) {
@@ -561,7 +626,12 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
             const currentSelectedValues = webComponentInstance.selectedValues || [];
             if (JSON.stringify(currentSelectedValues) !== JSON.stringify(value)) {
               webComponentInstance.selectedValues = [...value];
+              Promise.resolve().then(() => {
+                webComponentInstance.requestUpdate?.();
+              });
             }
+          } else {
+            console.warn('Array value provided for single select');
           }
         } else {
           // 단일 선택의 경우
@@ -569,11 +639,18 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
             const stringValue = String(value);
             if (webComponentInstance.value !== stringValue) {
               webComponentInstance.value = stringValue;
+              Promise.resolve().then(() => {
+                webComponentInstance.requestUpdate?.();
+              });
             }
+          } else {
+            console.warn('String value provided for multiple select');
           }
         }
       } catch (err) {
         console.error('Failed to set value:', err);
+      } finally {
+        syncInProgressRef.current = false;
       }
     }
   }, [webComponentInstance, value, multiple, valueChanged]);
@@ -591,7 +668,7 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     });
   }, [children]);
 
-  // 웹 컴포넌트 생성 및 관리 - innerHTML 방식 사용
+  // 웹 컴포넌트 생성 및 관리 - 이벤트 충돌 방지 최적화
   useEffect(() => {
     if (!containerRef.current || !isReady || hasError) return;
     
@@ -600,24 +677,27 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     // 기존 내용 제거
     container.innerHTML = '';
     
-    // 속성 문자열 생성
-    const attributes = [];
-    if (id) attributes.push(`id="${id}"`);
-    if (className) attributes.push(`class="${className}"`);
-    if (name) attributes.push(`name="${name}"`);
-    if (theme) attributes.push(`theme="${theme}"`);
-    // Boolean 속성은 true일 때만 추가 (속성 존재 자체가 true를 의미)
-    if (dark === true) attributes.push('dark');
-    if (language) attributes.push(`language="${language}"`);
-    if (showReset === true) attributes.push('show-reset');
-    if (width) attributes.push(`width="${width}"`);
-    if (height) attributes.push(`height="${height}"`);
-    if (autoWidth === true) attributes.push('auto-width');
-    if (multiple === true) attributes.push('multiple');
-    if (required === true) attributes.push('required');
-    if (disabled === true) attributes.push('disabled');
+    // Boolean 속성은 true일 때만 추가
+    const booleanAttrs: string[] = [];
+    if (dark === true) booleanAttrs.push('dark');
+    if (showReset === true) booleanAttrs.push('show-reset');
+    if (autoWidth === true) booleanAttrs.push('auto-width');
+    if (multiple === true) booleanAttrs.push('multiple');
+    if (required === true) booleanAttrs.push('required');
+    if (disabled === true) booleanAttrs.push('disabled');
     
-    const attributeString = attributes.join(' ');
+    // 문자열 속성들
+    const stringAttrs: string[] = [];
+    if (id) stringAttrs.push(`id="${id}"`);
+    if (className) stringAttrs.push(`class="${className}"`);
+    if (name) stringAttrs.push(`name="${name}"`);
+    if (theme) stringAttrs.push(`theme="${theme}"`);
+    if (language) stringAttrs.push(`language="${language}"`);
+    if (width) stringAttrs.push(`width="${width}"`);
+    if (height) stringAttrs.push(`height="${height}"`);
+    
+    const allAttrs = [...stringAttrs, ...booleanAttrs];
+    const attributeString = allAttrs.join(' ');
     
     // children HTML 생성
     let childrenHtml = '';
@@ -644,7 +724,8 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     }
     
     // HTML로 웹 컴포넌트 생성
-    container.innerHTML = `<seo-select ${attributeString}>${childrenHtml}</seo-select>`;
+    const componentHtml = `<seo-select ${attributeString}>${childrenHtml}</seo-select>`;
+    container.innerHTML = componentHtml;
     
     // 생성된 요소에 대한 참조 설정
     const webComponent = container.querySelector('seo-select') as SeoSelectElement;
@@ -659,43 +740,67 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
         Object.assign(webComponent.style, style);
       }
       
-      // 초기값 설정 (웹 컴포넌트가 준비된 후)
+      // 초기값 설정 - 다중 선택 최적화
       requestAnimationFrame(() => {
         try {
+          // 먼저 multiple 속성 확실히 설정 - DOM 속성과 객체 속성 모두
+          if (typeof multiple === 'boolean') {
+            if (multiple) {
+              webComponent.setAttribute('multiple', '');
+            } else {
+              webComponent.removeAttribute('multiple');
+            }
+            webComponent.multiple = multiple;
+          }
+          
           // optionItems 설정
           if (optionItems && Array.isArray(optionItems)) {
             webComponent.optionItems = optionItems;
             prevOptionItemsRef.current = [...optionItems];
           }
           
-          // 초기 값 설정
+          // 초기 값 설정 - 다중 선택 우선 처리
           if (value !== undefined) {
             if (Array.isArray(value) && multiple) {
               webComponent.selectedValues = [...value];
             } else if (!Array.isArray(value) && !multiple) {
               webComponent.value = String(value);
+            } else if (Array.isArray(value) && !multiple) {
+              // 배열이지만 단일 선택인 경우 첫 번째 값 사용
+              webComponent.value = value.length > 0 ? String(value[0]) : '';
             }
             prevValueRef.current = value;
           }
           
           // Props 동기화
           if (texts) webComponent.texts = texts;
+          
+          // 여러 번 강제 업데이트 - 다중 선택에서 중요
+          webComponent.requestUpdate?.();
+          
+          // 추가 업데이트 - 마이크로태스크에서
+          Promise.resolve().then(() => {
+            webComponent.requestUpdate?.();
+          });
+          
         } catch (err) {
           console.error('Failed to initialize web component:', err);
         } finally {
           isInitializingRef.current = false;
         }
       });
+    } else {
+      console.error('Failed to find created web component');
     }
     
     return () => {
       container.innerHTML = '';
       setWebComponentInstance(null);
       isInitializingRef.current = false;
+      syncInProgressRef.current = false;
     };
   }, [isReady, hasError, id, className, name, theme, dark, language, showReset, width, height, autoWidth, multiple, required, disabled, style, processedChildren]);
 
-  // 🔥 조건부 렌더링을 Hook 호출 이후에 배치
   // SSR 환경에서는 플레이스홀더 렌더링
   if (typeof window === 'undefined') {
     return (
@@ -750,7 +855,21 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     );
   }
 
-  return <div ref={containerRef} style={{ display: 'contents' }} />;
+  // React 이벤트와 웹 컴포넌트 이벤트 분리를 위한 래퍼
+  return (
+    <div 
+      ref={containerRef} 
+      style={{ display: 'contents' }}
+      onMouseDown={(e) => {
+        // 웹 컴포넌트 내부 클릭인 경우에만 React 이벤트 전파 차단
+        const target = e.target as Element;
+        const seoSelect = target.closest('seo-select');
+        if (seoSelect && !seoSelect.contains(target)) {
+          e.stopPropagation();
+        }
+      }}
+    />
+  );
 });
 
 SeoSelect.displayName = 'SeoSelect';

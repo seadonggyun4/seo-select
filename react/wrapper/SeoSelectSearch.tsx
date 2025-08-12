@@ -334,136 +334,152 @@ const SeoSelectSearch = forwardRef<SeoSelectSearchRef, SeoSelectSearchProps>((pr
     return String(prev) !== String(current);
   }, []);
 
-  // imperative handle 설정 - 모든 기능 포함
-  useImperativeHandle(ref, () => ({
-    element: webComponentInstance,
-    
-    // 기본 메서드들
-    addOptions: (options: VirtualSelectOption[], preserveSelection = false) => {
-      webComponentInstance?.addOptions(options, preserveSelection);
-    },
-    addOption: (option: VirtualSelectOption, index?: number) => {
-      webComponentInstance?.addOption(option, index);
-    },
-    clearOption: (value: string) => {
-      webComponentInstance?.clearOption(value);
-    },
-    clearAllOptions: () => {
-      webComponentInstance?.clearAllOptions();
-    },
-    resetToDefaultValue: () => {
-      webComponentInstance?.resetToDefaultValue();
-    },
-    setLanguage: (language: SupportedLanguage) => {
-      webComponentInstance?.setLanguage(language);
-    },
-    setTexts: (texts: Partial<LocalizedTexts>) => {
-      webComponentInstance?.setTexts(texts);
-    },
-    setAutoWidth: (enabled: boolean) => {
-      webComponentInstance?.setAutoWidth(enabled);
-    },
-    clearCaches: () => {
-      webComponentInstance?.clearCaches();
-    },
-    batchUpdateOptions: (updates: BatchUpdateOption[]) => {
-      webComponentInstance?.batchUpdateOptions(updates);
-    },
-    
-    // 검색 전용 메서드들
-    setSearchTexts: (searchTexts: Partial<SearchLocalizedTexts>) => {
-      webComponentInstance?.setSearchTexts(searchTexts);
-    },
-    getSearchText: () => {
-      return webComponentInstance?.getSearchText() || '';
-    },
-    setSearchText: (searchText: string) => {
-      webComponentInstance?.setSearchText(searchText);
-    },
-    clearSearchText: () => {
-      webComponentInstance?.clearSearchText();
-    },
-    updateOptionsWithSearch: (options: VirtualSelectOption[], preserveSearch = true) => {
-      webComponentInstance?.updateOptionsWithSearch(options, preserveSearch);
-    },
-    loadOptionsForSearch: async (searchText: string, optionLoader: (search: string) => Promise<VirtualSelectOption[]>) => {
-      if (webComponentInstance?.loadOptionsForSearch) {
-        await webComponentInstance.loadOptionsForSearch(searchText, optionLoader);
-      }
-    },
-    
-    // 값 관리 메서드
-    getValue: () => webComponentInstance?.value || null,
-    setValue: (newValue: string) => {
-      if (webComponentInstance) {
-        webComponentInstance.value = newValue;
-      }
-    },
-    getSelectedValues: () => webComponentInstance?.selectedValues || [],
-    setSelectedValues: (values: string[]) => {
-      if (webComponentInstance) {
-        webComponentInstance.selectedValues = values;
-      }
-    },
-    
-    // 상태 확인 메서드
-    hasNoOptions: () => webComponentInstance?.hasNoOptions() || true,
-    getOptions: () => webComponentInstance?.options || [],
-    getSelectedIndex: () => webComponentInstance?.selectedIndex || -1,
-    getDefaultValue: () => webComponentInstance?.defaultValue || null,
-    
-    // 드롭다운 제어 메서드
-    openDropdown: () => {
-      webComponentInstance?.openDropdown?.();
-    },
-    closeDropdown: () => {
-      webComponentInstance?.closeDropdown?.();
-    },
-    toggleDropdown: () => {
-      webComponentInstance?.toggleDropdown?.();
-    },
-    
-    // 계산 메서드들
-    calculateAutoWidth: () => {
-      webComponentInstance?.calculateAutoWidth?.();
-    },
-    calculateDropdownHeight: () => {
-      return webComponentInstance?.calculateDropdownHeight?.() || 'auto';
-    },
-    getEffectiveWidth: () => {
-      return webComponentInstance?.getEffectiveWidth?.() || 'auto';
-    },
-    getEffectiveHeight: () => {
-      return webComponentInstance?.getEffectiveHeight?.() || 'auto';
-    },
-    
-    // 고급 메서드들
-    getLocalizedText: () => {
-      return webComponentInstance?.getLocalizedText?.() || {
-        placeholder: 'Select...',
-        noDataText: 'No data available',
-        loadingText: 'Loading...',
-        removeTag: 'Remove',
-        clearAll: 'Clear all',
-        resetToDefault: 'Reset to default',
-        required: 'This field is required'
-      };
-    },
-    getAllOptionData: () => {
-      return webComponentInstance?.getAllOptionData?.() || [];
-    },
-    
-    // 상태 접근
-    isOpen: () => webComponentInstance?.open || false,
-    isLoading: () => (webComponentInstance as any)?._isLoading || false,
-    getTheme: () => webComponentInstance?.theme || 'float',
-    isDark: () => webComponentInstance?.dark || false,
-    getLanguage: () => webComponentInstance?.language || 'en',
-    isAutoWidth: () => webComponentInstance?.autoWidth || false,
-    
-    // 검색 상태 접근
-    isNoMatchVisible: () => (webComponentInstance as any)?._noMatchVisible || false,
-  }), [webComponentInstance]);
+  // ✅ 수정된 imperative handle 설정 - searchText property 추가
+  useImperativeHandle(ref, () => {
+    const refObject = {
+      element: webComponentInstance,
+      
+      // 기본 메서드들
+      addOptions: (options: VirtualSelectOption[], preserveSelection = false) => {
+        webComponentInstance?.addOptions(options, preserveSelection);
+      },
+      addOption: (option: VirtualSelectOption, index?: number) => {
+        webComponentInstance?.addOption(option, index);
+      },
+      clearOption: (value: string) => {
+        webComponentInstance?.clearOption(value);
+      },
+      clearAllOptions: () => {
+        webComponentInstance?.clearAllOptions();
+      },
+      resetToDefaultValue: () => {
+        webComponentInstance?.resetToDefaultValue();
+      },
+      setLanguage: (language: SupportedLanguage) => {
+        webComponentInstance?.setLanguage(language);
+      },
+      setTexts: (texts: Partial<LocalizedTexts>) => {
+        webComponentInstance?.setTexts(texts);
+      },
+      setAutoWidth: (enabled: boolean) => {
+        webComponentInstance?.setAutoWidth(enabled);
+      },
+      clearCaches: () => {
+        webComponentInstance?.clearCaches();
+      },
+      batchUpdateOptions: (updates: BatchUpdateOption[]) => {
+        webComponentInstance?.batchUpdateOptions(updates);
+      },
+      
+      // 검색 전용 메서드들
+      setSearchTexts: (searchTexts: Partial<SearchLocalizedTexts>) => {
+        webComponentInstance?.setSearchTexts(searchTexts);
+      },
+      getSearchText: () => {
+        return webComponentInstance?.getSearchText() || '';
+      },
+      setSearchText: (searchText: string) => {
+        webComponentInstance?.setSearchText(searchText);
+      },
+      clearSearchText: () => {
+        webComponentInstance?.clearSearchText();
+      },
+      updateOptionsWithSearch: (options: VirtualSelectOption[], preserveSearch = true) => {
+        webComponentInstance?.updateOptionsWithSearch(options, preserveSearch);
+      },
+      loadOptionsForSearch: async (searchText: string, optionLoader: (search: string) => Promise<VirtualSelectOption[]>) => {
+        if (webComponentInstance?.loadOptionsForSearch) {
+          await webComponentInstance.loadOptionsForSearch(searchText, optionLoader);
+        }
+      },
+      
+      // 값 관리 메서드
+      getValue: () => webComponentInstance?.value || null,
+      setValue: (newValue: string) => {
+        if (webComponentInstance) {
+          webComponentInstance.value = newValue;
+        }
+      },
+      getSelectedValues: () => webComponentInstance?.selectedValues || [],
+      setSelectedValues: (values: string[]) => {
+        if (webComponentInstance) {
+          webComponentInstance.selectedValues = values;
+        }
+      },
+      
+      // 상태 확인 메서드
+      hasNoOptions: () => webComponentInstance?.hasNoOptions() || true,
+      getOptions: () => webComponentInstance?.options || [],
+      getSelectedIndex: () => webComponentInstance?.selectedIndex || -1,
+      getDefaultValue: () => webComponentInstance?.defaultValue || null,
+      
+      // 드롭다운 제어 메서드
+      openDropdown: () => {
+        webComponentInstance?.openDropdown?.();
+      },
+      closeDropdown: () => {
+        webComponentInstance?.closeDropdown?.();
+      },
+      toggleDropdown: () => {
+        webComponentInstance?.toggleDropdown?.();
+      },
+      
+      // 계산 메서드들
+      calculateAutoWidth: () => {
+        webComponentInstance?.calculateAutoWidth?.();
+      },
+      calculateDropdownHeight: () => {
+        return webComponentInstance?.calculateDropdownHeight?.() || 'auto';
+      },
+      getEffectiveWidth: () => {
+        return webComponentInstance?.getEffectiveWidth?.() || 'auto';
+      },
+      getEffectiveHeight: () => {
+        return webComponentInstance?.getEffectiveHeight?.() || 'auto';
+      },
+      
+      // 고급 메서드들
+      getLocalizedText: () => {
+        return webComponentInstance?.getLocalizedText?.() || {
+          placeholder: 'Select...',
+          noDataText: 'No data available',
+          loadingText: 'Loading...',
+          removeTag: 'Remove',
+          clearAll: 'Clear all',
+          resetToDefault: 'Reset to default',
+          required: 'This field is required'
+        };
+      },
+      getAllOptionData: () => {
+        return webComponentInstance?.getAllOptionData?.() || [];
+      },
+      
+      // 상태 접근
+      isOpen: () => webComponentInstance?.open || false,
+      isLoading: () => (webComponentInstance as any)?._isLoading || false,
+      getTheme: () => webComponentInstance?.theme || 'float',
+      isDark: () => webComponentInstance?.dark || false,
+      getLanguage: () => webComponentInstance?.language || 'en',
+      isAutoWidth: () => webComponentInstance?.autoWidth || false,
+      
+      // 검색 상태 접근
+      isNoMatchVisible: () => (webComponentInstance as any)?._noMatchVisible || false,
+    };
+
+    // ✅ searchText property 추가
+    Object.defineProperty(refObject, 'searchText', {
+      get: () => webComponentInstance?.searchText || '',
+      set: (value: string) => {
+        if (webComponentInstance) {
+          webComponentInstance.searchText = value;
+        }
+      },
+      enumerable: true,
+      configurable: true
+    });
+
+    return refObject;
+  }, [webComponentInstance]);
 
   // 🔥 이벤트 리스너 설정 - 실제 seo-select-search 이벤트 이름으로 구독
   useEffect(() => {
@@ -868,7 +884,7 @@ SeoSelectSearch.displayName = 'SeoSelectSearch';
       noMatchText: '검색 결과가 없습니다'
     },
     ja: {
-      searchPlaceholder: '検색してください...',
+      searchPlaceholder: '検索してください...',
       noMatchText: '該当する結果がありません'
     },
     zh: {

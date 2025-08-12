@@ -401,21 +401,26 @@ The `seo-select-search` component extends the basic component with advanced sear
 
 #### Search-Specific Methods
 ```typescript
-// ► Set search text programmatically (fires `onSearchChange` if the value changed)
+// ► Practical example: Auto-focus search when dropdown opens
+searchSelect.onOpen(() => {
+  // Set initial search text to help users
+  searchSelect.searchText = 'Seoul';
+  
+  // Or clear previous search and let user type fresh
+  searchSelect.clearSearchText();
+});
 
-// Property style (recommended)
-searchSelect.searchText = 'search term';
+// ► Advanced example: Set search based on previous selection
+let lastSelected = '';
+searchSelect.onSelect((event) => {
+  lastSelected = event.value;
+});
 
-// Or method style (equivalent)
-searchSelect.setSearchText('search term');
-
-// ► Read current search text
-const currentSearch = searchSelect.searchText;          // getter
-// or:
-const currentSearch2 = searchSelect.getSearchText();    // method
-
-// ► Clear search text (fires `onSearchChange` with empty string)
-searchSelect.clearSearchText();
+searchSelect.onOpen(() => {
+  if (lastSelected.startsWith('kr')) {
+    searchSelect.searchText = 'Korean';
+  }
+});
 ```
 
 #### Advanced Option Management
