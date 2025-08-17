@@ -1,5 +1,5 @@
 /* ==========================================
-   Framework Text Animation Styles (Improved)
+  Framework Text Animation Styles (Improved)
 ========================================== */
 
 .text-container {
@@ -36,13 +36,29 @@
     transition: all 0.6s cubic-bezier(0.6, 0.04, 0.98, 0.335);
 }
 
-/* 언어별 색상 */
+/* 언어별/프레임워크별 색상 */
 .text-item.javascript {
     color: #F7DF1E;
 }
 
 .text-item.react {
     color: #61DAFB;
+}
+
+.text-item.vue {
+    color: #4FC08D;
+}
+
+.text-item.svelte {
+    color: #FF3E00;
+}
+
+.text-item.angular {
+    color: #DD0031;
+}
+
+.text-item.qwik {
+    color: #18B6F6;
 }
 
 .text-item.typescript {
@@ -74,13 +90,12 @@
 .tech-item {
   background: #1f2937;
   padding: 16px;
-  border-radius: 6px;
   border: 1px solid #374151;
   text-align: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  
+
   &:hover {
-    transform: translateY(-2px);
+    transform: translateY(-10px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 }
@@ -95,8 +110,46 @@
   color: #6b7280;
 }
 
+.framework-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 3fr));
+    gap: 1.5rem;
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.framework-highlight {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.framework-highlight h3 {
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+.framework-highlight p {
+    display: block;
+    margin-bottom: 1rem;
+    color: #cccccc;
+    font-size: 0.9rem;
+}
+
+.framework-highlight code {
+    display: block;
+    background: rgba(0, 0, 0, 0.3);
+    color: #4FC08D;
+    padding: 0.5rem;
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 0.7rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0;
+}
+
 /* ==========================================
-   Base Styles (Updated and Cleaned)
+  Base Styles (Updated and Cleaned)
 ========================================== */
 
 * {
@@ -124,7 +177,7 @@ body::before {
   left: 0;
   width: 200%;
   height: 200%;
-  background: 
+  background:
     radial-gradient(circle at 20% 50%, rgba(50, 83, 222, 0.1) 0%, transparent 40%),
     radial-gradient(circle at 80% 20%, rgba(95, 119, 202, 0.1) 0%, transparent 40%),
     radial-gradient(circle at 40% 80%, rgba(50, 83, 222, 0.08) 0%, transparent 40%);
@@ -133,11 +186,11 @@ body::before {
 }
 
 @keyframes gradientMove {
-  0%, 100% { 
-    transform: translate(-10%, -10%) rotate(0deg); 
+  0%, 100% {
+    transform: translate(-10%, -10%) rotate(0deg);
   }
-  50% { 
-    transform: translate(-5%, -5%) rotate(180deg); 
+  50% {
+    transform: translate(-5%, -5%) rotate(180deg);
   }
 }
 
@@ -149,7 +202,7 @@ body::before {
 }
 
 /* ==========================================
-   Header Styles
+  Header Styles
 ========================================== */
 
 .header {
@@ -185,7 +238,7 @@ body::before {
   border: 1px solid rgba(50, 83, 222, 0.2);
   border-radius: 8px;
   backdrop-filter: blur(10px);
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -204,12 +257,12 @@ body::before {
     animation: gradientShift 6s ease-in-out infinite;
     opacity: 0.8;
   }
-  
+
   &::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: 
+    background:
       radial-gradient(circle at 30% 30%, rgba(147, 0, 211, 0.4) 0%, transparent 50%),
       radial-gradient(circle at 70% 70%, rgba(0, 100, 255, 0.4) 0%, transparent 50%);
     border-radius: 8px;
@@ -217,7 +270,7 @@ body::before {
     animation: shimmer 4s ease-in-out infinite alternate;
     mix-blend-mode: overlay;
   }
-  
+
   h4 {
     font-size: 0.9rem;
     color: #d1d5db;
@@ -261,7 +314,7 @@ body::before {
 }
 
 /* ==========================================
-   Navigation Styles
+  Navigation Styles
 ========================================== */
 
 .demo-nav {
@@ -285,12 +338,12 @@ body::before {
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.9rem;
-  
+
   &:hover {
     color: #d1d5db;
     background: rgba(55, 65, 81, 0.5);
   }
-  
+
   &.active {
     background: linear-gradient(135deg, #3253de, #5f77ca);
     color: white;
@@ -298,7 +351,7 @@ body::before {
 }
 
 /* ==========================================
-   Content Styles
+  Content Styles
 ========================================== */
 
 .content {
@@ -310,7 +363,7 @@ body::before {
 
 .demo-section {
   display: none;
-  
+
   &.active {
     display: block;
     animation: fadeIn 0.3s ease-in-out;
@@ -325,7 +378,7 @@ body::before {
   display: flex;
   align-items: center;
   gap: 12px;
-  
+
   i {
     color: #5f77ca;
   }
@@ -336,14 +389,14 @@ body::before {
   background: #1f2937;
   border: 1px solid #374151;
   padding: 24px;
-  
+
   h3 {
     font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 8px;
     color: #f9fafb;
   }
-  
+
   > p {
     color: #9ca3af;
     margin-bottom: 20px;
@@ -374,7 +427,7 @@ body::before {
 }
 
 /* ==========================================
-   Component Specific Styles
+  Component Specific Styles
 ========================================== */
 
 /* Theme Demo Grid */
@@ -395,31 +448,31 @@ body::before {
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.8rem;
-  
+
   &:hover {
     transform: translateY(-1px);
   }
-  
+
   &.secondary {
     background: linear-gradient(135deg, #6b7280, #4b5563);
-    
+
     &:hover {
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
     }
   }
-  
+
   &.small {
     padding: 6px 12px;
     font-size: 0.8rem;
   }
-  
+
   &.loading {
     opacity: 0.7;
     cursor: not-allowed;
     position: relative;
     pointer-events: none;
-    
+
     &::after {
       content: '';
       position: absolute;
@@ -434,11 +487,11 @@ body::before {
       animation: buttonSpinner 0.8s linear infinite;
     }
   }
-  
+
   &.success {
     background: linear-gradient(135deg, #10b981, #059669);
   }
-  
+
   &.error {
     background: linear-gradient(135deg, #ef4444, #dc2626);
   }
@@ -459,7 +512,7 @@ body::before {
   transition: all 0.2s ease;
   color: #d1d5db;
   font-size: 0.85rem;
-  
+
   &:hover {
     background: #4b5563;
     border-color: #5f77ca;
@@ -471,7 +524,7 @@ body::before {
 }
 
 /* ==========================================
-   Form and Input Styles
+  Form and Input Styles
 ========================================== */
 
 .demo-form {
@@ -480,7 +533,7 @@ body::before {
 
 .form-group {
   margin-bottom: 20px;
-  
+
   label {
     display: block;
     margin-bottom: 6px;
@@ -499,7 +552,7 @@ body::before {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  
+
   &:hover {
     transform: translateY(-1px);
   }
@@ -511,12 +564,12 @@ body::before {
   background: rgba(50, 83, 222, 0.05);
   border: 1px solid rgba(50, 83, 222, 0.2);
   min-height: 50px;
-  
+
   h4 {
     color: #e5e7eb;
     margin-bottom: 8px;
   }
-  
+
   div {
     margin-bottom: 4px;
     color: #9ca3af;
@@ -549,20 +602,20 @@ body::before {
   font-size: 0.9rem;
   min-width: 120px;
   transition: border-color 0.2s ease;
-  
+
   &:focus {
     outline: none;
     border-color: #5f77ca;
     box-shadow: 0 0 0 2px rgba(95, 119, 202, 0.2);
   }
-  
+
   &::placeholder {
     color: #6b7280;
   }
 }
 
 /* ==========================================
-   Status and Feedback Styles
+  Status and Feedback Styles
 ========================================== */
 
 .async-status {
@@ -577,7 +630,7 @@ body::before {
   min-height: 40px;
   display: flex;
   align-items: center;
-  
+
   &::before {
     content: '';
     width: 8px;
@@ -586,27 +639,27 @@ body::before {
     margin-right: 8px;
     flex-shrink: 0;
   }
-  
+
   &.loading {
     color: #fbbf24;
-    
+
     &::before {
       background: #fbbf24;
       animation: statusPulse 1s infinite;
     }
   }
-  
+
   &.success {
     color: #10b981;
-    
+
     &::before {
       background: #10b981;
     }
   }
-  
+
   &.error {
     color: #ef4444;
-    
+
     &::before {
       background: #ef4444;
     }
@@ -629,7 +682,7 @@ body::before {
   color: #9ca3af;
   max-height: 120px;
   overflow-y: auto;
-  
+
   .metric-row {
     display: flex;
     justify-content: space-between;
@@ -637,19 +690,19 @@ body::before {
     border-bottom: 1px solid #374151;
     margin-bottom: 4px;
   }
-  
+
   .metric-label {
     color: #d1d5db;
   }
-  
+
   .metric-value {
     color: #10b981;
     font-weight: 600;
-    
+
     &.warning {
       color: #fbbf24;
     }
-    
+
     &.error {
       color: #ef4444;
     }
@@ -657,7 +710,7 @@ body::before {
 }
 
 /* ==========================================
-   Special Content Styles
+  Special Content Styles
 ========================================== */
 
 /* Search Tips */
@@ -667,16 +720,16 @@ body::before {
   border-left: 3px solid #5f77ca;
   margin-top: 16px;
   border-radius: 0 4px 4px 0;
-  
+
   strong {
     color: #e5e7eb;
   }
-  
+
   ul {
     margin-top: 8px;
     padding-left: 20px;
   }
-  
+
   li {
     margin-bottom: 4px;
     color: #9ca3af;
@@ -695,26 +748,26 @@ body::before {
   overflow-y: auto;
   margin-top: 16px;
   border: 1px solid #374151;
-  
+
   &:empty::before {
     content: "Event logs will appear here...";
     color: #6b7280;
     font-style: italic;
   }
-  
+
   /* Custom scrollbar */
   &::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: #1f2937;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: #4b5563;
     border-radius: 3px;
-    
+
     &:hover {
       background: #6b7280;
     }
@@ -728,13 +781,13 @@ body::before {
   padding: 16px;
   margin: 16px 0;
   border-radius: 4px;
-  
+
   h4 {
     color: #e5e7eb;
     margin-bottom: 8px;
     font-size: 0.95rem;
   }
-  
+
   p {
     color: #9ca3af;
     font-size: 0.85rem;
@@ -749,17 +802,17 @@ body::before {
   margin-top: 12px;
   border-radius: 4px;
   border: 1px solid rgba(50, 83, 222, 0.2);
-  
+
   strong {
     color: #e5e7eb;
     font-size: 0.9rem;
   }
-  
+
   ul {
     margin: 8px 0 0 16px;
     padding: 0;
   }
-  
+
   li {
     color: #9ca3af;
     font-size: 0.85rem;
@@ -772,7 +825,7 @@ body::before {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  
+
   label {
     display: block;
     margin-bottom: 8px;
@@ -783,14 +836,14 @@ body::before {
 }
 
 /* ==========================================
-   Footer Styles
+  Footer Styles
 ========================================== */
 
 .footer {
   text-align: center;
   padding: 30px;
   border-top: 1px solid #374151;
-  
+
   p {
     color: #6b7280;
     font-weight: 400;
@@ -810,12 +863,12 @@ body::before {
   font-weight: 500;
   transition: color 0.2s ease;
   margin-top: 10px;
-  
+
   &:hover {
     color: #7c9ae0;
     text-decoration: none;
   }
-  
+
   &:focus {
     outline: 2px solid #5f77ca;
     outline-offset: 2px;
@@ -833,7 +886,7 @@ body::before {
 }
 
 /* ==========================================
-   Utility Styles
+  Utility Styles
 ========================================== */
 
 /* Code styling */
@@ -860,7 +913,7 @@ code {
   z-index: 1000;
   max-width: 280px;
   font-size: 0.9rem;
-  
+
   &.show {
     transform: translateX(0);
   }
@@ -878,7 +931,7 @@ code {
   transform: scaleX(1);
   z-index: 999999;
   overflow: hidden;
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -892,7 +945,7 @@ code {
       linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
     opacity: 0.8;
   }
-  
+
   &::after {
     content: '';
     position: absolute;
@@ -906,27 +959,27 @@ code {
     animation: particleFloat 4s ease-in-out infinite;
     opacity: 0.6;
   }
-  
+
   &.show {
     display: block;
-    
+
     .loader-content {
       animation: contentFadeIn 0.6s ease-out 0.3s both;
     }
   }
-  
+
   &.hide {
     animation: loaderHide 0.9s cubic-bezier(0.4, 0, 0.2, 1);
-    
+
     .loader-content {
       animation: contentFadeOut 0.4s ease-in both;
     }
-    
+
     &::after {
       animation: particleFloatOut 0.9s ease-in both;
     }
   }
-  
+
   &.full-hide {
     display: none;
   }
@@ -942,12 +995,12 @@ code {
   align-items: center;
   gap: 2rem;
   z-index: 10;
-  
+
   h2 {
     width: 10rem;
     height: 3rem;
     margin: 0;
-    
+
     img {
       height: 100%;
       width: 100%;
@@ -972,7 +1025,7 @@ code {
   border-radius: 1px;
   overflow: hidden;
   position: relative;
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -991,7 +1044,7 @@ code {
 }
 
 /* ==========================================
-   Animations
+  Animations
 ========================================== */
 
 @keyframes fadeIn {
@@ -1165,12 +1218,12 @@ code {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .control-group {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .control-input {
     min-width: auto;
     width: 100%;
