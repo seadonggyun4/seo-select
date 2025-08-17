@@ -1241,4 +1241,8 @@ code {
   .loader-text {
     font-size: 0.9rem;
   }
+
+  .framework-features {
+    grid-template-columns: repeat(1, 1fr);
+  }
 }
