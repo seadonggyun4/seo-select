@@ -1290,7 +1290,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
-### Version 3.x
+### Version 4.x
 - **Universal Framework Support**: Built-in TypeScript support for all major frameworks including React, Vue, Svelte, Angular, Qwik, Lit, and Stencil
 - **Global Type Extensions**: Automatic type safety across frameworks with JSX, Vue GlobalComponents, and framework-specific type declarations
 - **Zero Configuration Types**: Single `import 'seo-select/types'` enables full type safety in any framework
