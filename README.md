@@ -97,9 +97,9 @@ Extended component with real-time multilingual search including Korean initial c
   import 'seo-select/components/seo-select-search';
 </script>
 
-<seo-select-search 
-  name="city" 
-  theme="float" 
+<seo-select-search
+  name="city"
+  theme="float"
   language="en"
   show-reset>
   <option value="seoul">Seoul</option>
@@ -111,9 +111,9 @@ Extended component with real-time multilingual search including Korean initial c
 ### Multiple Selection
 
 ```html
-<seo-select-search 
-  multiple 
-  name="skills" 
+<seo-select-search
+  multiple
+  name="skills"
   theme="float"
   show-reset>
   <option value="js">JavaScript</option>
@@ -340,7 +340,7 @@ select.batchUpdateOptions([
 select.setLanguage('ko'); // 'en' | 'ko' | 'ja' | 'zh'
 
 // Set custom localized texts
-select.setTexts({ 
+select.setTexts({
   placeholder: 'Custom placeholder...',
   required: 'This field is required',
   resetToDefault: 'Reset selection'
@@ -406,7 +406,7 @@ The `seo-select-search` component extends the basic component with advanced sear
 searchSelect.onOpen(() => {
   // Set initial search text to help users
   searchSelect.searchText = 'Seoul';
-  
+
   // Or clear previous search and let user type fresh
   searchSelect.clearSearchText();
 });
@@ -478,6 +478,375 @@ searchSelect.clearCaches();
 // Use preserveSelection for better UX when updating options
 searchSelect.addOptions(newOptions, true); // Preserves current selection
 ```
+# Framework Support
+
+seo-select is built as a **universal web component** that works seamlessly across all major frameworks and meta-frameworks with full TypeScript support and type safety.
+
+## Supported Frameworks
+
+- ✅ **React** (Next.js, Remix, Gatsby)
+- ✅ **Vue** (Nuxt, Vue 2/3)
+- ✅ **Svelte** (SvelteKit)
+- ✅ **Angular**
+- ✅ **Qwik** (QwikCity)
+- ✅ **Lit** (Web Components)
+- ✅ **Stencil** (Ionic)
+- ✅ **Vanilla** (TypeScript/JavaScript)
+
+## Quick Setup
+
+```typescript
+// Enable type safety for all frameworks
+import 'seo-select/types';
+import 'seo-select';
+import 'seo-select/components/seo-select-search';
+```
+
+## React / Next.js / Remix
+
+```tsx
+import { useRef, useEffect } from 'react';
+import 'seo-select/types';
+import 'seo-select';
+
+export default function MyComponent() {
+  const selectRef = useRef<SeoSelectElement>(null);
+
+  useEffect(() => {
+    if (selectRef.current) {
+      selectRef.current.optionItems = [
+        { value: 'react', label: 'React' },
+        { value: 'nextjs', label: 'Next.js' },
+        { value: 'remix', label: 'Remix' }
+      ];
+    }
+  }, []);
+
+  return (
+    <seo-select
+      ref={selectRef}
+      name="framework"
+      theme="float"
+      language="ko"
+      onSelect={(event) => {
+        console.log('Selected:', event.detail); // Fully typed!
+      }}
+    />
+  );
+}
+```
+
+## Vue 3 / Nuxt 3
+
+```vue
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import 'seo-select/types';
+import 'seo-select/components/seo-select-search';
+
+const selectRef = ref<SeoSelectElement>();
+
+onMounted(() => {
+  if (selectRef.value) {
+    selectRef.value.optionItems = [
+      { value: 'vue', label: 'Vue 3' },
+      { value: 'nuxt', label: 'Nuxt 3' },
+      { value: 'vite', label: 'Vite' }
+    ];
+  }
+});
+
+const handleSelect = (event: CustomEvent<{ label: string; value: string }>) => {
+  console.log('Vue - Selected:', event.detail);
+};
+</script>
+
+<template>
+  <seo-select-search
+    ref="selectRef"
+    name="vue-framework"
+    theme="float"
+    multiple
+    @onSelect="handleSelect"
+    @onSearchChange="(e) => console.log('Search:', e.detail.searchText)"
+  />
+</template>
+```
+
+## Vue 2 / Nuxt 2
+
+```vue
+<template>
+  <div>
+    <seo-select
+      ref="selectElement"
+      name="vue2-framework"
+      theme="float"
+      @onSelect="handleSelect"
+    />
+  </div>
+</template>
+
+<script lang="ts">
+import 'seo-select/types';
+import 'seo-select';
+
+export default {
+  mounted() {
+    const select = this.$refs.selectElement as SeoSelectElement;
+
+    if (select) {
+      select.optionItems = [
+        { value: 'vue2', label: 'Vue 2' },
+        { value: 'vuex', label: 'Vuex' },
+        { value: 'nuxt2', label: 'Nuxt 2' }
+      ];
+    }
+  },
+
+  methods: {
+    handleSelect(event: CustomEvent<{ label: string; value: string }>) {
+      console.log('Vue 2 - Selected:', event.detail);
+    }
+  }
+};
+</script>
+```
+
+## Svelte / SvelteKit
+
+```svelte
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import 'seo-select/types';
+  import 'seo-select/components/seo-select-search';
+
+  let selectElement: SeoSelectElement;
+
+  onMount(() => {
+    if (selectElement) {
+      selectElement.optionItems = [
+        { value: 'svelte', label: 'Svelte' },
+        { value: 'sveltekit', label: 'SvelteKit' },
+        { value: 'vite', label: 'Vite' }
+      ];
+    }
+  });
+
+  function handleSelect(event: CustomEvent<{ label: string; value: string }>) {
+    console.log('Svelte - Selected:', event.detail);
+  }
+
+  function handleSearchChange(event: CustomEvent<{ searchText: string }>) {
+    console.log('Svelte - Search:', event.detail.searchText);
+  }
+</script>
+
+<seo-select-search
+  bind:this={selectElement}
+  name="svelte-framework"
+  theme="float"
+  multiple
+  on:onSelect={handleSelect}
+  on:onSearchChange={handleSearchChange}
+/>
+```
+
+## Angular
+
+```typescript
+import { Component, ViewChild, ElementRef, AfterViewInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import 'seo-select/types';
+import 'seo-select';
+
+@Component({
+  selector: 'app-select',
+  template: `
+    <seo-select
+      #selectElement
+      name="angular-framework"
+      theme="float"
+      language="ko"
+      (onSelect)="onSelect($event)"
+      (onReset)="onReset($event)"
+    ></seo-select>
+  `,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+})
+export class SelectComponent implements AfterViewInit {
+  @ViewChild('selectElement')
+  selectElement!: ElementRef<SeoSelectElement>;
+
+  ngAfterViewInit() {
+    const select = this.selectElement.nativeElement;
+
+    select.optionItems = [
+      { value: 'angular', label: 'Angular' },
+      { value: 'ionic', label: 'Ionic' },
+      { value: 'ngrx', label: 'NgRx' }
+    ];
+  }
+
+  onSelect(event: CustomEvent<{ label: string; value: string }>) {
+    console.log('Angular - Selected:', event.detail);
+  }
+
+  onReset(event: CustomEvent<{ value: string; label: string } | { values: string[]; labels: string[] }>) {
+    console.log('Angular - Reset:', event.detail);
+  }
+}
+```
+
+## Qwik / QwikCity
+
+```tsx
+import { component$, useSignal } from '@builder.io/qwik';
+import 'seo-select/types';
+import 'seo-select/components/seo-select-search';
+
+export const SelectDemo = component$(() => {
+  const selectRef = useSignal<SeoSelectElement>();
+
+  return (
+    <div>
+      <seo-select-search
+        ref={selectRef}
+        name="qwik-framework"
+        theme="float"
+        multiple
+        document:onSelect$={(event) => {
+          console.log('Qwik - Selected:', event.detail); // Fully typed!
+        }}
+        document:onSearchChange$={(event) => {
+          console.log('Qwik - Search:', event.detail.searchText);
+        }}
+      />
+    </div>
+  );
+});
+```
+
+## Lit (Web Components)
+
+```typescript
+import { LitElement, html } from 'lit';
+import { customElement, query } from 'lit/decorators.js';
+import 'seo-select/types';
+import 'seo-select';
+
+@customElement('my-lit-app')
+export class MyLitApp extends LitElement {
+  @query('seo-select') selectElement!: SeoSelectElement;
+
+  firstUpdated() {
+    this.selectElement.optionItems = [
+      { value: 'lit', label: 'Lit' },
+      { value: 'polymer', label: 'Polymer' },
+      { value: 'stencil', label: 'Stencil' }
+    ];
+  }
+
+  private handleSelect(event: CustomEvent<{ label: string; value: string }>) {
+    console.log('Lit - Selected:', event.detail);
+  }
+
+  render() {
+    return html`
+      <seo-select
+        name="lit-framework"
+        theme="float"
+        @onSelect=${this.handleSelect}
+      ></seo-select>
+    `;
+  }
+}
+```
+
+## Stencil (Ionic)
+
+```tsx
+import { Component, h } from '@stencil/core';
+import 'seo-select/types';
+import 'seo-select';
+
+@Component({
+  tag: 'my-stencil-app',
+  styleUrl: 'my-stencil-app.css',
+  shadow: true,
+})
+export class MyStencilApp {
+  render() {
+    return (
+      <seo-select
+        name="stencil-framework"
+        theme="float"
+        onOnSelect={(event) => {
+          console.log('Stencil - Selected:', event.detail); // Fully typed!
+        }}
+      />
+    );
+  }
+}
+```
+
+## Vanilla TypeScript/JavaScript
+
+```typescript
+import 'seo-select/types';
+import 'seo-select/components/seo-select-search';
+
+// Type-safe element creation
+const select = document.createElement('seo-select-search');
+
+// Configure properties
+select.optionItems = [
+  { value: 'vanilla', label: 'Vanilla JS' },
+  { value: 'typescript', label: 'TypeScript' },
+  { value: 'webcomponents', label: 'Web Components' }
+];
+select.theme = 'float';
+select.multiple = true;
+select.language = 'ko';
+
+// Type-safe event listeners
+select.addEventListener('onSelect', (event) => {
+  console.log('Vanilla - Selected:', event.detail.label, event.detail.value);
+});
+
+select.addEventListener('onSearchChange', (event) => {
+  console.log('Vanilla - Search:', event.detail.searchText);
+});
+
+// Or use helper methods
+select.onSelect(({ label, value }) => {
+  console.log('Helper - Selected:', label, value);
+});
+
+// Append to DOM
+document.body.appendChild(select);
+```
+
+## Key Benefits
+
+### 🎯 **Universal Compatibility**
+- Single codebase works across all frameworks
+- No framework-specific wrappers needed
+- Future-proof web standards
+
+### 🔒 **Full Type Safety**
+- Complete TypeScript support out of the box
+- IntelliSense for all events and properties
+- Framework-specific type extensions
+
+### ⚡ **Zero Configuration**
+- Import once, use everywhere
+- Automatic type registration
+- No additional setup required
+
+### 🚀 **Consistent API**
+- Same events and methods across all frameworks
+- Predictable behavior everywhere
+- Easy to migrate between frameworks
 
 ## TypeScript Support
 
@@ -531,7 +900,7 @@ When you need specific types for your application logic, import them explicitly:
 
 ```typescript
 import 'seo-select/types';
-import type { 
+import type {
   VirtualSelectOption,
   SeoSelectElement,
   SeoSelectSearchElement,
@@ -911,25 +1280,29 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
+### Version 3.x
+- **Universal Framework Support**: Built-in TypeScript support for all major frameworks including React, Vue, Svelte, Angular, Qwik, Lit, and Stencil
+- **Global Type Extensions**: Automatic type safety across frameworks with JSX, Vue GlobalComponents, and framework-specific type declarations
+- **Zero Configuration Types**: Single `import 'seo-select/types'` enables full type safety in any framework
+- **Framework-Agnostic Events**: Consistent event handling patterns across React, Vue, Svelte, Angular, Qwik, and web components
+- **Enhanced Developer Experience**: IntelliSense support and type-safe event listeners for all supported frameworks
+- **Cross-Framework Compatibility**: Same component works seamlessly in Next.js, Nuxt, SvelteKit, Angular, QwikCity, and vanilla environments
+
 ### Version 2.x
-- **Dynamic Option Management**: Advanced methods for real-time option manipulation without re-rendering the entire component.
-- **Real-time Virtual Scroll Sync**: Instant UI updates for option changes with virtual scrolling.
-- **Enhanced State Management**: Improved consistency, reliability, and reduced state desynchronization issues.
-- **Search Component Enhancements**: Better handling of multilingual search, optimized filtering performance, and improved accuracy for Korean, Japanese, and Chinese search modes.
-- **Custom Event System Update**: All events now consistently use `CustomEvent` with payloads in `event.detail`, keeping the `on…` naming convention (e.g., `onSelect`, `onDeselect`, `onSearchChange`).  
-  This ensures compatibility with React, Angular, Vue, and other framework wrappers.
-- **Optional Property Type Safety**: Fixed issues with `exactOptionalPropertyTypes` by omitting undefined properties in event payloads.
-
-
-### Version 2.1.x
+- **Dynamic Option Management**: Advanced methods for real-time option manipulation without re-rendering the entire component
+- **Real-time Virtual Scroll Sync**: Instant UI updates for option changes with virtual scrolling
+- **Enhanced State Management**: Improved consistency, reliability, and reduced state desynchronization issues
+- **Search Component Enhancements**: Better handling of multilingual search, optimized filtering performance, and improved accuracy for Korean, Japanese, and Chinese search modes
+- **Custom Event System Update**: All events now consistently use `CustomEvent` with payloads in `event.detail`, keeping the `on…` naming convention (e.g., `onSelect`, `onDeselect`, `onSearchChange`)
+- **Optional Property Type Safety**: Fixed issues with `exactOptionalPropertyTypes` by omitting undefined properties in event payloads
 - **Built Distribution**: Now distributes pre-built files optimized for production use
 - **Improved Performance**: Ready-to-use minified JavaScript and CSS files
 - **Better Compatibility**: Works out-of-the-box across different bundlers and environments
 - **Enhanced Developer Experience**: No additional build step required for most use cases
 - **Vite Build Integration**: Built using Vite for optimal bundle size and modern JavaScript features
-- **Web Standards & Accessibility**: replace option tags with accessible divs and optimize pool size for small datasets
+- **Web Standards & Accessibility**: Replace option tags with accessible divs and optimize pool size for small datasets
 
-### Version 1.x 
+### Version 1.x
 - **Enhanced Event System**: Standard `addEventListener` with built-in type-safe helpers
 - **Helper Methods**: `onSelect()`, `onDeselect()`, `onReset()`, `onChange()`, `onOpen()` always available
 - **Improved DX**: Better TypeScript support and developer experience
@@ -938,5 +1311,5 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-> **Migration Note**:  
-> Version 2.x maintains full API compatibility with 1.x while changing the distribution format from source TypeScript files to pre-built, optimized JavaScript and CSS files. The new dynamic option management methods provide powerful tools for building interactive applications with real-time data updates.
+> **Migration Note**:
+> Version 3.x introduces universal framework support with automatic type safety. Simply add `import 'seo-select/types'` to enable full TypeScript support in any framework. Version 2.x maintains full API compatibility with 1.x while changing the distribution format from source TypeScript files to pre-built, optimized JavaScript and CSS files.

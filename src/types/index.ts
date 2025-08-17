@@ -1,15 +1,4 @@
-import { EVENT_NAMES } from '../constants/constants';
-import type {
-  SeoSelectEvent,
-  SeoDeselectEvent,
-  SeoResetEvent,
-  SeoChangeEvent,
-  SeoOpenEvent
-} from '../event/SeoSelectEvent';
-import type {
-  SeoSearchChangeEvent,
-  SeoSearchFilterEvent
-} from '../event/SeoSearchEvent';
+import './global'
 
 // 설정 관련 타입들
 export type {
@@ -19,7 +8,7 @@ export type {
   SearchLocalizedTexts
 } from './config';
 
-// 옵션 관련 타입들  
+// 옵션 관련 타입들
 export type {
   VirtualSelectOption,
   OptionItem,
@@ -42,15 +31,3 @@ export {
 export type SeoSelectElement = import('../components/seo-select/index').SeoSelect;
 export type SeoSelectSearchElement = import('../components/seo-select-search/index').SeoSelectSearch;
 
-// 글로벌 타입 확장 - HTMLElementEventMap에 커스텀 이벤트 추가
-declare global {
-  interface HTMLElementEventMap {
-    [EVENT_NAMES.SELECT]: SeoSelectEvent;
-    [EVENT_NAMES.DESELECT]: SeoDeselectEvent;
-    [EVENT_NAMES.RESET]: SeoResetEvent;
-    [EVENT_NAMES.CHANGE]: SeoChangeEvent;
-    [EVENT_NAMES.SELECT_OPEN]: SeoOpenEvent;
-    [EVENT_NAMES.SEARCH_CHANGE]: SeoSearchChangeEvent;
-    [EVENT_NAMES.SEARCH_FILTER]: SeoSearchFilterEvent;
-  }
-}
