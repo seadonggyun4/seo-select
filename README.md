@@ -498,6 +498,7 @@ seo-select is built as a **universal web component** that works seamlessly acros
 ```typescript
 // Enable type safety for all frameworks
 import 'seo-select/types';
+import 'seo-select/styles'
 import 'seo-select';
 import 'seo-select/components/seo-select-search';
 ```
@@ -507,6 +508,7 @@ import 'seo-select/components/seo-select-search';
 ```tsx
 import { useRef, useEffect } from 'react';
 import 'seo-select/types';
+import 'seo-select/styles'
 import 'seo-select';
 
 export default function MyComponent() {
@@ -542,6 +544,7 @@ export default function MyComponent() {
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import 'seo-select/types';
+import 'seo-select/styles'
 import 'seo-select/components/seo-select-search';
 
 const selectRef = ref<SeoSelectElement>();
@@ -589,6 +592,7 @@ const handleSelect = (event: CustomEvent<{ label: string; value: string }>) => {
 
 <script lang="ts">
 import 'seo-select/types';
+import 'seo-select/styles'
 import 'seo-select';
 
 export default {
@@ -619,6 +623,7 @@ export default {
 <script lang="ts">
   import { onMount } from 'svelte';
   import 'seo-select/types';
+  import 'seo-select/styles'
   import 'seo-select/components/seo-select-search';
 
   let selectElement: SeoSelectElement;
@@ -657,6 +662,7 @@ export default {
 ```typescript
 import { Component, ViewChild, ElementRef, AfterViewInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import 'seo-select/types';
+import 'seo-select/styles'
 import 'seo-select';
 
 @Component({
@@ -702,6 +708,7 @@ export class SelectComponent implements AfterViewInit {
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
 import 'seo-select/types';
+import 'seo-select/styles'
 import 'seo-select/components/seo-select-search';
 
 export const SelectDemo = component$(() => {
@@ -732,6 +739,7 @@ export const SelectDemo = component$(() => {
 import { LitElement, html } from 'lit';
 import { customElement, query } from 'lit/decorators.js';
 import 'seo-select/types';
+import 'seo-select/styles'
 import 'seo-select';
 
 @customElement('my-lit-app')
@@ -767,6 +775,7 @@ export class MyLitApp extends LitElement {
 ```tsx
 import { Component, h } from '@stencil/core';
 import 'seo-select/types';
+import 'seo-select/styles'
 import 'seo-select';
 
 @Component({
@@ -793,6 +802,7 @@ export class MyStencilApp {
 
 ```typescript
 import 'seo-select/types';
+import 'seo-select/styles'
 import 'seo-select/components/seo-select-search';
 
 // Type-safe element creation
