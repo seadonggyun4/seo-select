@@ -740,19 +740,3 @@ We welcome contributions! Please see the [main repository](https://github.com/se
 ## License
 
 MIT License - see [LICENSE](https://github.com/seadonggyun4/seo-select/blob/main/LICENSE) file for details.
-
-## Changelog
-
-### Version 1.x
-- **Enhanced Type Support**: Improved TypeScript integration with `seo-select/dist/types`
-- **Advanced Option Management**: Real-time option manipulation with batch operations
-- **Search State Preservation**: Maintain search text during option updates
-- **Performance Optimizations**: Cache management and efficient rendering
-- **Better Error Handling**: Improved error messages and fallbacks
-
-### Version 1.0.0
-- **Initial React Support**: Native React wrapper components
-- **Full TypeScript Support**: Comprehensive type definitions
-- **Complete API Coverage**: All seo-select features accessible through React props
-- **Performance Optimized**: Efficient event handling and state management
-- **Developer Experience**: Familiar React patterns and best practices
