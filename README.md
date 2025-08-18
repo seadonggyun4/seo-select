@@ -1319,7 +1319,3 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - **Performance**: Optimized event handling and memory management
 - **Backward Compatibility**: All existing code continues to work
 
----
-
-> **Migration Note**:
-> Version 3.x introduces universal framework support with automatic type safety. Simply add `import 'seo-select/types'` to enable full TypeScript support in any framework. Version 2.x maintains full API compatibility with 1.x while changing the distribution format from source TypeScript files to pre-built, optimized JavaScript and CSS files.
