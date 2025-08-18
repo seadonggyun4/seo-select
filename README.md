@@ -1288,34 +1288,3 @@ The component uses a sophisticated color system based on Open Color with primary
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
-## Changelog
-
-### Version 4.x
-- **Universal Framework Support**: Built-in TypeScript support for all major frameworks including React, Vue, Svelte, Angular, Qwik, Lit, and Stencil
-- **Global Type Extensions**: Automatic type safety across frameworks with JSX, Vue GlobalComponents, and framework-specific type declarations
-- **Zero Configuration Types**: Single `import 'seo-select/types'` enables full type safety in any framework
-- **Framework-Agnostic Events**: Consistent event handling patterns across React, Vue, Svelte, Angular, Qwik, and web components
-- **Enhanced Developer Experience**: IntelliSense support and type-safe event listeners for all supported frameworks
-- **Cross-Framework Compatibility**: Same component works seamlessly in Next.js, Nuxt, SvelteKit, Angular, QwikCity, and vanilla environments
-
-### Version 2.x
-- **Dynamic Option Management**: Advanced methods for real-time option manipulation without re-rendering the entire component
-- **Real-time Virtual Scroll Sync**: Instant UI updates for option changes with virtual scrolling
-- **Enhanced State Management**: Improved consistency, reliability, and reduced state desynchronization issues
-- **Search Component Enhancements**: Better handling of multilingual search, optimized filtering performance, and improved accuracy for Korean, Japanese, and Chinese search modes
-- **Custom Event System Update**: All events now consistently use `CustomEvent` with payloads in `event.detail`, keeping the `on…` naming convention (e.g., `onSelect`, `onDeselect`, `onSearchChange`)
-- **Optional Property Type Safety**: Fixed issues with `exactOptionalPropertyTypes` by omitting undefined properties in event payloads
-- **Built Distribution**: Now distributes pre-built files optimized for production use
-- **Improved Performance**: Ready-to-use minified JavaScript and CSS files
-- **Better Compatibility**: Works out-of-the-box across different bundlers and environments
-- **Enhanced Developer Experience**: No additional build step required for most use cases
-- **Vite Build Integration**: Built using Vite for optimal bundle size and modern JavaScript features
-- **Web Standards & Accessibility**: Replace option tags with accessible divs and optimize pool size for small datasets
-
-### Version 1.x
-- **Enhanced Event System**: Standard `addEventListener` with built-in type-safe helpers
-- **Helper Methods**: `onSelect()`, `onDeselect()`, `onReset()`, `onChange()`, `onOpen()` always available
-- **Improved DX**: Better TypeScript support and developer experience
-- **Performance**: Optimized event handling and memory management
-- **Backward Compatibility**: All existing code continues to work
-
