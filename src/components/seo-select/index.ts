@@ -130,11 +130,6 @@ export class SeoSelect extends LitElement {
     listener: SeoSelectEventListener<T>,
     options?: AddEventListenerOptions
   ): void {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn(`addSeoSelectEventListener is deprecated. Use standard addEventListener instead:
-Before: select.addSeoSelectEventListener('${type}', handler);
-After:  select.addEventListener('${type}', handler);`);
-    }
     this.addEventListener(type, listener as EventListener, options);
   }
 
@@ -146,11 +141,6 @@ After:  select.addEventListener('${type}', handler);`);
     listener: SeoSelectEventListener<T>,
     options?: EventListenerOptions
   ): void {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn(`removeSeoSelectEventListener is deprecated. Use standard removeEventListener instead:
-Before: select.removeSeoSelectEventListener('${type}', handler);
-After:  select.removeEventListener('${type}', handler);`);
-    }
     this.removeEventListener(type, listener as EventListener, options);
   }
 

@@ -303,7 +303,7 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     );
   }, []);
 
-  // 값 변경 감지를 위한 안전한 비교 함수
+  // 값 변경 감지를 위한 안전한 비교 함수 - 개선됨
   const valueChanged = useCallback((
     prev: string | string[] | undefined, 
     current: string | string[] | undefined
@@ -381,10 +381,6 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
       if (webComponentInstance) {
         try {
           webComponentInstance.openDropdown?.();
-          if (!webComponentInstance.open) {
-            (webComponentInstance as any).open = true;
-            webComponentInstance.requestUpdate?.();
-          }
         } catch (error) {
           console.error('Failed to open dropdown:', error);
         }
@@ -500,17 +496,15 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     };
   }, [webComponentInstance, onSelect, onDeselect, onReset, onChange, onOpen]);
 
-  // Props 동기화 - 다중 선택 최적화
   useEffect(() => {
     if (!webComponentInstance || isInitializingRef.current || syncInProgressRef.current) return;
 
     syncInProgressRef.current = true;
 
     try {
-      // 다중 선택 속성을 가장 먼저 설정
+      // 객체 속성 설정
       if (typeof multiple === 'boolean' && webComponentInstance.multiple !== multiple) {
         webComponentInstance.multiple = multiple;
-        webComponentInstance.requestUpdate?.();
       }
 
       // 테마 및 외관 관련 속성
@@ -548,19 +542,17 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
         webComponentInstance.required = required;
       }
 
-      // 마지막에 한 번 더 강제 업데이트
-      setTimeout(() => {
-        webComponentInstance.requestUpdate?.();
-      }, 0);
+      // 업데이트 요청
+      webComponentInstance.requestUpdate?.();
 
     } catch (err) {
       console.error('Failed to sync props:', err);
     } finally {
       syncInProgressRef.current = false;
     }
-  }, [webComponentInstance, theme, dark, language, showReset, autoWidth, width, height, texts, required, multiple]);
+  }, [webComponentInstance, theme, dark, language, showReset, autoWidth, width, height, texts, required, multiple, disabled]);
 
-  // optionItems 동기화
+  // optionItems 동기화 - 다중 선택 개선
   useEffect(() => {
     if (!webComponentInstance || isInitializingRef.current || syncInProgressRef.current) return;
     
@@ -578,26 +570,27 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
           
           webComponentInstance.optionItems = optionItems;
           
-          // 다중 선택에서 선택값 유효성 검사
+          // 다중 선택에서 선택값 유효성 검사 개선
           if (hasCurrentSelection) {
             if (multiple) {
               const currentSelectedValues = webComponentInstance.selectedValues || [];
-              const validValues = currentSelectedValues.filter(val => 
-                optionItems.some(opt => opt.value === val)
-              );
+              const availableValues = new Set(optionItems.map(opt => opt.value));
+              const validValues = currentSelectedValues.filter(val => availableValues.has(val));
+              
+              // 유효하지 않은 값이 있는 경우에만 업데이트
               if (validValues.length !== currentSelectedValues.length) {
                 webComponentInstance.selectedValues = validValues;
               }
             } else {
               const currentValue = webComponentInstance.value;
               if (currentValue && !optionItems.some(opt => opt.value === currentValue)) {
-                if (optionItems.length > 0) {
-                  webComponentInstance.value = optionItems[0].value;
-                }
+                // 단일 선택에서 현재 값이 유효하지 않으면 첫 번째 옵션으로 설정하거나 빈 값으로 설정
+                webComponentInstance.value = '';
               }
             }
           }
           
+          // 비동기 업데이트
           Promise.resolve().then(() => {
             webComponentInstance.requestUpdate?.();
           });
@@ -624,7 +617,11 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
           // 다중 선택의 경우
           if (multiple) {
             const currentSelectedValues = webComponentInstance.selectedValues || [];
-            if (JSON.stringify(currentSelectedValues) !== JSON.stringify(value)) {
+            // 배열 값 비교 개선
+            const arraysEqual = currentSelectedValues.length === value.length && 
+              currentSelectedValues.every((val, idx) => val === value[idx]);
+            
+            if (!arraysEqual) {
               webComponentInstance.selectedValues = [...value];
               Promise.resolve().then(() => {
                 webComponentInstance.requestUpdate?.();
@@ -644,7 +641,18 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
               });
             }
           } else {
-            console.warn('String value provided for multiple select');
+            // 단일 값이지만 다중 선택인 경우 배열로 변환
+            const arrayValue = value ? [String(value)] : [];
+            const currentSelectedValues = webComponentInstance.selectedValues || [];
+            const arraysEqual = currentSelectedValues.length === arrayValue.length && 
+              currentSelectedValues.every((val, idx) => val === arrayValue[idx]);
+            
+            if (!arraysEqual) {
+              webComponentInstance.selectedValues = arrayValue;
+              Promise.resolve().then(() => {
+                webComponentInstance.requestUpdate?.();
+              });
+            }
           }
         }
       } catch (err) {
@@ -743,7 +751,7 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
       // 초기값 설정 - 다중 선택 최적화
       requestAnimationFrame(() => {
         try {
-          // 먼저 multiple 속성 확실히 설정 - DOM 속성과 객체 속성 모두
+          // 먼저 multiple 속성 확실히 설정 - DOM과 객체 속성 모두
           if (typeof multiple === 'boolean') {
             if (multiple) {
               webComponent.setAttribute('multiple', '');
@@ -768,6 +776,9 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
             } else if (Array.isArray(value) && !multiple) {
               // 배열이지만 단일 선택인 경우 첫 번째 값 사용
               webComponent.value = value.length > 0 ? String(value[0]) : '';
+            } else if (!Array.isArray(value) && multiple) {
+              // 단일 값이지만 다중 선택인 경우 배열로 변환
+              webComponent.selectedValues = value ? [String(value)] : [];
             }
             prevValueRef.current = value;
           }
@@ -860,11 +871,9 @@ const SeoSelect = forwardRef<SeoSelectRef, SeoSelectProps>((props, ref) => {
     <div 
       ref={containerRef} 
       style={{ display: 'contents' }}
-      onMouseDown={(e) => {
-        // 웹 컴포넌트 내부 클릭인 경우에만 React 이벤트 전파 차단
+      onMouseDownCapture={(e) => {
         const target = e.target as Element;
-        const seoSelect = target.closest('seo-select');
-        if (seoSelect && !seoSelect.contains(target)) {
+        if (target.closest('seo-select')) {
           e.stopPropagation();
         }
       }}
