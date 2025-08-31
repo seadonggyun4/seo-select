@@ -19,7 +19,6 @@ import {
   SeoSelectEventListener
 } from '../../event/index.js';
 
-// 타입들을 types 디렉토리에서 import
 import type {
   VirtualSelectOption,
   OptionItem,
@@ -29,7 +28,6 @@ import type {
   SearchLocalizedTexts
 } from '../../types/index.js';
 
-// 글로벌 타입 확장 - 검색 이벤트 추가
 declare global {
   interface HTMLElementEventMap {
     [EVENT_NAMES.SELECT]: import('../../event/SeoSelectEvent.js').SeoSelectEvent;
@@ -69,9 +67,6 @@ export class SeoSelectSearch extends SeoSelect {
     this.searchTexts = {};
   }
 
-  /**
-   * @deprecated 표준 addEventListener를 사용하세요
-   */
   public override addSeoSelectEventListener<T extends keyof HTMLElementEventMap>(
     type: T,
     listener: SeoSelectEventListener<T>,
@@ -85,9 +80,6 @@ After:  searchSelect.addEventListener('${type}', handler);`);
     this.addEventListener(type, listener as EventListener, options);
   }
 
-  /**
-   * @deprecated 표준 removeEventListener를 사용하세요
-   */
   public override removeSeoSelectEventListener<T extends keyof HTMLElementEventMap>(
     type: T,
     listener: SeoSelectEventListener<T>,
@@ -101,58 +93,34 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this.removeEventListener(type, listener as EventListener, options);
   }
 
-  // 타입 안전한 이벤트 리스너 헬퍼 메서드들 (필수)
-  
-  /**
-   * 선택 이벤트 리스너 추가 (타입 안전)
-   */
   public override onSelect(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.SELECT]) => void): void {
     this.addEventListener(EVENT_NAMES.SELECT, handler as EventListener);
   }
 
-  /**
-   * 선택 해제 이벤트 리스너 추가 (타입 안전)
-   */
   public override onDeselect(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.DESELECT]) => void): void {
     this.addEventListener(EVENT_NAMES.DESELECT, handler as EventListener);
   }
 
-  /**
-   * 리셋 이벤트 리스너 추가 (타입 안전)
-   */
   public override onReset(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.RESET]) => void): void {
     this.addEventListener(EVENT_NAMES.RESET, handler as EventListener);
   }
 
-  /**
-   * 변경 이벤트 리스너 추가 (타입 안전)
-   */
   public override onChange(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.CHANGE]) => void): void {
     this.addEventListener(EVENT_NAMES.CHANGE, handler as EventListener);
   }
 
-  /**
-   * 드롭다운 열기 이벤트 리스너 추가 (타입 안전)
-   */
   public override onOpen(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.SELECT_OPEN]) => void): void {
     this.addEventListener(EVENT_NAMES.SELECT_OPEN, handler as EventListener);
   }
 
-  /**
-   * 검색 텍스트 변경 이벤트 리스너 추가 (검색 컴포넌트 전용)
-   */
   public onSearchChange(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.SEARCH_CHANGE]) => void): void {
     this.addEventListener(EVENT_NAMES.SEARCH_CHANGE, handler as EventListener);
   }
 
-  /**
-   * 검색 결과 필터링 이벤트 리스너 추가 (검색 컴포넌트 전용)
-   */
   public onSearchFilter(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.SEARCH_FILTER]) => void): void {
     this.addEventListener(EVENT_NAMES.SEARCH_FILTER, handler as EventListener);
   }
 
-  // 검색 관련 다국어 텍스트를 가져오고 커스텀 텍스트로 오버라이드하는 헬퍼 메서드
   private getSearchLocalizedText(): SearchLocalizedTexts {
     const baseTexts = SEARCH_LOCALIZED_TEXTS[this.language] || SEARCH_LOCALIZED_TEXTS.en;
     return {
@@ -168,37 +136,29 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     }
   }
 
-  // 검색 컴포넌트의 높이 계산 오버라이드 - 수정된 버전
   public override calculateDropdownHeight(): string {
     const searchInputHeight = 50;
     
-    // 로딩 중인 경우
     if (this._isLoading) {
       return `${80 + searchInputHeight}px`;
     }
 
-    // 실제 표시될 옵션 수를 먼저 확인 (멀티셀렉트는 선택된 항목 제외)
     const availableOptions = this.getAllOptionData();
     
-    // 멀티셀렉트에서 모든 옵션이 선택되어 표시할 옵션이 없는 경우
     if (this.multiple && availableOptions.length === 0) {
-      return `${60 + searchInputHeight}px`; // no-data 컨테이너 + 검색 입력
+      return `${60 + searchInputHeight}px`;
     }
     
-    // 옵션이 없는 경우 - 기본 SeoSelect와 일관성 있게 처리
     if (this._options.length === 0) {
       if (this.multiple) {
-        // 멀티셀렉트에서 검색 텍스트가 있을 때만 no-data 영역 표시
         if (this._searchText.trim()) {
-          return `${60 + searchInputHeight}px`; // no-data + 검색 입력
+          return `${60 + searchInputHeight}px`;
         }
-        // 검색 텍스트가 없고 옵션도 없으면 최소 높이로 축소
-        return `${searchInputHeight + 20}px`; // 검색 입력 + 최소 패딩
+        return `${searchInputHeight + 20}px`;
       }
       return 'auto';
     }
 
-    // 옵션이 있는 경우 높이 계산
     const rowHeight = 36;
     const maxHeight = 360;
     const computedHeight = availableOptions.length * rowHeight;
@@ -211,15 +171,13 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     return ICONS.SEARCH();
   }
 
-  // 검색 기능이 있는 드롭다운 렌더링 - 수정된 버전
   private renderSearchDropdown() {
     const availableOptions = this.getAllOptionData();
     const hasOptions = availableOptions.length > 0;
     
-    // 멀티셀렉트에서 모든 옵션이 선택되었거나 검색 결과가 없을 때 no-data 표시
     const showNoData = this.multiple && !this._isLoading && (
-      (availableOptions.length === 0) || // 모든 옵션이 선택됨
-      (!hasOptions && this._searchText.trim()) // 검색 결과 없음
+      (availableOptions.length === 0) ||
+      (!hasOptions && this._searchText.trim())
     );
     
     const effectiveWidth = this.getEffectiveWidth();
@@ -351,10 +309,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     const scrollEl = this.querySelector(`.${CSS_CLASSES.SCROLL}`) as HTMLDivElement;
     const optionData = this.getAllOptionData();
 
-    // 높이 재계산
     this._calculatedHeight = this.calculateDropdownHeight();
 
-    // 멀티셀렉트에서 표시할 옵션이 없으면 가상 스크롤을 생성하지 않음
     if (this.multiple && optionData.length === 0) {
       return;
     }
@@ -384,12 +340,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this.setSearchText(input.value);  
   };
 
-  // null을 undefined로 변환하는 헬퍼 함수
   private getCurrentValue(): string | undefined {
     return this.value ?? undefined;
   }
 
-  // 향상된 다국어 검색 필터 적용 - searchTexts.noMatchText 사용
   private _applyFilteredOptions(): void {
     if (!this._virtual) return;
 
@@ -399,9 +353,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     if (!rawInput) {
       const allOptions = this.getAllOptionData();
       
-      // 멀티셀렉트에서 모든 옵션이 선택되어 표시할 옵션이 없는 경우
       if (this.multiple && allOptions.length === 0) {
-        // 검색 텍스트에서 noMatchText 사용 (모든 옵션 선택 상태)
         const noDataOption = [{ value: 'all_selected', label: searchTexts.noMatchText, disabled: true }];
         this._virtual.setData(noDataOption, undefined);
         this._calculatedHeight = this.calculateDropdownHeight();
@@ -413,7 +365,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       this._virtual.setData(allOptions, this.multiple ? undefined : this.getCurrentValue());
       this._noMatchVisible = false;
 
-      // 높이 재계산 - 검색 텍스트가 없을 때 정확한 높이 계산
       this._calculatedHeight = this.calculateDropdownHeight();
       triggerSearchFilterEvent(this, allOptions, rawInput, true);
       this._debouncedUpdate();
@@ -422,7 +373,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
     const allOptions: OptionItem[] = this.getAllOptionData();
     
-    // 모든 옵션이 선택되어 검색할 옵션이 없는 경우
     if (this.multiple && allOptions.length === 0) {
       const noDataOption = [{ value: 'all_selected', label: searchTexts.noMatchText, disabled: true }];
       this._virtual.setData(noDataOption, undefined);
@@ -441,7 +391,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       const noMatchOption = [{ value: 'no_match', label: searchTexts.noMatchText, disabled: true }];
       this._virtual.setData(noMatchOption, this.multiple ? undefined : this.getCurrentValue());
       
-      // no-match 상태 높이
       this._calculatedHeight = `${60 + 50 + 5}px`;
       triggerSearchFilterEvent(this, [], rawInput, false);
       this._debouncedUpdate();
@@ -450,7 +399,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
     this._virtual.setData(filtered, this.multiple ? undefined : this.getCurrentValue());
     
-    // 필터링된 결과에 따른 정확한 높이 계산
     const rowHeight = 36;
     const maxHeight = 360;
     const searchInputHeight = 50;
@@ -462,7 +410,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._debouncedUpdate();
   }
 
-  // removeTag 메서드 수정 - 높이 재계산 강화
   public override removeTag = (e: Event, valueToRemove: string): void => {
     e.stopPropagation();
     this._selectedValues = this._selectedValues.filter(value => value !== valueToRemove);
@@ -481,11 +428,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         if (optionData.length > 0) {
           this._virtual = this._createVirtualSelect(optionData, scrollEl);
           
-          // 검색 필터 재적용 (검색 텍스트가 있는 경우)
           if (this._searchText.trim()) {
             this._applyFilteredOptions();
           } else {
-            // 검색 텍스트가 없으면 바로 높이 재계산
             this._calculatedHeight = this.calculateDropdownHeight();
           }
           
@@ -493,7 +438,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
             this._virtual?.setActiveIndex(0);
           });
         } else {
-          // 모든 옵션이 선택되어 표시할 옵션이 없을 때도 높이 재계산하고 no-data 표시
           this._calculatedHeight = this.calculateDropdownHeight();
         }
       }
@@ -526,7 +470,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
           });
         }
         
-        // 높이 재계산
         this._calculatedHeight = this.calculateDropdownHeight();
       } else {
         this._pendingActiveIndex = 0;
@@ -570,11 +513,11 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
     if (this.hasNoOptions()) {
       this._isLoading = true;
-      this._calculatedHeight = this.calculateDropdownHeight(); // 로딩 상태 높이
+      this._calculatedHeight = this.calculateDropdownHeight();
       this._debouncedUpdate();
 
       this.loadOptionsAsync().then(() => {
-        this._calculatedHeight = this.calculateDropdownHeight(); // 로딩 완료 후 높이 재계산
+        this._calculatedHeight = this.calculateDropdownHeight();
         this.initializeVirtualSelect();
       }).catch(() => {
         this._isLoading = false;
@@ -582,21 +525,17 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         this._debouncedUpdate();
       });
     } else {
-      // 기존 가상 스크롤이 있으면 제거
       if (this._virtual) {
         this._virtual.destroy();
         this._virtual = null;
       }
       
-      // 높이 재계산
       this._calculatedHeight = this.calculateDropdownHeight();
       
-      // 새로운 가상 스크롤 초기화
       this.initializeVirtualSelect();
     }
   }
 
-  // selectOption 메서드 수정 - 높이 재계산 강화
   public override selectOption(value: string, label: string): void {
     if (this.multiple) {
       this._selectedValues = [...this._selectedValues, value];
@@ -612,11 +551,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         if (optionData.length > 0) {
           this._virtual = this._createVirtualSelect(optionData, scrollEl);
           
-          // 검색 필터 재적용 (검색 텍스트가 있는 경우)
           if (this._searchText.trim()) {
             this._applyFilteredOptions();
           } else {
-            // 검색 텍스트가 없으면 바로 높이 재계산
             this._calculatedHeight = this.calculateDropdownHeight();
           }
           
@@ -624,7 +561,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
             this._virtual?.setActiveIndex(0);
           });
         } else {
-          // 선택 가능한 옵션이 모두 선택되어 없을 때 높이 재계산
           this._calculatedHeight = this.calculateDropdownHeight();
         }
       }
@@ -662,23 +598,19 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
   public override closeDropdown(): void {
     this.open = false;
     
-    // 가상 스크롤 정리
     if (this._virtual) {
       this._virtual.destroy();
       this._virtual = null;
     }
     
-    // 검색 상태 초기화
     this._searchText = '';
     this._noMatchVisible = false;
     
-    // 높이 캐시 클리어
     this._calculatedHeight = null;
     
     this._debouncedUpdate();
   }
 
-  // 검색 텍스트 클리어 시 높이 업데이트
   public clearSearchText(): void {
     this._searchText = '';
     this._calculatedHeight = this.calculateDropdownHeight();
@@ -728,7 +660,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
   }
 
   private _emitSearchChange(prev: string, next: string) {
-    // exactOptionalPropertyTypes 대응: prev가 빈 문자열이면 생략
     triggerSearchChangeEvent(this, next, prev === '' ? undefined : prev);
   }
 
@@ -738,7 +669,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     if (prev === next) return;
 
     this._searchText = next;
-    this._applyFilteredOptions();   // 여기서 onSearchFilter도 발생하도록 유지
+    this._applyFilteredOptions();
     this.requestUpdate?.();
 
     this._emitSearchChange(prev, next);
@@ -752,9 +683,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this.setSearchText(v);
   }
 
-  /**
-   * 가상 스크롤 데이터를 검색 필터와 함께 즉시 업데이트하는 헬퍼 메서드 - searchTexts.noMatchText 사용
-   */
   private _updateVirtualScrollDataWithSearch(): void {
     if (!this._virtual) return;
 
@@ -764,13 +692,11 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       const activeValue = this.multiple ? undefined : this._value || undefined;
       this._virtual.setData(optionData, activeValue);
       
-      // 검색 텍스트가 있으면 필터 적용
       if (this._searchText) {
         requestAnimationFrame(() => {
           this._applyFilteredOptions();
         });
       } else {
-        // 활성 인덱스 설정
         requestAnimationFrame(() => {
           if (!this._virtual) return;
           
@@ -783,9 +709,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         });
       }
     } else {
-      // 옵션이 없으면 no-data 표시
       if (this.multiple) {
-        const searchTexts = this.getSearchLocalizedText(); // 검색 텍스트에서 noMatchText 사용
+        const searchTexts = this.getSearchLocalizedText();
         const noDataOption = [{ value: 'all_selected', label: searchTexts.noMatchText, disabled: true }];
         this._virtual.setData(noDataOption, undefined);
       } else {
@@ -799,7 +724,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._isUpdating = true;
 
     try {
-      // 기존 선택값 백업
       let previousValue: string | null = null;
       let previousSelectedValues: string[] = [];
       
@@ -811,13 +735,11 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         }
       }
 
-      // 기존 옵션들 정리
       this._options.forEach(opt => opt.remove());
       this._options = [];
       this._optionsCache.clear();
       this._widthCalculationCache.clear();
 
-      // 새로운 옵션들 생성
       if (Array.isArray(options) && options.length > 0) {
         const fragment = document.createDocumentFragment();
         
@@ -837,7 +759,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         this._isLoading = true;
       }
 
-      // 선택값 복원 또는 초기화
       if (preserveSelection && options.length > 0) {
         if (this.multiple) {
           const validValues = previousSelectedValues.filter(value => 
@@ -861,18 +782,14 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         }
       }
 
-      // 검색 텍스트 초기화 (옵션이 완전히 변경된 경우)
       if (!preserveSelection) {
         this._searchText = '';
       }
 
-      // 높이 재계산
       this._calculatedHeight = this.calculateDropdownHeight();
 
-      // 검색 기능과 함께 가상 스크롤 즉시 업데이트
       this._updateVirtualScrollDataWithSearch();
 
-      // 초기값 설정
       if (this._options.length > 0) {
         this._initialValue = this._options[0].value;
         this._initialLabel = this._options[0].textContent || '';
@@ -900,14 +817,12 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._isUpdating = true;
 
     try {
-      // 새 옵션 요소 생성
       const el = document.createElement('option');
       el.value = option.value;
       el.textContent = option.label;
       el.hidden = true;
       this._optionsCache.set(option.value, el);
 
-      // 지정된 위치에 삽입
       const insertIndex = index !== undefined ? Math.max(0, Math.min(index, this._options.length)) : this._options.length;
       
       if (insertIndex >= this._options.length) {
@@ -922,13 +837,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       this._widthCalculationCache.clear();
       this._isLoading = false;
 
-      // 높이 재계산
       this._calculatedHeight = this.calculateDropdownHeight();
 
-      // 검색 기능과 함께 가상 스크롤 즉시 업데이트
       this._updateVirtualScrollDataWithSearch();
 
-      // 첫 번째 옵션이면 초기값 설정
       if (this._options.length === 1) {
         this._initialValue = option.value;
         this._initialLabel = option.label;
@@ -955,14 +867,12 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._isUpdating = true;
 
     try {
-      // 옵션 제거
       const removedOption = this._options[optionIndex];
       removedOption.remove();
       this._options.splice(optionIndex, 1);
       this._optionsCache.delete(value);
       this._widthCalculationCache.clear();
 
-      // 선택된 값에서도 제거
       if (this.multiple) {
         const selectedIndex = this._selectedValues.indexOf(value);
         if (selectedIndex > -1) {
@@ -976,18 +886,15 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
             this._setValue(this._options[0].value, true);
           } else {
             this._setValue('', true);
-            this._labelText = ''; // 라벨 초기화 추가
+            this._labelText = '';
           }
         }
       }
 
-      // 높이 재계산
       this._calculatedHeight = this.calculateDropdownHeight();
 
-      // 검색 기능과 함께 가상 스크롤 즉시 업데이트
       this._updateVirtualScrollDataWithSearch();
 
-      // 초기값 업데이트
       if (this._options.length > 0) {
         this._initialValue = this._options[0].value;
         this._initialLabel = this._options[0].textContent || '';
@@ -995,7 +902,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         this._initialValue = null;
         this._initialLabel = null;
         this._isLoading = true;
-        // 옵션이 없을 때 라벨 초기화
         if (!this.multiple) {
           this._labelText = '';
         }
@@ -1014,13 +920,11 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._isUpdating = true;
 
     try {
-      // 모든 옵션 제거
       this._options.forEach(opt => opt.remove());
       this._options = [];
       this._optionsCache.clear();
       this._widthCalculationCache.clear();
 
-      // 선택값 초기화
       if (this.multiple) {
         const previousSelectedValues = [...this._selectedValues];
         this._selectedValues = [];
@@ -1032,26 +936,22 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       } else {
         const previousValue = this._value;
         this._setValue('', true);
-        this._labelText = ''; // 라벨 초기화 추가 (중요!)
+        this._labelText = '';
         
         if (previousValue) {
           triggerResetEvent(this, { value: '', label: '' });
         }
       }
 
-      // 검색 텍스트 초기화
       this._searchText = '';
       this._noMatchVisible = false;
 
-      // 높이를 auto로 설정
       this._calculatedHeight = 'auto';
 
-      // 가상 스크롤 즉시 클리어
       if (this._virtual) {
         this._virtual.clearData();
       }
 
-      // 초기값 클리어
       this._initialValue = null;
       this._initialLabel = null;
       this._isLoading = true;
@@ -1063,9 +963,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     }
   }
 
-  /**
-   * 검색 텍스트와 함께 옵션 데이터 일괄 업데이트
-   */
   public override batchUpdateOptions(updates: Array<BatchUpdateOption>): void {
     if (this._isUpdating) return;
     this._isUpdating = true;
@@ -1107,7 +1004,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
                 this._options.splice(optionIndex, 1);
                 this._optionsCache.delete(update.value);
 
-                // 선택된 값에서도 제거
                 if (this.multiple) {
                   const selectedIndex = this._selectedValues.indexOf(update.value);
                   if (selectedIndex > -1) {
@@ -1119,7 +1015,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
                       this._setValue(this._options[0].value, false);
                     } else {
                       this._setValue('', false);
-                      this._labelText = ''; // 라벨 초기화 추가
+                      this._labelText = '';
                     }
                   }
                 }
@@ -1134,7 +1030,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
               if (existingOption) {
                 existingOption.textContent = update.option.label;
                 this._optionsCache.set(update.value, existingOption);
-                // 현재 선택된 값의 라벨도 업데이트
                 if (!this.multiple && this._value === update.value) {
                   this._labelText = update.option.label;
                 }
@@ -1149,28 +1044,23 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         this._widthCalculationCache.clear();
         this._isLoading = this._options.length === 0;
 
-        // 높이 재계산
         this._calculatedHeight = this.calculateDropdownHeight();
 
-        // 드롭다운이 열려있는 경우 검색 기능과 함께 가상 스크롤 한 번만 업데이트
         if (this.open) {
           this._updateVirtualScrollDataWithSearch();
         }
 
-        // 초기값 업데이트
         if (this._options.length > 0) {
           this._initialValue = this._options[0].value;
           this._initialLabel = this._options[0].textContent || '';
         } else {
           this._initialValue = null;
           this._initialLabel = null;
-          // 옵션이 없을 때 라벨 초기화
           if (!this.multiple) {
             this._labelText = '';
           }
         }
 
-        // 폼 값 업데이트
         if (this.multiple) {
           this.updateFormValue();
         }
@@ -1186,43 +1076,30 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     }
   }
 
-  /**
-   * 검색 상태를 유지하면서 옵션 업데이트
-   * @param options - 새 옵션 배열
-   * @param preserveSearch - 검색 텍스트 유지 여부 (기본값: true)
-   */
   public updateOptionsWithSearch(options: VirtualSelectOption[], preserveSearch: boolean = true): void {
     const currentSearchText = preserveSearch ? this._searchText : '';
     
-    // 기본 addOptions 실행
     this.addOptions(options, true);
     
-    // 검색 텍스트 복원 및 필터 적용
     if (preserveSearch && currentSearchText) {
       this._searchText = currentSearchText;
       this._updateVirtualScrollDataWithSearch();
     }
   }
 
-  /**
-   * 검색 결과에 따른 동적 옵션 로딩
-   * @param searchText - 검색 텍스트
-   * @param optionLoader - 옵션을 로드하는 비동기 함수
-   */
   public async loadOptionsForSearch(
     searchText: string, 
     optionLoader: (search: string) => Promise<VirtualSelectOption[]>
   ): Promise<void> {
     this._isLoading = true;
     this._searchText = searchText;
-    this._calculatedHeight = this.calculateDropdownHeight(); // 로딩 상태 높이
+    this._calculatedHeight = this.calculateDropdownHeight();
     this._debouncedUpdate();
 
     try {
       const newOptions = await optionLoader(searchText);
       this.addOptions(newOptions, false);
       
-      // 검색 텍스트 설정 및 필터 적용
       this._searchText = searchText;
       if (this._virtual && this.open) {
         this._applyFilteredOptions();

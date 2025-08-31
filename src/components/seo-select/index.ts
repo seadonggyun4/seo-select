@@ -199,7 +199,7 @@ export class SeoSelect extends LitElement {
     this._updateDebounceTimer = setTimeout(() => {
       this.requestUpdate();
       this._updateDebounceTimer = null;
-    }, 16) as ReturnType<typeof setTimeout>; // ~60fps
+    }, 16) as ReturnType<typeof setTimeout>;
   }
 
   updated(changed: Map<string, unknown>) {
@@ -288,11 +288,9 @@ export class SeoSelect extends LitElement {
       const additionalSpace = this.multiple ? 120 : 80;
       const totalWidth = Math.max(maxTextWidth + additionalSpace, 150);
       
-      // 캐시에 저장
       this._widthCalculationCache.set(cacheKey, totalWidth);
       this._calculatedWidth = `${totalWidth}px`;
       
-      // 필요한 경우에만 업데이트
       if (this.isConnected) {
         this._debouncedUpdate();
       }
@@ -344,7 +342,6 @@ export class SeoSelect extends LitElement {
     `;
   }
 
-  // 드롭다운 렌더링 메서드 수정 - 높이 적용
   protected renderDropdown() {
     const hasOptions = this.getAllOptionData().length > 0;
     const showNoData = this.multiple && !this._isLoading && !hasOptions;
@@ -475,11 +472,9 @@ export class SeoSelect extends LitElement {
         }
       }
       
-      // 높이 재계산
       this._calculatedHeight = this.calculateDropdownHeight();
     }
 
-    // 표준 이벤트 발생
     triggerDeselectEvent(this, option?.textContent || '', valueToRemove);
 
     this._debouncedUpdate();
@@ -505,13 +500,11 @@ export class SeoSelect extends LitElement {
           });
         }
         
-        // 높이 재계산
         this._calculatedHeight = this.calculateDropdownHeight();
       } else {
         this._pendingActiveIndex = 0;
       }
 
-      // 표준 이벤트 발생
       triggerResetEvent(this, { values: [], labels: [] });
     } else {
       if (this._options.length > 0) {
@@ -536,7 +529,6 @@ export class SeoSelect extends LitElement {
           }
         }
 
-        // 표준 이벤트 발생
         triggerResetEvent(this, { value: firstOption.value, label: firstOption.textContent || '' });
       }
     }
@@ -553,13 +545,11 @@ export class SeoSelect extends LitElement {
     return this._options.length === 0;
   }
 
-  // 옵션 초기화 메서드 수정 - 높이 계산 추가
   public initializeOptionsFromPropsOrSlot(): void {
     if (this._isUpdating) return;
     this._isUpdating = true;
 
     try {
-      // 기존 캐시 정리
       this._optionsCache.clear();
       this._widthCalculationCache.clear();
 
@@ -577,11 +567,9 @@ export class SeoSelect extends LitElement {
         });
 
       } else if (Array.isArray(this.optionItems) && this.optionItems.length > 0) {
-        // 기존 옵션 정리
         this._options.forEach(opt => opt.remove());
         this._options = [];
 
-        // DocumentFragment를 사용하여 DOM 조작 최적화
         const fragment = document.createDocumentFragment();
         
         this._options = this.optionItems.map(opt => {
@@ -594,7 +582,6 @@ export class SeoSelect extends LitElement {
           return el;
         });
         
-        // 한 번에 DOM에 추가
         this.appendChild(fragment);
       } 
 
@@ -602,7 +589,6 @@ export class SeoSelect extends LitElement {
         this._isLoading = false;
       }
 
-      // 선택된 값 처리
       if (this.multiple) {
         const selectedOptions = this._options.filter(opt => opt.selected);
         this._selectedValues = selectedOptions.map(opt => opt.value);
@@ -623,10 +609,8 @@ export class SeoSelect extends LitElement {
         this._initialLabel = this._options[0].textContent || '';
       }
 
-      // 높이 계산 추가
       this._calculatedHeight = this.calculateDropdownHeight();
       
-      // 너비 계산을 비동기로 처리
       this.calculateAutoWidth();
       
     } finally {
@@ -642,11 +626,11 @@ export class SeoSelect extends LitElement {
 
     if (this.hasNoOptions()) {
       this._isLoading = true;
-      this._calculatedHeight = this.calculateDropdownHeight(); // 로딩 상태 높이
+      this._calculatedHeight = this.calculateDropdownHeight();
       this._debouncedUpdate();
 
       this.loadOptionsAsync().then(() => {
-        this._calculatedHeight = this.calculateDropdownHeight(); // 로딩 완료 후 높이 재계산
+        this._calculatedHeight = this.calculateDropdownHeight();
         this.initializeVirtualSelect();
       }).catch(() => {
         this._isLoading = false;
@@ -654,16 +638,13 @@ export class SeoSelect extends LitElement {
         this._debouncedUpdate();
       });
     } else {
-      // 기존 가상 스크롤이 있으면 제거
       if (this._virtual) {
         this._virtual.destroy();
         this._virtual = null;
       }
       
-      // 높이 재계산
       this._calculatedHeight = this.calculateDropdownHeight();
       
-      // 새로운 가상 스크롤 초기화
       this.initializeVirtualSelect();
     }
   }
@@ -671,24 +652,20 @@ export class SeoSelect extends LitElement {
   public closeDropdown(): void {
     this.open = false;
     
-    // 가상 스크롤 정리
     if (this._virtual) {
       this._virtual.destroy();
       this._virtual = null;
     }
     
-    // 높이 캐시 클리어
     this._calculatedHeight = null;
     
     this._debouncedUpdate();
   }
 
-  // initializeVirtualSelect 메서드 수정 - 높이 재계산 추가
   protected initializeVirtualSelect(): void {
     const scrollEl = this.querySelector(`.${CSS_CLASSES.SCROLL}`) as HTMLDivElement;
     const optionData = this.getAllOptionData();
 
-    // 높이 재계산
     this._calculatedHeight = this.calculateDropdownHeight();
 
     if (this.multiple && optionData.length === 0) {
@@ -711,7 +688,6 @@ export class SeoSelect extends LitElement {
     }
   }
 
-  // 로딩 완료 후 높이 업데이트
   public async loadOptionsAsync(): Promise<void> {
     return new Promise((resolve) => {
       const loadingTime = Math.min(
@@ -720,7 +696,6 @@ export class SeoSelect extends LitElement {
       );
       
       setTimeout(() => {
-        // 로딩 완료 후 높이 재계산
         this._calculatedHeight = this.calculateDropdownHeight();
         this._debouncedUpdate();
         resolve();
@@ -748,10 +723,8 @@ export class SeoSelect extends LitElement {
         }
       }
       
-      // 높이 재계산
       this._calculatedHeight = this.calculateDropdownHeight();
 
-      // 표준 이벤트 발생
       triggerSelectEvent(this, label, value);
 
     } else {
@@ -759,7 +732,6 @@ export class SeoSelect extends LitElement {
       this._setValue(value);
       this.closeDropdown();
 
-      // 표준 이벤트 발생
       triggerSelectEvent(this, label, value);
     }
   }
@@ -793,7 +765,6 @@ export class SeoSelect extends LitElement {
     }
   };
 
-  // 최적화된 텍스트 너비 측정 - 캐싱 적용
   public getMaxOptionWidth(texts: string[], font: string): number {
     const cacheKey = `${texts.join('|')}|${font}`;
     
@@ -867,7 +838,6 @@ export class SeoSelect extends LitElement {
 
     this._debouncedUpdate();
     
-    // 표준 이벤트 발생
     if (emit) triggerChangeEvent(this);
   }
 
@@ -921,13 +891,13 @@ export class SeoSelect extends LitElement {
 
   public setLanguage(language: SupportedLanguage): void {
     this.language = language;
-    this._localizedTextCache = null; // 캐시 무효화
+    this._localizedTextCache = null;
     this._debouncedUpdate();
   }
 
   public setTexts(customTexts: Partial<LocalizedTexts>): void {
     this.texts = { ...this.texts, ...customTexts };
-    this._localizedTextCache = null; // 캐시 무효화
+    this._localizedTextCache = null;
     this._debouncedUpdate();
   }
 
@@ -937,17 +907,11 @@ export class SeoSelect extends LitElement {
     this._debouncedUpdate();
   }
 
-  /**
-   * 옵션들을 동적으로 설정합니다 (기존 옵션 모두 교체)
-   * @param options - 설정할 옵션 배열
-   * @param preserveSelection - 기존 선택값 유지 여부 (기본값: false)
-   */
   public addOptions(options: VirtualSelectOption[], preserveSelection: boolean = false): void {
     if (this._isUpdating) return;
     this._isUpdating = true;
 
     try {
-      // 기존 선택값 백업
       let previousValue: string | null = null;
       let previousSelectedValues: string[] = [];
       
@@ -959,13 +923,11 @@ export class SeoSelect extends LitElement {
         }
       }
 
-      // 기존 옵션들 정리
       this._options.forEach(opt => opt.remove());
       this._options = [];
       this._optionsCache.clear();
       this._widthCalculationCache.clear();
 
-      // 새로운 옵션들 생성
       if (Array.isArray(options) && options.length > 0) {
         const fragment = document.createDocumentFragment();
         
@@ -983,13 +945,11 @@ export class SeoSelect extends LitElement {
         this._isLoading = false;
       } else {
         this._isLoading = true;
-        // 옵션이 없을 때 라벨 초기화
         if (!this.multiple) {
           this._labelText = '';
         }
       }
 
-      // 선택값 복원 또는 초기화
       if (preserveSelection && options.length > 0) {
         if (this.multiple) {
           const validValues = previousSelectedValues.filter(value => 
@@ -1019,15 +979,12 @@ export class SeoSelect extends LitElement {
         }
       }
 
-      // 높이 재계산
       this._calculatedHeight = this.calculateDropdownHeight();
 
-      // 드롭다운이 열려있는 경우 가상 스크롤 즉시 업데이트
       if (this.open) {
         this._updateVirtualScrollData();
       }
 
-      // 초기값 설정
       if (this._options.length > 0) {
         this._initialValue = this._options[0].value;
         this._initialLabel = this._options[0].textContent || '';
@@ -1044,11 +1001,6 @@ export class SeoSelect extends LitElement {
     }
   }
 
-  /**
-   * 단일 옵션을 추가합니다
-   * @param option - 추가할 옵션
-   * @param index - 삽입할 위치 (선택적, 기본값은 마지막)
-   */
   public addOption(option: VirtualSelectOption, index?: number): void {
     if (this._isUpdating) return;
     
@@ -1060,14 +1012,12 @@ export class SeoSelect extends LitElement {
     this._isUpdating = true;
 
     try {
-      // 새 옵션 요소 생성
       const el = document.createElement('option');
       el.value = option.value;
       el.textContent = option.label;
       el.hidden = true;
       this._optionsCache.set(option.value, el);
 
-      // 지정된 위치에 삽입
       const insertIndex = index !== undefined ? Math.max(0, Math.min(index, this._options.length)) : this._options.length;
       
       if (insertIndex >= this._options.length) {
@@ -1082,15 +1032,12 @@ export class SeoSelect extends LitElement {
       this._widthCalculationCache.clear();
       this._isLoading = false;
 
-      // 높이 재계산
       this._calculatedHeight = this.calculateDropdownHeight();
 
-      // 드롭다운이 열려있는 경우 가상 스크롤 즉시 업데이트
       if (this.open) {
         this._updateVirtualScrollData();
       }
 
-      // 첫 번째 옵션이면 초기값 설정
       if (this._options.length === 1) {
         this._initialValue = option.value;
         this._initialLabel = option.label;
@@ -1108,10 +1055,6 @@ export class SeoSelect extends LitElement {
     }
   }
 
-  /**
-   * 특정 옵션을 제거합니다
-   * @param value - 제거할 옵션의 값
-   */
   public clearOption(value: string): void {
     if (this._isUpdating) return;
     
@@ -1121,14 +1064,12 @@ export class SeoSelect extends LitElement {
     this._isUpdating = true;
 
     try {
-      // 옵션 제거
       const removedOption = this._options[optionIndex];
       removedOption.remove();
       this._options.splice(optionIndex, 1);
       this._optionsCache.delete(value);
       this._widthCalculationCache.clear();
 
-      // 선택된 값에서도 제거
       if (this.multiple) {
         const selectedIndex = this._selectedValues.indexOf(value);
         if (selectedIndex > -1) {
@@ -1147,15 +1088,12 @@ export class SeoSelect extends LitElement {
         }
       }
 
-      // 높이 재계산
       this._calculatedHeight = this.calculateDropdownHeight();
 
-      // 드롭다운이 열려있는 경우 가상 스크롤 즉시 업데이트
       if (this.open) {
         this._updateVirtualScrollData();
       }
 
-      // 초기값 업데이트
       if (this._options.length > 0) {
         this._initialValue = this._options[0].value;
         this._initialLabel = this._options[0].textContent || '';
@@ -1163,7 +1101,6 @@ export class SeoSelect extends LitElement {
         this._initialValue = null;
         this._initialLabel = null;
         this._isLoading = true;
-        // 옵션이 없을 때 라벨 초기화
         if (!this.multiple) {
           this._labelText = '';
         }
@@ -1177,21 +1114,16 @@ export class SeoSelect extends LitElement {
     }
   }
 
-  /**
-   * 모든 옵션을 제거합니다
-   */
   public clearAllOptions(): void {
     if (this._isUpdating) return;
     this._isUpdating = true;
 
     try {
-      // 모든 옵션 제거
       this._options.forEach(opt => opt.remove());
       this._options = [];
       this._optionsCache.clear();
       this._widthCalculationCache.clear();
 
-      // 선택값 초기화
       if (this.multiple) {
         const previousSelectedValues = [...this._selectedValues];
         this._selectedValues = [];
@@ -1203,22 +1135,19 @@ export class SeoSelect extends LitElement {
       } else {
         const previousValue = this._value;
         this._setValue('', true);
-        this._labelText = ''; // 라벨 초기화 추가
+        this._labelText = '';
         
         if (previousValue) {
           triggerResetEvent(this, { value: '', label: '' });
         }
       }
 
-      // 높이를 auto로 설정
       this._calculatedHeight = 'auto';
 
-      // 드롭다운이 열려있는 경우 가상 스크롤 즉시 클리어
       if (this.open && this._virtual) {
         this._virtual.clearData();
       }
 
-      // 초기값 클리어
       this._initialValue = null;
       this._initialLabel = null;
       this._isLoading = true;
@@ -1230,20 +1159,15 @@ export class SeoSelect extends LitElement {
     }
   }
 
-  /**
-   * 가상 스크롤 데이터를 즉시 업데이트하는 헬퍼 메서드
-   */
   private _updateVirtualScrollData(): void {
     if (!this._virtual) return;
 
     const optionData = this.getAllOptionData();
     
     if (optionData.length > 0) {
-      // 현재 활성화된 값으로 가상 스크롤 데이터 설정
       const activeValue = this.multiple ? undefined : this._value || undefined;
       this._virtual.setData(optionData, activeValue);
       
-      // 활성 인덱스 설정
       requestAnimationFrame(() => {
         if (!this._virtual) return;
         
@@ -1255,15 +1179,10 @@ export class SeoSelect extends LitElement {
         }
       });
     } else {
-      // 옵션이 없으면 가상 스크롤 클리어
       this._virtual.clearData();
     }
   }
 
-  /**
-   * 옵션 데이터 일괄 업데이트 (성능 최적화)
-   * @param updates - 업데이트할 옵션들의 배열
-   */
   public batchUpdateOptions(updates: Array<BatchUpdateOption>): void {
     if (this._isUpdating) return;
     this._isUpdating = true;
@@ -1305,7 +1224,6 @@ export class SeoSelect extends LitElement {
                 this._options.splice(optionIndex, 1);
                 this._optionsCache.delete(update.value);
 
-                // 선택된 값에서도 제거
                 if (this.multiple) {
                   const selectedIndex = this._selectedValues.indexOf(update.value);
                   if (selectedIndex > -1) {
@@ -1332,7 +1250,6 @@ export class SeoSelect extends LitElement {
               if (existingOption) {
                 existingOption.textContent = update.option.label;
                 this._optionsCache.set(update.value, existingOption);
-                // 현재 선택된 값의 라벨도 업데이트
                 if (!this.multiple && this._value === update.value) {
                   this._labelText = update.option.label;
                 }
@@ -1347,28 +1264,23 @@ export class SeoSelect extends LitElement {
         this._widthCalculationCache.clear();
         this._isLoading = this._options.length === 0;
 
-        // 높이 재계산
         this._calculatedHeight = this.calculateDropdownHeight();
 
-        // 드롭다운이 열려있는 경우 가상 스크롤 한 번만 업데이트
         if (this.open) {
           this._updateVirtualScrollData();
         }
 
-        // 초기값 업데이트
         if (this._options.length > 0) {
           this._initialValue = this._options[0].value;
           this._initialLabel = this._options[0].textContent || '';
         } else {
           this._initialValue = null;
           this._initialLabel = null;
-          // 옵션이 없을 때 라벨 초기화
           if (!this.multiple) {
             this._labelText = '';
           }
         }
 
-        // 폼 값 업데이트
         if (this.multiple) {
           this.updateFormValue();
         }
@@ -1384,45 +1296,31 @@ export class SeoSelect extends LitElement {
     }
   }
 
-  // 캐시 수동 정리 메서드 - 높이 캐시도 포함
   public clearCaches(): void {
     this._optionsCache.clear();
     this._widthCalculationCache.clear();
     this._localizedTextCache = null;
     this._lastLanguage = '';
     this._lastTextsHash = '';
-    this._calculatedHeight = null; // 높이 캐시도 정리
+    this._calculatedHeight = null;
   }
 
-  // 타입 안전한 이벤트 리스너 헬퍼 메서드들 (표준 addEventListener 권장)
   public onSelect(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.SELECT]) => void): void {
     this.addEventListener(EVENT_NAMES.SELECT, handler as EventListener);
   }
 
-  /**
-   * 선택 해제 이벤트 리스너 추가 (타입 안전)
-   */
   public onDeselect(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.DESELECT]) => void): void {
     this.addEventListener(EVENT_NAMES.DESELECT, handler as EventListener);
   }
 
-  /**
-   * 리셋 이벤트 리스너 추가 (타입 안전)
-   */
   public onReset(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.RESET]) => void): void {
     this.addEventListener(EVENT_NAMES.RESET, handler as EventListener);
   }
 
-  /**
-   * 드롭다운 열기 이벤트 리스너 추가 (타입 안전)
-   */
   public onOpen(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.SELECT_OPEN]) => void): void {
     this.addEventListener(EVENT_NAMES.SELECT_OPEN, handler as EventListener);
   }
 
-  /**
-   * 변경 이벤트 리스너 추가 (타입 안전)
-   */
   public onChange(handler: (event: HTMLElementEventMap[typeof EVENT_NAMES.CHANGE]) => void): void {
     this.addEventListener(EVENT_NAMES.CHANGE, handler as EventListener);
   }
