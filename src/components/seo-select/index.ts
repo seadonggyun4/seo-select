@@ -19,7 +19,6 @@ import {
   SeoSelectEventListener
 } from '../../event/index.js';
 
-// 타입들을 types 디렉토리에서 import
 import type {
   VirtualSelectOption,
   BatchUpdateOption,
@@ -80,9 +79,8 @@ export class SeoSelect extends LitElement {
   declare _internals: ElementInternals;
   declare _pendingActiveIndex: number | null;
   declare _calculatedWidth: string | null;
-  declare _calculatedHeight: string | null; // 높이 관리를 위한 새로운 속성
+  declare _calculatedHeight: string | null; 
 
-  // 최적화를 위한 캐시 및 플래그
   public _optionsCache: Map<string, HTMLOptionElement> = new Map();
   private _localizedTextCache: LocalizedTexts | null = null;
   private _lastLanguage: string = '';
@@ -116,15 +114,12 @@ export class SeoSelect extends LitElement {
     this.texts = {};
     this.autoWidth = false;
     this._calculatedWidth = null;
-    this._calculatedHeight = null; // 높이 캐시 초기화
+    this._calculatedHeight = null; 
     this._handleKeydownBound = (e: KeyboardEvent) => this._virtual?.handleKeydown(e);
     this.tabIndex = 0;
     this._pendingActiveIndex = null;
   }
 
-  /**
-   * @deprecated 표준 addEventListener를 사용하세요
-   */
   public addSeoSelectEventListener<T extends keyof HTMLElementEventMap>(
     type: T,
     listener: SeoSelectEventListener<T>,
@@ -133,9 +128,6 @@ export class SeoSelect extends LitElement {
     this.addEventListener(type, listener as EventListener, options);
   }
 
-  /**
-   * @deprecated 표준 removeEventListener를 사용하세요
-   */
   public removeSeoSelectEventListener<T extends keyof HTMLElementEventMap>(
     type: T,
     listener: SeoSelectEventListener<T>,
@@ -144,7 +136,6 @@ export class SeoSelect extends LitElement {
     this.removeEventListener(type, listener as EventListener, options);
   }
 
-  // 최적화된 getLocalizedText - 캐싱 적용
   public getLocalizedText(): LocalizedTexts {
     const textsHash = JSON.stringify(this.texts);
     
@@ -185,8 +176,6 @@ export class SeoSelect extends LitElement {
     this.removeEventListener('keydown', this._handleKeydownBound);
     this._virtual?.destroy();
     this._virtual = null;
-
-    // 캐시 정리
     this._optionsCache.clear();
     this._widthCalculationCache.clear();
     this._localizedTextCache = null;
@@ -202,7 +191,6 @@ export class SeoSelect extends LitElement {
     }
   }
 
-  // 디바운스된 업데이트 메서드
   public _debouncedUpdate(): void {
     if (this._updateDebounceTimer) {
       clearTimeout(this._updateDebounceTimer);
@@ -243,22 +231,18 @@ export class SeoSelect extends LitElement {
     }
   }
 
-  // 드롭다운 높이 계산 메서드 추가
   public calculateDropdownHeight(): string {
-    // 로딩 중인 경우
     if (this._isLoading) {
-      return '80px'; // 로딩 컨테이너 높이
+      return '80px'; 
     }
 
-    // 옵션이 없는 경우
     if (this._options.length === 0) {
       if (this.multiple) {
-        return '60px'; // no-data 컨테이너 높이
+        return '60px'; 
       }
-      return 'auto'; // 자연스럽게 축소
+      return 'auto'; 
     }
 
-    // 옵션이 있는 경우 높이 계산
     const rowHeight = 36;
     const maxHeight = 360;
     const computedHeight = this._options.length * rowHeight;
@@ -267,7 +251,6 @@ export class SeoSelect extends LitElement {
     return `${finalHeight + 5}px`;
   }
 
-  // 효과적인 높이 반환 메서드
   public getEffectiveHeight(): string {
     if (this._calculatedHeight) {
       return this._calculatedHeight;
@@ -275,14 +258,12 @@ export class SeoSelect extends LitElement {
     return this.calculateDropdownHeight();
   }
 
-  // 최적화된 자동 너비 계산 - 캐싱 및 배치 처리
   public calculateAutoWidth(): void {
     if (this.width || this._options.length === 0) {
       this._calculatedWidth = null;
       return;
     }
 
-    // 캐시 키 생성
     const optionTexts = this._options.map(opt => opt.textContent || '');
     const cacheKey = optionTexts.join('|') + `|${this.multiple}`;
     
@@ -292,7 +273,6 @@ export class SeoSelect extends LitElement {
       return;
     }
 
-    // requestAnimationFrame으로 배치 처리
     requestAnimationFrame(() => {
       const texts = this.getLocalizedText();
       const textsToMeasure = [...optionTexts];
