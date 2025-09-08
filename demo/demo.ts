@@ -1733,6 +1733,107 @@ function getGlobalAnimator(): SimpleTextAnimator | null {
   return globalAnimator;
 }
 
+function initFrameworkTabs() {
+  const tabs = document.querySelectorAll<HTMLButtonElement>(".framework-tab");
+  const contents = document.querySelectorAll<HTMLElement>(".framework-content");
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.framework;
+
+      // 모든 탭/콘텐츠 초기화
+      tabs.forEach((t) => t.classList.remove("active"));
+      contents.forEach((c) => c.classList.remove("active"));
+
+      // 클릭한 탭 활성화
+      tab.classList.add("active");
+
+      // 대응되는 콘텐츠 활성화
+      const targetContent = document.getElementById(`${target}-content`);
+      if (targetContent) {
+        targetContent.classList.add("active");
+      }
+    });
+  });
+}
+
+// 공통: 실제 복사 수행 (Clipboard API → execCommand 폴백)
+async function __writeTextToClipboard(text: string) {
+  // iOS 등 개행 정규화(선택)
+  const normalized = text.replace(/\u00A0/g, ' '); // NBSP → space
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    await navigator.clipboard.writeText(normalized);
+    return;
+  }
+  // 폴백: 임시 textarea
+  const ta = document.createElement('textarea');
+  ta.value = normalized;
+  // 화면에 보이지 않게
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  ta.style.pointerEvents = 'none';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    const ok = document.execCommand('copy');
+    if (!ok) throw new Error('execCommand copy failed');
+  } finally {
+    document.body.removeChild(ta);
+  }
+}
+
+// 버튼 상태 표시 유틸
+function __flashButton(btn: HTMLElement | null | undefined, label: string, ms = 1300) {
+  if (!btn) return;
+  const prev = btn.textContent || '';
+  const prevDisabled = (btn as HTMLButtonElement).disabled;
+  (btn as HTMLButtonElement).disabled = true;
+  btn.textContent = label;
+  setTimeout(() => {
+    btn.textContent = prev;
+    (btn as HTMLButtonElement).disabled = prevDisabled;
+  }, ms);
+}
+
+async function copyToClipboard(text: string, btn?: HTMLElement) {
+  try {
+    await __writeTextToClipboard(text);
+    __flashButton?.(btn as HTMLElement, 'Copied!');
+    showNotification(`Code copied`);
+  } catch (e) {
+    console.error(e);
+    __flashButton?.(btn as HTMLElement, 'Failed', 1600);
+    showNotification(`Copy failed`);
+  }
+}
+
+async function copyCodeBlock(triggerBtn: HTMLElement) {
+  const wrapper = triggerBtn.closest('.code-block') as HTMLElement | null;
+  const codeEl =
+    wrapper?.querySelector('pre > code') ||
+    wrapper?.querySelector('pre') ||
+    wrapper?.querySelector('code');
+
+  const text = (codeEl?.textContent || '').trim();
+
+  if (!text) {
+    __flashButton?.(triggerBtn, 'No code', 1200);
+    showNotification(`No code to copy.`);
+    return;
+  }
+
+  try {
+    await __writeTextToClipboard(text);
+    __flashButton?.(triggerBtn, 'Copied!');
+    showNotification(`Code copied`);
+  } catch (e) {
+    console.error(e);
+    __flashButton?.(triggerBtn, 'Failed', 1600);
+    showNotification(`Copy failed`);
+  }
+}
+
 // ==========================================
 // 통합 앱 초기화 시스템
 // ==========================================
@@ -1847,3 +1948,6 @@ if (document.readyState === 'loading') {
   }, 50);
 }
 
+document.addEventListener("DOMContentLoaded", initFrameworkTabs);
+(window as any).copyToClipboard = copyToClipboard;
+(window as any).copyCodeBlock = copyCodeBlock;

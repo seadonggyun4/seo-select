@@ -833,28 +833,6 @@ select.onSelect(({ label, value }) => {
 document.body.appendChild(select);
 ```
 
-## Key Benefits
-
-### 🎯 **Universal Compatibility**
-- Single codebase works across all frameworks
-- No framework-specific wrappers needed
-- Future-proof web standards
-
-### 🔒 **Full Type Safety**
-- Complete TypeScript support out of the box
-- IntelliSense for all events and properties
-- Framework-specific type extensions
-
-### ⚡ **Zero Configuration**
-- Import once, use everywhere
-- Automatic type registration
-- No additional setup required
-
-### 🚀 **Consistent API**
-- Same events and methods across all frameworks
-- Predictable behavior everywhere
-- Easy to migrate between frameworks
-
 ## TypeScript Support
 
 ### Type Definitions

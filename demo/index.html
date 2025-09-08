@@ -58,6 +58,7 @@
     <!-- Critical CSS and external resources -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" integrity="sha512-oHDEc8Xed4hiW6CxD7qjbnI+B07vDdX7hEPTvn9pSZO1bcRqHp8mj9pyr+8RVC2GmtEfI2Bi9Ke9Ass0as+zpg==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-dark.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/style.scss">
 
     <!-- Structured Data - Organization -->
@@ -150,14 +151,20 @@
             {
                 "@type": "ListItem",
                 "position": 2,
+                "name": "Installation",
+                "item": "https://seo-select.netlify.app/#install"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
                 "name": "Demo",
                 "item": "https://seo-select.netlify.app/#demo"
             },
             {
                 "@type": "ListItem",
-                "position": 3,
-                "name": "Documentation",
-                "item": "https://seo-select.netlify.app/#docs"
+                "position": 4,
+                "name": "Frameworks",
+                "item": "https://seo-select.netlify.app/#frameworks"
             }
         ]
     }
@@ -184,12 +191,12 @@
                 </p>
             </div>
             <div class="header-demo">
-                <h4>🌍 Welcome</h4>
+                <h4>🌏 Welcome</h4>
                 <seo-select-search name="welcome" width="400px" placeholder="Try searching...">
                     <option value="welcome">🎉 환영합니다 Welcome!</option>
                     <option value="docs">📚 문서 Documentation</option>
                     <option value="features">✨ 기능 Features</option>
-                    <option value="multilingual">🌐 다국어 Multilingual</option>
+                    <option value="multilingual">🌏 다국어 Multilingual</option>
                     <option value="search">🔍 검색 Search</option>
                     <option value="themes">🎨 테마 Themes</option>
                     <option value="accessibility">♿ 접근성 A11y</option>
@@ -263,17 +270,194 @@
         </div>
 
         <nav class="demo-nav">
-            <button class="nav-btn active" data-section="basic">Basic Usage</button>
+            <button class="nav-btn active" data-section="install">Installation</button>
+            <button class="nav-btn" data-section="basic">Basic Usage</button>
             <button class="nav-btn" data-section="search">Search Select</button>
             <button class="nav-btn" data-section="themes">Themes</button>
             <button class="nav-btn" data-section="multiple">Multiple Selection</button>
             <button class="nav-btn" data-section="dynamic">Dynamic Options</button>
             <button class="nav-btn" data-section="advanced">Advanced Features</button>
+            <button class="nav-btn" data-section="frameworks">Framework Usage</button>
         </nav>
 
         <main class="content">
+            <!-- Installation Section -->
+            <section id="install" class="demo-section active">
+                <h2 class="section-title">
+                    <i class="fas fa-download"></i>
+                    Installation & Setup
+                </h2>
+
+                <div class="feature-highlight">
+                    <h4>Quick Start</h4>
+                    <p>SEO Select is available as an NPM package and can be integrated into any modern web project. Choose your preferred installation method and framework below.</p>
+                </div>
+
+                <div class="install-grid">
+                    <div class="install-method">
+                        <h4><i class="fab fa-npm"></i> NPM Installation</h4>
+                        <p>Install via NPM for most JavaScript projects:</p>
+                        <div class="npm-commands">
+                            <div class="npm-command">
+                                <code>npm install seo-select</code>
+                                <button class="copy-btn" onclick="copyToClipboard('npm install seo-select')">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>Basic Import & Usage</h3>
+                    <p>After installation, import the components and TypeScript types into your project:</p>
+                    
+                    <div class="code-example">
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                            <pre><code class="language-javascript">// Import the components (auto-registers custom elements)
+import 'seo-select';
+
+// Import search-enabled select component
+import 'seo-select/components/seo-select-search';
+
+// Import Style
+import 'seo-select/styles'
+
+// Import TypeScript types for better development experience
+import 'seo-select/types';
+
+// Optional: Import specific component types for custom integrations
+import type { SeoSelectElement, SeoSelectSearchElement } from 'seo-select/types';</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="demo-description">
+                        <span>📦</span>
+                        <span>Single import enables global component availability across your entire application</span>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>HTML Usage Examples</h3>
+                    <p>Once imported, use the components directly in your HTML with full TypeScript support:</p>
+                    
+                    <div class="code-example">
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                            <pre><code class="language-html"><!-- Basic Select -->
+&lt;seo-select name="example" width="200px"&gt;
+    &lt;option value="option1"&gt;Option 1&lt;/option&gt;
+    &lt;option value="option2" selected&gt;Option 2&lt;/option&gt;
+    &lt;option value="option3"&gt;Option 3&lt;/option&gt;
+&lt;/seo-select&gt;
+
+<!-- Search Select with Multiple Selection -->
+&lt;seo-select-search multiple name="skills" width="300px"&gt;
+    &lt;option value="js"&gt;JavaScript&lt;/option&gt;
+    &lt;option value="ts"&gt;TypeScript&lt;/option&gt;
+    &lt;option value="react"&gt;React&lt;/option&gt;
+&lt;/seo-select-search&gt;
+
+<!-- Dark Theme with Custom Texts -->
+&lt;seo-select 
+    dark 
+    theme="float" 
+    texts='{"placeholder": "Choose an option"}'
+    name="themed"&gt;
+    &lt;option value="1"&gt;Dark Option 1&lt;/option&gt;
+    &lt;option value="2"&gt;Dark Option 2&lt;/option&gt;
+&lt;/seo-select&gt;</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="demo-description">
+                        <span>🏷️</span>
+                        <span>Standard HTML syntax with enhanced attributes and automatic TypeScript IntelliSense</span>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>JavaScript API Usage</h3>
+                    <p>Programmatic control and dynamic option management:</p>
+                    
+                    <div class="code-example">
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                            <pre><code class="language-javascript">// Get element reference
+const selectElement = document.querySelector('seo-select[name="example"]');
+
+// Set options programmatically
+selectElement.optionItems = [
+    { value: 'js', label: 'JavaScript' },
+    { value: 'ts', label: 'TypeScript' },
+    { value: 'react', label: 'React' }
+];
+
+// Set/get current selection
+selectElement.value = 'js';
+console.log(selectElement.value); // 'js'
+
+// Multiple selection
+selectElement.selectedValues = ['js', 'react'];
+console.log(selectElement.selectedValues); // ['js', 'react']
+
+// Dynamic option management
+selectElement.addOption({ value: 'vue', label: 'Vue.js' });
+selectElement.clearOption('js');
+selectElement.clearAllOptions();</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="demo-description">
+                        <span>⚙️</span>
+                        <span>Rich JavaScript API for dynamic option management and programmatic control</span>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>Event Handling</h3>
+                    <p>Comprehensive event system for user interactions and form integration:</p>
+                    
+                    <div class="code-example">
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                            <pre><code class="language-javascript">const selectElement = document.querySelector('seo-select[name="example"]');
+
+// Custom component events
+selectElement.addEventListener('onSelect', (event) => {
+    console.log('Selected:', event.detail);
+    // { label: 'JavaScript', value: 'js' }
+});
+
+selectElement.addEventListener('onDeselect', (event) => {
+    console.log('Deselected:', event.detail);
+});
+
+selectElement.addEventListener('onReset', (event) => {
+    console.log('Reset to:', event.detail);
+});
+
+// Standard form events
+selectElement.addEventListener('change', (event) => {
+    console.log('Form change:', event.target.value);
+});
+
+// For search components
+const searchElement = document.querySelector('seo-select-search');
+searchElement.addEventListener('onSearch', (event) => {
+    console.log('Search query:', event.detail.query);
+});</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="demo-description">
+                        <span>📡</span>
+                        <span>Rich event system supporting both custom component events and standard form events</span>
+                    </div>
+                </div>
+            </section>
+
             <!-- Basic Usage Section -->
-            <section id="basic" class="demo-section active">
+            <section id="basic" class="demo-section">
                 <h2 class="section-title">
                     <i class="fas fa-play-circle"></i>
                     Basic Select Usage
@@ -297,6 +481,19 @@
                             <option value="benz">Mercedes-Benz</option>
                         </seo-select>
                     </div>
+                    
+                    <div class="code-example">
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                            <pre><code class="language-html">&lt;seo-select name="brand" width="200px"&gt;
+    &lt;option value="kia"&gt;Kia Motors&lt;/option&gt;
+    &lt;option value="hyundai" selected&gt;Hyundai Motor&lt;/option&gt;
+    &lt;option value="bmw"&gt;BMW&lt;/option&gt;
+    &lt;option value="benz"&gt;Mercedes-Benz&lt;/option&gt;
+&lt;/seo-select&gt;</code></pre>
+                        </div>
+                    </div>
+                    
                     <div class="demo-description">
                         <span>💡</span>
                         <span>Uses standard HTML option tags with selected attribute support</span>
@@ -311,6 +508,22 @@
                     <div class="demo-container">
                         <seo-select name="brand-alt" width="200px"></seo-select>
                     </div>
+                    
+                    <div class="code-example">
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                            <pre><code class="language-javascript">// JavaScript to populate the select
+const selectElement = document.querySelector('seo-select[name="brand-alt"]');
+selectElement.optionItems = [
+    { value: 'kia', label: 'Kia Motors' },
+    { value: 'hyundai', label: 'Hyundai Motor' },
+    { value: 'bmw', label: 'BMW' },
+    { value: 'benz', label: 'Mercedes-Benz' }
+];
+selectElement.value = 'hyundai';</code></pre>
+                        </div>
+                    </div>
+                    
                     <div class="demo-description">
                         <span>🔧</span>
                         <span>Populated via JavaScript optionItems property - ideal for dynamic content</span>
@@ -440,6 +653,7 @@
                 </div>
             </section>
 
+            <!-- 나머지 섹션들은 기존과 동일하게 유지 -->
             <!-- Themes Section -->
             <section id="themes" class="demo-section">
                 <h2 class="section-title">
@@ -513,7 +727,7 @@
                             Dark theme search component with enhanced search input styling, improved placeholder text visibility, and optimized dropdown contrast for better multilingual text readability.
                         </p>
                         <div class="demo-container dark-demo">
-                            <seo-select-search name="dark-multilang" theme="float" dark width="300px">
+                            <seo-select-search name="dark-multilang" theme="float" dark width="100%">
                                 <option value="apple">사과 (Apple) / りんご / 苹果</option>
                                 <option value="banana">바나나 (Banana) / バナナ / 香蕉</option>
                                 <option value="cherry">체리 (Cherry) / チェリー / 樱桃</option>
@@ -613,7 +827,7 @@
                         </seo-select-search>
                     </div>
                     <div class="demo-description">
-                        <span>🌐</span>
+                        <span>🌏</span>
                         <span>Multilingual search combined with tag-based multiple selection</span>
                     </div>
                 </div>
@@ -672,79 +886,6 @@
                         <span>Batch option replacement with optional selection preservation</span>
                     </div>
                 </div>
-
-                <div class="use-case">
-                    <h3>Individual Option Control</h3>
-                    <p>
-                        Add or remove specific options dynamically while maintaining optimal performance. Supports insertion at specific positions, option validation, and automatic duplicate prevention for building interactive option builders.
-                    </p>
-                    <div class="demo-container">
-                        <seo-select-search id="individual-demo" name="individual-demo" width="400px" multiple>
-                            <option value="html">HTML</option>
-                            <option value="css">CSS</option>
-                            <option value="js">JavaScript</option>
-                        </seo-select-search>
-                        <div class="dynamic-controls">
-                            <div class="control-group">
-                                <input type="text" id="new-option-value" placeholder="Option value" class="control-input">
-                                <input type="text" id="new-option-label" placeholder="Option label" class="control-input">
-                                <button class="action-btn" onclick="DynamicDemoActions.addCustomOption()">Add Option</button>
-                            </div>
-                            <div class="control-group">
-                                <input type="text" id="remove-option-value" placeholder="Value to remove" class="control-input">
-                                <button class="action-btn secondary" onclick="DynamicDemoActions.removeOption()">Remove Option</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="demo-description">
-                        <span>➕</span>
-                        <span>Individual option addition and removal with real-time updates</span>
-                    </div>
-                </div>
-
-                <div class="use-case">
-                    <h3>Async Data Loading with Search</h3>
-                    <p>
-                        Demonstrate loading data asynchronously while maintaining search functionality and user selections. Simulates real-world scenarios like autocomplete APIs, progressive data loading, or filtered content retrieval.
-                    </p>
-                    <div class="demo-container">
-                        <seo-select-search id="async-demo" name="async-demo" width="100%" multiple>
-                        </seo-select-search>
-                        <div class="dynamic-controls">
-                            <button class="action-btn" onclick="DynamicDemoActions.loadUserData()">Load User Data</button>
-                            <button class="action-btn" onclick="DynamicDemoActions.loadCountryData()">Load Countries</button>
-                            <button class="action-btn" onclick="DynamicDemoActions.simulateApiError()">Simulate Error</button>
-                            <button class="action-btn" onclick="DynamicDemoActions.loadIncrementalData()">Load More Data</button>
-                        </div>
-                        <div class="async-status" id="async-status"></div>
-                    </div>
-                    <div class="demo-description">
-                        <span>🌐</span>
-                        <span>Async data loading with error handling and progressive updates</span>
-                    </div>
-                </div>
-
-                <div class="use-case">
-                    <h3>Performance Monitoring</h3>
-                    <p>
-                        Monitor performance metrics during dynamic operations. Track operation timing, memory usage patterns, and virtual scroll efficiency to ensure optimal performance even with frequent updates.
-                    </p>
-                    <div class="demo-container">
-                        <seo-select-search id="performance-demo" name="performance-demo" width="400px">
-                        </seo-select-search>
-                        <div class="dynamic-controls">
-                            <button class="action-btn" onclick="DynamicDemoActions.performanceTest1K()">Load 1K Items</button>
-                            <button class="action-btn" onclick="DynamicDemoActions.performanceTest10K()">Load 10K Items</button>
-                            <button class="action-btn" onclick="DynamicDemoActions.performanceTestUpdates()">Rapid Updates Test</button>
-                            <button class="action-btn secondary" onclick="DynamicDemoActions.clearPerformanceDemo()">Clear</button>
-                        </div>
-                        <div class="performance-metrics" id="performance-metrics"></div>
-                    </div>
-                    <div class="demo-description">
-                        <span>📊</span>
-                        <span>Performance monitoring for dynamic operations and virtual scrolling</span>
-                    </div>
-                </div>
             </section>
 
             <!-- Advanced Features Section -->
@@ -757,125 +898,6 @@
                 <div class="feature-highlight">
                     <h4>Essential Features</h4>
                     <p>Provides core functionality such as easy setup, responsive design, and simple customization options. Ideal for building straightforward applications with common requirements.</p>
-                </div>
-
-                <div class="use-case">
-                    <h3>Automatic Width Adjustment</h3>
-                    <p>
-                        Intelligent width calculation based on content length and container constraints. Automatically adjusts to prevent text overflow while maintaining responsive design principles. Supports minimum and maximum width constraints.
-                    </p>
-                    <div class="demo-container">
-                        <seo-select name="auto-width-demo">
-                            <option value="short">Short</option>
-                            <option value="very-very-long-option-text">Very very long option text here</option>
-                            <option value="medium">Medium length</option>
-                        </seo-select>
-                    </div>
-                    <div class="demo-description">
-                        <span>📏</span>
-                        <span>Smart width calculation prevents text overflow and maintains layout</span>
-                    </div>
-                </div>
-
-                <div class="use-case">
-                    <h3>Internationalization (i18n) Support</h3>
-                    <p>
-                        Comprehensive multi-language UI support with RTL text handling, locale-specific formatting, and cultural adaptation. Watch how placeholder text, button labels, and interface elements automatically adapt to different languages. Includes built-in translations for common interface elements and support for custom localization.
-                    </p>
-                    <div class="demo-container">
-                        <seo-select-search
-                            id="dynamic-lang"
-                            name="lang-demo"
-                            width="350px"
-                            multiple
-                            placeholder="Select your skills..."
-                        >
-                            <option value="frontend">Frontend Development</option>
-                            <option value="backend">Backend Development</option>
-                            <option value="mobile">Mobile Development</option>
-                            <option value="ai">Artificial Intelligence</option>
-                            <option value="blockchain">Blockchain Technology</option>
-                            <option value="devops">DevOps Engineering</option>
-                            <option value="data">Data Science</option>
-                            <option value="security">Cybersecurity</option>
-                            <option value="cloud">Cloud Computing</option>
-                            <option value="ml">Machine Learning</option>
-                        </seo-select-search>
-                        <div class="language-controls">
-                            <button class="lang-btn" onclick="DemoActions.setLanguage('ko')">한국어</button>
-                            <button class="lang-btn" onclick="DemoActions.setLanguage('en')">English</button>
-                            <button class="lang-btn" onclick="DemoActions.setLanguage('ja')">日本語</button>
-                            <button class="lang-btn" onclick="DemoActions.setLanguage('zh')">中文</button>
-                        </div>
-                        <div class="i18n-info">
-                            <strong>🔄 Watch for changes:</strong>
-                            <ul>
-                                <li>Placeholder text adaptation</li>
-                                <li>"Clear all" button text</li>
-                                <li>Search input labels</li>
-                                <li>Loading and empty state messages</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="demo-description">
-                        <span>🌍</span>
-                        <span>Multi-language UI with automatic locale adaptation - watch placeholder and button text changes</span>
-                    </div>
-                </div>
-
-                <div class="use-case">
-                    <h3>Custom Text Configuration</h3>
-                    <p>
-                        Flexible text customization system allowing complete control over all user-facing strings. Supports template variables, conditional text, and context-aware messaging for enhanced user experience.
-                    </p>
-                    <div class="demo-container">
-                        <seo-select-search
-                            multiple
-                            name="custom-text"
-                            width="300px"
-                            texts='{"placeholder": "🎯 Select technologies", "clearAll": "Clear all"}'
-                        >
-                            <option value="frontend">Frontend</option>
-                            <option value="backend">Backend</option>
-                            <option value="mobile">Mobile</option>
-                            <option value="ai">AI</option>
-                        </seo-select-search>
-                    </div>
-                    <div class="demo-description">
-                        <span>✍️</span>
-                        <span>Customizable interface text and messaging system</span>
-                    </div>
-                </div>
-
-                <div class="use-case">
-                    <h3>Reset Functionality Control</h3>
-                    <p>
-                        Configurable reset behavior with optional reset buttons, confirmation dialogs, and custom reset logic. Supports partial resets, batch operations, and undo/redo functionality for complex forms.
-                    </p>
-                    <div class="demo-container">
-                        <div class="reset-demo-grid">
-                            <div>
-                                <label>With Reset (Default)</label>
-                                <seo-select id="with-reset" name="with-reset" width="200px">
-                                    <option value="default">Default</option>
-                                    <option value="option1">Option 1</option>
-                                    <option value="option2" selected>Option 2</option>
-                                </seo-select>
-                            </div>
-                            <div>
-                                <label>Without Reset</label>
-                                <seo-select id="no-reset" name="no-reset" width="200px">
-                                    <option value="default">Default</option>
-                                    <option value="option1">Option 1</option>
-                                    <option value="option2" selected>Option 2</option>
-                                </seo-select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="demo-description">
-                        <span>🔄</span>
-                        <span>Configurable reset behavior with optional reset controls</span>
-                    </div>
                 </div>
 
                 <div class="use-case">
@@ -916,6 +938,287 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Framework Usage Section -->
+            <section id="frameworks" class="demo-section">
+                <h2 class="section-title">
+                    <i class="fas fa-code"></i>
+                    Framework Integration
+                </h2>
+
+                <div class="feature-highlight">
+                    <h4>Universal Framework Support</h4>
+                    <p>SEO Select components work seamlessly across all modern frameworks as Web Components. Each framework requires slight integration differences for optimal TypeScript support and event handling.</p>
+                </div>
+
+                <div class="framework-tabs">
+                    <button class="framework-tab active" data-framework="react">React</button>
+                    <button class="framework-tab" data-framework="vue">Vue</button>
+                    <button class="framework-tab" data-framework="angular">Angular</button>
+                    <button class="framework-tab" data-framework="svelte">Svelte</button>
+                    <button class="framework-tab" data-framework="nextjs">Next.js</button>
+                    <button class="framework-tab" data-framework="vanilla">Vanilla JS</button>
+                </div>
+
+                <!-- React Framework -->
+                <div id="react-content" class="framework-content active">
+                    <div class="use-case">
+                        <h3>React Integration</h3>
+                        <p>React integration requires custom event handling and ref management for optimal TypeScript support:</p>
+                        
+                        <div class="code-example">
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                                <pre><code class="language-javascript">// React Component Example
+import React, { useRef, useEffect, useState } from 'react';
+import 'seo-select';
+import 'seo-select/styles';
+import 'seo-select/types';
+
+const MySelectComponent = () => {
+    const selectRef = useRef(null);
+    const [selectedValue, setSelectedValue] = useState('');
+
+    useEffect(() => {
+        const selectElement = selectRef.current;
+        if (!selectElement) return;
+
+        const handleSelect = (event) => {
+            console.log('Selected:', event.detail);
+            setSelectedValue(event.detail.value);
+        };
+
+        selectElement.addEventListener('onSelect', handleSelect);
+
+        return () => {
+            selectElement.removeEventListener('onSelect', handleSelect);
+        };
+    }, []);
+
+    return (
+        &lt;div&gt;
+            &lt;seo-select 
+                ref={selectRef}
+                name="framework" 
+                width="200px"
+                theme="float"
+            &gt;
+                &lt;option value="react"&gt;React&lt;/option&gt;
+                &lt;option value="vue"&gt;Vue.js&lt;/option&gt;
+                &lt;option value="angular"&gt;Angular&lt;/option&gt;
+            &lt;/seo-select&gt;
+            
+            &lt;p&gt;Selected: {selectedValue}&lt;/p&gt;
+        &lt;/div&gt;
+    );
+};</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vue Framework -->
+                <div id="vue-content" class="framework-content">
+                    <div class="use-case">
+                        <h3>Vue.js Integration</h3>
+                        <p>Vue integration with composition API and reactive data binding:</p>
+                        
+                        <div class="code-example">
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                                <pre><code class="language-javascript">&lt;template&gt;
+  &lt;div&gt;
+    &lt;seo-select 
+      ref="selectRef"
+      name="framework" 
+      width="200px"
+      @onSelect="handleSelect"
+    &gt;
+      &lt;option value="vue"&gt;Vue.js&lt;/option&gt;
+      &lt;option value="nuxt"&gt;Nuxt.js&lt;/option&gt;
+      &lt;option value="quasar"&gt;Quasar&lt;/option&gt;
+    &lt;/seo-select&gt;
+    
+    &lt;p&gt;Selected: {{ selectedValue }}&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script setup&gt;
+import { ref } from 'vue';
+import 'seo-select';
+import 'seo-select/styles';
+import 'seo-select/types';
+
+const selectRef = ref(null);
+const selectedValue = ref('');
+
+const handleSelect = (event) => {
+  selectedValue.value = event.detail.value;
+};
+&lt;/script&gt;</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Angular Framework -->
+                <div id="angular-content" class="framework-content">
+                    <div class="use-case">
+                        <h3>Angular Integration</h3>
+                        <p>Angular integration with custom elements schema and TypeScript decorators:</p>
+                        
+                        <div class="code-example">
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                                <pre><code class="language-typescript">// Angular Component
+import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import 'seo-select';
+import 'seo-select/styles';
+import 'seo-select/types';
+
+@Component({
+  selector: 'app-select-demo',
+  template: `
+    &lt;seo-select 
+      name="framework" 
+      width="200px"
+      (onSelect)="handleSelect($event)"
+    &gt;
+      &lt;option value="angular"&gt;Angular&lt;/option&gt;
+      &lt;option value="ionic"&gt;Ionic&lt;/option&gt;
+    &lt;/seo-select&gt;
+  `,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+})
+export class SelectDemoComponent {
+  handleSelect(event: any) {
+    console.log('Selected:', event.detail);
+  }
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Svelte Framework -->
+                <div id="svelte-content" class="framework-content">
+                    <div class="use-case">
+                        <h3>Svelte Integration</h3>
+                        <p>Svelte integration with reactive stores and custom event handling:</p>
+                        
+                        <div class="code-example">
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                                <pre><code class="language-javascript">&lt;script&gt;
+  import { onMount } from 'svelte';
+  import 'seo-select';
+  import 'seo-select/styles';
+  import 'seo-select/types';
+
+  let selectElement;
+  let selectedValue = '';
+
+  onMount(() => {
+    if (selectElement) {
+      selectElement.addEventListener('onSelect', handleSelect);
+    }
+  });
+
+  function handleSelect(event) {
+    selectedValue = event.detail.value;
+  }
+&lt;/script&gt;
+
+&lt;seo-select 
+  bind:this={selectElement}
+  name="framework" 
+  width="200px"
+&gt;
+  &lt;option value="svelte"&gt;Svelte&lt;/option&gt;
+  &lt;option value="sveltekit"&gt;SvelteKit&lt;/option&gt;
+&lt;/seo-select&gt;
+
+&lt;p&gt;Selected: {selectedValue}&lt;/p&gt;</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Next.js Framework -->
+                <div id="nextjs-content" class="framework-content">
+                    <div class="use-case">
+                        <h3>Next.js Integration</h3>
+                        <p>Next.js integration with SSR considerations and dynamic imports:</p>
+                        
+                        <div class="code-example">
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                                <pre><code class="language-javascript">// Next.js Component with SSR Support
+import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+
+const SeoSelectWrapper = dynamic(() => 
+  import('../components/SeoSelectWrapper'), {
+    ssr: false,
+    loading: () => &lt;p&gt;Loading...&lt;/p&gt;
+  }
+);
+
+export default function NextSelectPage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    import('seo-select').then(() => {
+      import('seo-select/styles');
+      import('seo-select/types');
+    });
+  }, []);
+
+  if (!mounted) return &lt;div&gt;Loading...&lt;/div&gt;;
+
+  return &lt;SeoSelectWrapper /&gt;;
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vanilla JS Framework -->
+                <div id="vanilla-content" class="framework-content">
+                    <div class="use-case">
+                        <h3>Vanilla JavaScript</h3>
+                        <p>Pure JavaScript integration without framework dependencies:</p>
+                        
+                        <div class="code-example">
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                                <pre><code class="language-javascript">// Import SEO Select components
+import 'seo-select';
+import 'seo-select/styles';
+import 'seo-select/types';
+
+// Wait for components to be defined
+await customElements.whenDefined('seo-select');
+
+// Get element reference
+const selectElement = document.querySelector('seo-select');
+
+// Add event listeners
+selectElement.addEventListener('onSelect', (event) => {
+  console.log('Selected:', event.detail);
+});
+
+// Set options programmatically
+selectElement.optionItems = [
+  { value: 'js', label: 'JavaScript' },
+  { value: 'ts', label: 'TypeScript' }
+];</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <footer class="footer">
@@ -945,6 +1248,8 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
     <script type="module" src="src/main.ts"></script>
     <script src="/demo.ts"></script>
 </body>
