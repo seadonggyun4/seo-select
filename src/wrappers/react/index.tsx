@@ -174,6 +174,18 @@ export const SeoSelect = forwardRef<SeoSelectRef, SeoSelectReactProps>(
       }
     }, [texts]);
 
+    // Set boolean properties directly on the element
+    useEffect(() => {
+      const element = elementRef.current;
+      if (!element) return;
+
+      (element as any).multiple = !!multiple;
+      (element as any).dark = !!dark;
+      (element as any).showReset = !!showReset;
+      (element as any).autoWidth = !!autoWidth;
+      (element as any).required = !!required;
+    }, [multiple, dark, showReset, autoWidth, required]);
+
     // Set up event listeners
     useEffect(() => {
       const element = elementRef.current;
@@ -214,15 +226,10 @@ export const SeoSelect = forwardRef<SeoSelectRef, SeoSelectReactProps>(
         ref={elementRef as React.RefObject<any>}
         id={id}
         name={name}
-        required={required ? '' : undefined}
         width={width}
         height={height}
-        show-reset={showReset ? '' : undefined}
-        multiple={multiple ? '' : undefined}
         theme={theme}
-        dark={dark ? '' : undefined}
         language={language}
-        auto-width={autoWidth ? '' : undefined}
       >
         {children}
       </seo-select>
@@ -332,6 +339,18 @@ export const SeoSelectSearch = forwardRef<SeoSelectRef, SeoSelectSearchReactProp
       }
     }, [searchTexts]);
 
+    // Set boolean properties directly on the element
+    useEffect(() => {
+      const element = elementRef.current;
+      if (!element) return;
+
+      (element as any).multiple = !!multiple;
+      (element as any).dark = !!dark;
+      (element as any).showReset = !!showReset;
+      (element as any).autoWidth = !!autoWidth;
+      (element as any).required = !!required;
+    }, [multiple, dark, showReset, autoWidth, required]);
+
     // Set up event listeners
     useEffect(() => {
       const element = elementRef.current;
@@ -377,15 +396,10 @@ export const SeoSelectSearch = forwardRef<SeoSelectRef, SeoSelectSearchReactProp
         ref={elementRef as React.RefObject<any>}
         id={id}
         name={name}
-        required={required ? '' : undefined}
         width={width}
         height={height}
-        show-reset={showReset ? '' : undefined}
-        multiple={multiple ? '' : undefined}
         theme={theme}
-        dark={dark ? '' : undefined}
         language={language}
-        auto-width={autoWidth ? '' : undefined}
       >
         {children}
       </seo-select-search>
