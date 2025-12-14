@@ -1,6 +1,6 @@
 {
   "name": "seo-select",
-  "version": "4.3.0",
+  "version": "4.3.1",
   "description": "A customizable and accessible select component with search functionality built with Web Components",
   "type": "module",
   "main": "./dist/index.js",
