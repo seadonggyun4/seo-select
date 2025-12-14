@@ -304,38 +304,6 @@ declare module '@builder.io/qwik' {
   }
 }
 
-// Lit 타입 확장 (Lit 프로젝트에서 사용할 때)
-// @ts-ignore - Lit이 설치되지 않은 환경에서는 이 모듈 확장이 무시됩니다
-declare module 'lit' {
-  namespace JSX {
-    interface IntrinsicElements {
-      'seo-select': Partial<SeoSelectElement> & {
-        // Lit 스타일 이벤트 핸들러들 (올바른 이벤트 이름 사용)
-        '@onSelect'?: (event: CustomEvent<{ label: string; value: string }>) => void;
-        '@onDeselect'?: (event: CustomEvent<{ label: string; value: string }>) => void;
-        '@onReset'?: (event: CustomEvent<{ value: string; label: string } | { values: string[]; labels: string[] }>) => void;
-        '@onChange'?: (event: CustomEvent) => void;
-        '@onOpen'?: (event: CustomEvent) => void;
-      };
-
-      'seo-select-search': Partial<SeoSelectSearchElement> & {
-        // Lit 스타일 이벤트 핸들러들 (올바른 이벤트 이름 사용)
-        '@onSelect'?: (event: CustomEvent<{ label: string; value: string }>) => void;
-        '@onDeselect'?: (event: CustomEvent<{ label: string; value: string }>) => void;
-        '@onReset'?: (event: CustomEvent<{ value: string; label: string } | { values: string[]; labels: string[] }>) => void;
-        '@onChange'?: (event: CustomEvent) => void;
-        '@onOpen'?: (event: CustomEvent) => void;
-        '@onSearchChange'?: (event: CustomEvent<{ searchText: string }>) => void;
-        '@onSearchFilter'?: (event: CustomEvent<{
-          filteredOptions: VirtualSelectOption[];
-          searchText: string;
-          hasResults: boolean;
-        }>) => void;
-      };
-    }
-  }
-}
-
 // Stencil 타입 확장 (StencilJS 프로젝트 지원)
 // @ts-ignore - Stencil이 설치되지 않은 환경에서는 이 네임스페이스 확장이 무시됩니다
 declare namespace JSX {

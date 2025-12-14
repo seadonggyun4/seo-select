@@ -1,5 +1,3 @@
-import { html } from 'lit';
-
 // 지원되는 언어 타입
 export type SupportedLanguage = 'en' | 'ko' | 'ja' | 'zh';
 
@@ -145,27 +143,27 @@ export const TIMING = {
 } as const;
 
 
-// 아이콘 SVG 상수 (Lit TemplateResult로 반환)
+// 아이콘 SVG 상수 (순수 문자열로 반환)
 export const ICONS = {
-  CLOSE: () => html`
+  CLOSE: () => `
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M9 3L3 9M3 3L9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   `,
-  
-  CHEVRON_DOWN: () => html`
+
+  CHEVRON_DOWN: () => `
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   `,
-  
-  CHEVRON_UP: () => html`
+
+  CHEVRON_UP: () => `
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M12 10L8 6L4 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   `,
-  
-  SEARCH: () => html`
+
+  SEARCH: () => `
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M7.33333 12.6667C10.2789 12.6667 12.6667 10.2789 12.6667 7.33333C12.6667 4.38781 10.2789 2 7.33333 2C4.38781 2 2 4.38781 2 7.33333C2 10.2789 4.38781 12.6667 7.33333 12.6667Z" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
       <path d="M14 14L11.1 11.1" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>

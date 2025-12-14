@@ -1,4 +1,3 @@
-import { html } from 'lit';
 import { isMultilingualMatch } from '../../utils/search.js';
 import { SeoSelect } from '../seo-select/index.js';
 import {
@@ -18,20 +17,26 @@ import {
   triggerSearchFilterEvent,
   SeoSelectEventListener
 } from '../../event/index.js';
-import {
-  isBrowser,
-  safeDefineCustomElement,
-  isDev
-} from '../../utils/environment.js';
 
 import type {
   VirtualSelectOption,
   OptionItem,
   BatchUpdateOption,
   SupportedLanguage,
-  SelectTheme,
   SearchLocalizedTexts
 } from '../../types/index.js';
+
+// SSR/Browser detection
+function isBrowser(): boolean {
+  return typeof window !== 'undefined' && typeof document !== 'undefined';
+}
+
+// Safe custom element definition
+function safeDefineCustomElement(name: string, constructor: CustomElementConstructor): void {
+  if (isBrowser() && !customElements.get(name)) {
+    customElements.define(name, constructor);
+  }
+}
 
 declare global {
   interface HTMLElementEventMap {
@@ -46,29 +51,14 @@ declare global {
 }
 
 export class SeoSelectSearch extends SeoSelect {
-  static get properties() {
-    return {
-      ...super.properties,
-      _searchText: { type: String },
-      _noMatchVisible: { type: Boolean },
-      theme: { type: String },
-      dark: { type: Boolean },
-      searchTexts: { type: Object },
-    };
-  }
-
   declare _searchText: string;
   declare _noMatchVisible: boolean;
-  declare theme: SelectTheme;
-  declare dark: boolean;
   declare searchTexts: Partial<SearchLocalizedTexts>;
 
   constructor() {
     super();
     this._searchText = '';
     this._noMatchVisible = false;
-    this.theme = 'float';
-    this.dark = false;
     this.searchTexts = {};
   }
 
@@ -77,7 +67,7 @@ export class SeoSelectSearch extends SeoSelect {
     listener: SeoSelectEventListener<T>,
     options?: AddEventListenerOptions
   ): void {
-    if (isDev()) {
+    if (process.env.NODE_ENV !== 'production') {
       console.warn(`addSeoSelectEventListener is deprecated. Use standard addEventListener instead:
 Before: searchSelect.addSeoSelectEventListener('${type}', handler);
 After:  searchSelect.addEventListener('${type}', handler);`);
@@ -90,7 +80,7 @@ After:  searchSelect.addEventListener('${type}', handler);`);
     listener: SeoSelectEventListener<T>,
     options?: EventListenerOptions
   ): void {
-    if (isDev()) {
+    if (process.env.NODE_ENV !== 'production') {
       console.warn(`removeSeoSelectEventListener is deprecated. Use standard removeEventListener instead:
 Before: searchSelect.removeSeoSelectEventListener('${type}', handler);
 After:  searchSelect.removeEventListener('${type}', handler);`);
@@ -134,27 +124,200 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     };
   }
 
-  override updated(changed: Map<string, unknown>): void {
-    super.updated?.(changed);
-    if (changed.has('optionItems') || changed.has('_searchText') || changed.has('language') || changed.has('searchTexts')) {
-      this._applyFilteredOptions();
+  protected override _render(): void {
+    if (this.multiple) {
+      this._renderMultiSelectSearch();
+    } else {
+      this._renderSingleSelectSearch();
+    }
+    this._bindSearchEvents();
+  }
+
+  private _renderMultiSelectSearch(): void {
+    const texts = this.getLocalizedText();
+    const showResetButton = this.showReset && this._selectedValues.length > 0;
+    const effectiveWidth = this.getEffectiveWidth();
+    const effectiveHeight = this.getEffectiveHeight();
+    const searchTexts = this.getSearchLocalizedText();
+
+    const tagsHtml = this._selectedValues.map(value => {
+      const option = this._optionsCache.get(value) || this._optionData.find(opt => opt.value === value);
+      const label = option?.label || value;
+      return `
+        <span class="${CSS_CLASSES.TAG}">
+          ${this._escapeHtml(label)}
+          <button
+            type="button"
+            class="${CSS_CLASSES.TAG_REMOVE}"
+            data-value="${this._escapeHtml(value)}"
+            title="${texts.removeTag}"
+          >${ICONS.CLOSE()}</button>
+        </span>
+      `;
+    }).join('');
+
+    const placeholderHtml = this._selectedValues.length === 0
+      ? `<span class="${CSS_CLASSES.PLACEHOLDER}">${texts.placeholder}</span>`
+      : '';
+
+    const resetButtonHtml = showResetButton
+      ? `<button
+          type="button"
+          class="${CSS_CLASSES.MULTI_RESET_BUTTON}"
+          data-action="reset"
+          title="${texts.clearAll}"
+        >${ICONS.CLOSE()}</button>`
+      : '';
+
+    const dropdownContent = this._getSearchDropdownContent();
+
+    this.innerHTML = `
+      <div class="${CSS_CLASSES.SELECT} ${CSS_CLASSES.MULTI_SELECT} ${this._getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
+        <div class="${CSS_CLASSES.SELECTED_CONTAINER} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" data-action="toggle">
+          <div class="${CSS_CLASSES.SELECTED_TAGS}">
+            ${tagsHtml}
+            ${placeholderHtml}
+          </div>
+          ${resetButtonHtml}
+          <span class="${CSS_CLASSES.ARROW}">${this.open ? ICONS.CHEVRON_UP() : ICONS.CHEVRON_DOWN()}</span>
+        </div>
+        <div class="${CSS_CLASSES.LISTBOX} ${this.open ? '' : CSS_CLASSES.HIDDEN}"
+             style="width: ${effectiveWidth}; height: ${effectiveHeight};">
+          <div class="${CSS_CLASSES.SEARCH_INPUT}">
+            <span class="${CSS_CLASSES.SEARCH_ICON}" aria-hidden="true">${ICONS.SEARCH()}</span>
+            <input
+              type="text"
+              placeholder="${searchTexts.searchPlaceholder}"
+              value="${this._escapeHtml(this._searchText)}"
+              data-action="search"
+            />
+          </div>
+          <div class="${CSS_CLASSES.SCROLL}" role="listbox" style="height: calc(${effectiveHeight} - 50px);">
+            ${dropdownContent}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderSingleSelectSearch(): void {
+    const texts = this.getLocalizedText();
+    const firstOptionValue = this._optionData.length > 0 ? this._optionData[0].value : null;
+    const showResetButton = this.showReset &&
+                          this._value !== null &&
+                          firstOptionValue !== null &&
+                          this._value !== firstOptionValue;
+    const effectiveWidth = this.getEffectiveWidth();
+    const effectiveHeight = this.getEffectiveHeight();
+    const searchTexts = this.getSearchLocalizedText();
+
+    const resetButtonHtml = showResetButton
+      ? `<button
+          type="button"
+          class="${CSS_CLASSES.RESET_BUTTON}"
+          data-action="reset"
+          title="${texts.resetToDefault}"
+        >${ICONS.CLOSE()}</button>`
+      : '';
+
+    const dropdownContent = this._getSearchDropdownContent();
+
+    this.innerHTML = `
+      <div class="${CSS_CLASSES.SELECT} ${this._getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
+        <div class="${CSS_CLASSES.SELECTED} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" data-action="toggle">
+          ${this._escapeHtml(this._labelText)}
+          ${resetButtonHtml}
+          <span class="${CSS_CLASSES.ARROW}">${this.open ? ICONS.CHEVRON_UP() : ICONS.CHEVRON_DOWN()}</span>
+        </div>
+        <div class="${CSS_CLASSES.LISTBOX} ${this.open ? '' : CSS_CLASSES.HIDDEN}"
+             style="width: ${effectiveWidth}; height: ${effectiveHeight};">
+          <div class="${CSS_CLASSES.SEARCH_INPUT}">
+            <span class="${CSS_CLASSES.SEARCH_ICON}" aria-hidden="true">${ICONS.SEARCH()}</span>
+            <input
+              type="text"
+              placeholder="${searchTexts.searchPlaceholder}"
+              value="${this._escapeHtml(this._searchText)}"
+              data-action="search"
+            />
+          </div>
+          <div class="${CSS_CLASSES.SCROLL}" role="listbox" style="height: calc(${effectiveHeight} - 50px);">
+            ${dropdownContent}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  private _getSearchDropdownContent(): string {
+    const availableOptions = this.getAllOptionData();
+    const hasOptions = availableOptions.length > 0;
+
+    const showNoData = this.multiple && !this._isLoading && (
+      (availableOptions.length === 0) ||
+      (!hasOptions && this._searchText.trim())
+    );
+
+    if (this._isLoading) {
+      return this._renderLoadingSpinner();
+    }
+    if (showNoData) {
+      return this._renderNoData();
+    }
+    return '';
+  }
+
+  private _bindSearchEvents(): void {
+    // Toggle dropdown
+    const toggleEl = this.querySelector('[data-action="toggle"]');
+    if (toggleEl) {
+      toggleEl.addEventListener('click', (e: Event) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('[data-action="reset"]') || target.closest(`.${CSS_CLASSES.TAG_REMOVE}`)) {
+          return;
+        }
+        this.toggleDropdown();
+      });
+    }
+
+    // Reset button
+    const resetBtn = this.querySelector('[data-action="reset"]');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', (e: Event) => this.resetToDefault(e));
+    }
+
+    // Tag remove buttons
+    const tagRemoveBtns = this.querySelectorAll(`.${CSS_CLASSES.TAG_REMOVE}`);
+    tagRemoveBtns.forEach(btn => {
+      btn.addEventListener('click', (e: Event) => {
+        e.stopPropagation();
+        const value = (btn as HTMLElement).dataset.value;
+        if (value) {
+          this.removeTag(e, value);
+        }
+      });
+    });
+
+    // Search input
+    const searchInput = this.querySelector('[data-action="search"]') as HTMLInputElement;
+    if (searchInput) {
+      searchInput.addEventListener('input', (e: Event) => this._handleSearchInput(e));
     }
   }
 
   public override calculateDropdownHeight(): string {
     const searchInputHeight = 50;
-    
+
     if (this._isLoading) {
       return `${80 + searchInputHeight}px`;
     }
 
     const availableOptions = this.getAllOptionData();
-    
+
     if (this.multiple && availableOptions.length === 0) {
       return `${60 + searchInputHeight}px`;
     }
-    
-    if (this._options.length === 0) {
+
+    if (this._optionData.length === 0) {
       if (this.multiple) {
         if (this._searchText.trim()) {
           return `${60 + searchInputHeight}px`;
@@ -168,138 +331,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     const maxHeight = 360;
     const computedHeight = availableOptions.length * rowHeight;
     const finalHeight = availableOptions.length > 10 ? maxHeight : computedHeight;
-    
+
     return `${finalHeight + searchInputHeight + 5}px`;
-  }
-
-  private getSearchIcon() {
-    return ICONS.SEARCH();
-  }
-
-  private renderSearchDropdown() {
-    const availableOptions = this.getAllOptionData();
-    const hasOptions = availableOptions.length > 0;
-    
-    const showNoData = this.multiple && !this._isLoading && (
-      (availableOptions.length === 0) ||
-      (!hasOptions && this._searchText.trim())
-    );
-    
-    const effectiveWidth = this.getEffectiveWidth();
-    const effectiveHeight = this.getEffectiveHeight();
-
-    const searchTexts = this.getSearchLocalizedText();
-
-    return html`
-      <div class="${CSS_CLASSES.LISTBOX} ${this.open ? '' : CSS_CLASSES.HIDDEN}" 
-           style="width: ${effectiveWidth}; height: ${effectiveHeight};">
-        <div class="${CSS_CLASSES.SEARCH_INPUT}">
-          <span class="${CSS_CLASSES.SEARCH_ICON}" aria-hidden="true">${this.getSearchIcon()}</span>
-          <input
-            type="text"
-            placeholder="${searchTexts.searchPlaceholder}"
-            .value=${this._searchText}
-            @input=${this._handleSearchInput}
-          />
-        </div>
-        <div class="${CSS_CLASSES.SCROLL}" role="listbox" style="height: calc(${effectiveHeight} - 50px);">
-          ${this._isLoading
-            ? this.renderLoadingSpinner()
-            : showNoData
-              ? this.renderNoData()
-              : ''
-          }
-        </div>
-      </div>
-    `;
-  }
-
-  protected override getThemeClass(): string {
-    const themeClass = `theme-${this.theme}`;
-    const darkClass = this.dark ? 'dark' : '';
-    return `${themeClass} ${darkClass}`.trim();
-  }
-
-  override render() {
-    if (this.multiple) {
-      return this.renderMultiSelectSearch();
-    } else {
-      return this.renderSingleSelectSearch();
-    }
-  }
-
-  private renderMultiSelectSearch() {
-    const texts = this.getLocalizedText();
-    const showResetButton = this.showReset && this._selectedValues.length > 0;
-    const effectiveWidth = this.getEffectiveWidth();
-
-    return html`
-      <div class="${CSS_CLASSES.SELECT} ${CSS_CLASSES.MULTI_SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
-        <div class="${CSS_CLASSES.SELECTED_CONTAINER} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" @click=${this.toggleDropdown}>
-          <div class="${CSS_CLASSES.SELECTED_TAGS}">
-            ${this._selectedValues.map(value => {
-              const option = this._options.find(opt => opt.value === value);
-              const label = option?.textContent || value;
-              return html`
-                <span class="${CSS_CLASSES.TAG}">
-                  ${label}
-                  <button
-                    type="button"
-                    class="${CSS_CLASSES.TAG_REMOVE}"
-                    @click=${(e: Event) => this.removeTag(e, value)}
-                    title="${texts.removeTag}"
-                  >${this.getCloseIcon()}</button>
-                </span>
-              `;
-            })}
-            ${this._selectedValues.length === 0
-              ? html`<span class="${CSS_CLASSES.PLACEHOLDER}">${texts.placeholder}</span>`
-              : ''
-            }
-          </div>
-          ${showResetButton
-            ? html`<button
-                type="button"
-                class="${CSS_CLASSES.MULTI_RESET_BUTTON}"
-                @click=${this.resetToDefault}
-                title="${texts.clearAll}"
-              >${this.getCloseIcon()}</button>`
-            : ''
-          }
-          <span class="${CSS_CLASSES.ARROW}">${this.open ? this.getChevronUpIcon() : this.getChevronDownIcon()}</span>
-        </div>
-        ${this.renderSearchDropdown()}
-      </div>
-    `;
-  }
-
-  private renderSingleSelectSearch() {
-    const texts = this.getLocalizedText();
-    const firstOptionValue = this._options && this._options.length > 0 ? this._options[0].value : null;
-    const showResetButton = this.showReset &&
-                          this._value !== null &&
-                          firstOptionValue !== null &&
-                          this._value !== firstOptionValue;
-    const effectiveWidth = this.getEffectiveWidth();
-
-    return html`
-      <div class="${CSS_CLASSES.SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
-        <div class="${CSS_CLASSES.SELECTED} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" @click=${this.toggleDropdown}>
-          ${this._labelText}
-          ${showResetButton
-            ? html`<button
-                type="button"
-                class="${CSS_CLASSES.RESET_BUTTON}"
-                @click=${this.resetToDefault}
-                title="${texts.resetToDefault}"
-              >${this.getCloseIcon()}</button>`
-            : ''
-          }
-          <span class="${CSS_CLASSES.ARROW}">${this.open ? this.getChevronUpIcon() : this.getChevronDownIcon()}</span>
-        </div>
-        ${this.renderSearchDropdown()}
-      </div>
-    `;
   }
 
   public override _createVirtualSelect(options: VirtualSelectOption[], container: HTMLDivElement) {
@@ -342,7 +375,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   private _handleSearchInput = (e: Event): void => {
     const input = e.target as HTMLInputElement;
-    this.setSearchText(input.value);  
+    this.setSearchText(input.value);
   };
 
   private getCurrentValue(): string | undefined {
@@ -354,10 +387,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
     const searchTexts = this.getSearchLocalizedText();
     const rawInput = this._searchText.trim();
-    
+
     if (!rawInput) {
       const allOptions = this.getAllOptionData();
-      
+
       if (this.multiple && allOptions.length === 0) {
         const noDataOption = [{ value: 'all_selected', label: searchTexts.noMatchText, disabled: true }];
         this._virtual.setData(noDataOption, undefined);
@@ -366,7 +399,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         this._debouncedUpdate();
         return;
       }
-      
+
       this._virtual.setData(allOptions, this.multiple ? undefined : this.getCurrentValue());
       this._noMatchVisible = false;
 
@@ -377,7 +410,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     }
 
     const allOptions: OptionItem[] = this.getAllOptionData();
-    
+
     if (this.multiple && allOptions.length === 0) {
       const noDataOption = [{ value: 'all_selected', label: searchTexts.noMatchText, disabled: true }];
       this._virtual.setData(noDataOption, undefined);
@@ -386,7 +419,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       this._debouncedUpdate();
       return;
     }
-    
+
     const filtered = allOptions.filter(opt => {
       const label = (opt.label ?? '').toString();
       return isMultilingualMatch(rawInput, label);
@@ -395,7 +428,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     if (filtered.length === 0) {
       const noMatchOption = [{ value: 'no_match', label: searchTexts.noMatchText, disabled: true }];
       this._virtual.setData(noMatchOption, this.multiple ? undefined : this.getCurrentValue());
-      
+
       this._calculatedHeight = `${60 + 50 + 5}px`;
       triggerSearchFilterEvent(this, [], rawInput, false);
       this._debouncedUpdate();
@@ -403,7 +436,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     }
 
     this._virtual.setData(filtered, this.multiple ? undefined : this.getCurrentValue());
-    
+
     const rowHeight = 36;
     const maxHeight = 360;
     const searchInputHeight = 50;
@@ -420,7 +453,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._selectedValues = this._selectedValues.filter(value => value !== valueToRemove);
     this.updateFormValue();
 
-    const option = this._optionsCache.get(valueToRemove) || this._options.find(opt => opt.value === valueToRemove);
+    const option = this._optionsCache.get(valueToRemove) || this._optionData.find(opt => opt.value === valueToRemove);
 
     if (this.open) {
       this._virtual?.destroy();
@@ -428,17 +461,17 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
       const optionData = this.getAllOptionData();
       const scrollEl = this.querySelector(`.${CSS_CLASSES.SCROLL}`) as HTMLDivElement;
-      
+
       if (scrollEl) {
         if (optionData.length > 0) {
           this._virtual = this._createVirtualSelect(optionData, scrollEl);
-          
+
           if (this._searchText.trim()) {
             this._applyFilteredOptions();
           } else {
             this._calculatedHeight = this.calculateDropdownHeight();
           }
-          
+
           requestAnimationFrame(() => {
             this._virtual?.setActiveIndex(0);
           });
@@ -448,7 +481,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       }
     }
 
-    triggerDeselectEvent(this, option?.textContent || '', valueToRemove);
+    triggerDeselectEvent(this, option?.label || '', valueToRemove);
     this._debouncedUpdate();
   };
 
@@ -474,7 +507,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
             this._virtual?.setActiveIndex(0);
           });
         }
-        
+
         this._calculatedHeight = this.calculateDropdownHeight();
       } else {
         this._pendingActiveIndex = 0;
@@ -482,10 +515,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
       triggerResetEvent(this, { values: [], labels: [] });
     } else {
-      if (this._options.length > 0) {
-        const firstOption = this._options[0];
+      if (this._optionData.length > 0) {
+        const firstOption = this._optionData[0];
         this.value = firstOption.value;
-        this._labelText = firstOption.textContent || '';
+        this._labelText = firstOption.label || '';
 
         if (this.open && this._virtual) {
           requestAnimationFrame(() => {
@@ -497,29 +530,29 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
           });
         } else {
           this._pendingActiveIndex = 0;
-          
+
           if (this._virtual) {
             this._virtual.destroy();
             this._virtual = null;
           }
         }
 
-        triggerResetEvent(this, { value: firstOption.value, label: firstOption.textContent || '' });
+        triggerResetEvent(this, { value: firstOption.value, label: firstOption.label || '' });
       }
     }
-    
+
     this._debouncedUpdate();
   };
 
   public override openDropdown(): void {
     triggerOpenEvent(this);
     this.open = true;
-    this._debouncedUpdate();
+    this._render();
 
     if (this.hasNoOptions()) {
       this._isLoading = true;
       this._calculatedHeight = this.calculateDropdownHeight();
-      this._debouncedUpdate();
+      this._render();
 
       this.loadOptionsAsync().then(() => {
         this._calculatedHeight = this.calculateDropdownHeight();
@@ -527,16 +560,16 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       }).catch(() => {
         this._isLoading = false;
         this._calculatedHeight = this.calculateDropdownHeight();
-        this._debouncedUpdate();
+        this._render();
       });
     } else {
       if (this._virtual) {
         this._virtual.destroy();
         this._virtual = null;
       }
-      
+
       this._calculatedHeight = this.calculateDropdownHeight();
-      
+
       this.initializeVirtualSelect();
     }
   }
@@ -545,7 +578,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     if (this.multiple) {
       this._selectedValues = [...this._selectedValues, value];
       this.updateFormValue();
-      this._debouncedUpdate();
+      this._render();
 
       this._virtual?.destroy();
       this._virtual = null;
@@ -555,13 +588,13 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         const optionData = this.getAllOptionData();
         if (optionData.length > 0) {
           this._virtual = this._createVirtualSelect(optionData, scrollEl);
-          
+
           if (this._searchText.trim()) {
             this._applyFilteredOptions();
           } else {
             this._calculatedHeight = this.calculateDropdownHeight();
           }
-          
+
           requestAnimationFrame(() => {
             this._virtual?.setActiveIndex(0);
           });
@@ -583,8 +616,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     if (this._value === newVal) return;
 
     this._value = newVal;
-    const matched = this._optionsCache.get(newVal) || this._options.find((opt) => opt.value === newVal);
-    this._labelText = matched?.textContent ?? this._labelText ?? '';
+    const matched = this._optionsCache.get(newVal) || this._optionData.find((opt) => opt.value === newVal);
+    // 문자열인지 확인하여 [object Object] 방지
+    const label = matched?.label;
+    this._labelText = typeof label === 'string' ? label : (this._labelText || '');
 
     this._internals.setFormValue(this._value || '');
 
@@ -595,43 +630,39 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       this._internals.setValidity({});
     }
 
-    this._debouncedUpdate();
-    
     if (emit) triggerChangeEvent(this);
   }
 
   public override closeDropdown(): void {
     this.open = false;
-    
+
     if (this._virtual) {
       this._virtual.destroy();
       this._virtual = null;
     }
-    
+
     this._searchText = '';
     this._noMatchVisible = false;
-    
+
     this._calculatedHeight = null;
-    
-    this._debouncedUpdate();
+
+    this._render();
   }
 
   public clearSearchText(): void {
     this._searchText = '';
     this._calculatedHeight = this.calculateDropdownHeight();
     this._applyFilteredOptions();
-    this.requestUpdate();
+    this._render();
   }
 
   public override calculateAutoWidth(): void {
-    if (!isBrowser()) return;
-
-    if (this.width || this._options.length === 0) {
+    if (this.width || this._optionData.length === 0) {
       this._calculatedWidth = null;
       return;
     }
 
-    const optionTexts = this._options.map(opt => opt.textContent || '');
+    const optionTexts = this._optionData.map(opt => opt.label || '');
 
     const texts = this.getLocalizedText();
     const searchTexts = this.getSearchLocalizedText();
@@ -654,12 +685,12 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   public override setLanguage(language: SupportedLanguage): void {
     super.setLanguage(language);
-    this.requestUpdate();
+    this._render();
   }
 
   public setSearchTexts(customSearchTexts: Partial<SearchLocalizedTexts>): void {
     this.searchTexts = { ...this.searchTexts, ...customSearchTexts };
-    this.requestUpdate();
+    this._render();
   }
 
   public getSearchText(): string {
@@ -677,7 +708,6 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
     this._searchText = next;
     this._applyFilteredOptions();
-    this.requestUpdate?.();
 
     this._emitSearchChange(prev, next);
   }
@@ -694,11 +724,11 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     if (!this._virtual) return;
 
     const optionData = this.getAllOptionData();
-    
+
     if (optionData.length > 0) {
       const activeValue = this.multiple ? undefined : this._value || undefined;
       this._virtual.setData(optionData, activeValue);
-      
+
       if (this._searchText) {
         requestAnimationFrame(() => {
           this._applyFilteredOptions();
@@ -706,7 +736,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       } else {
         requestAnimationFrame(() => {
           if (!this._virtual) return;
-          
+
           if (this.multiple) {
             this._virtual.setActiveIndex(0);
           } else {
@@ -733,7 +763,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     try {
       let previousValue: string | null = null;
       let previousSelectedValues: string[] = [];
-      
+
       if (preserveSelection) {
         if (this.multiple) {
           previousSelectedValues = [...this._selectedValues];
@@ -742,25 +772,19 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         }
       }
 
-      this._options.forEach(opt => opt.remove());
-      this._options = [];
       this._optionsCache.clear();
       this._widthCalculationCache.clear();
+      this._optionData = [];
 
       if (Array.isArray(options) && options.length > 0) {
-        const fragment = document.createDocumentFragment();
-        
-        this._options = options.map(opt => {
-          const el = document.createElement('option');
-          el.value = opt.value;
-          el.textContent = opt.label;
-          el.hidden = true;
-          this._optionsCache.set(opt.value, el);
-          fragment.appendChild(el);
-          return el;
+        this._optionData = options.map(opt => {
+          const optionItem: VirtualSelectOption = {
+            value: opt.value,
+            label: opt.label
+          };
+          this._optionsCache.set(opt.value, optionItem);
+          return optionItem;
         });
-        
-        this.appendChild(fragment);
         this._isLoading = false;
       } else {
         this._isLoading = true;
@@ -768,24 +792,24 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
       if (preserveSelection && options.length > 0) {
         if (this.multiple) {
-          const validValues = previousSelectedValues.filter(value => 
-            this._options.some(opt => opt.value === value)
+          const validValues = previousSelectedValues.filter(value =>
+            this._optionData.some(opt => opt.value === value)
           );
           this._selectedValues = validValues;
           this.updateFormValue();
         } else {
-          if (previousValue && this._options.some(opt => opt.value === previousValue)) {
+          if (previousValue && this._optionData.some(opt => opt.value === previousValue)) {
             this._setValue(previousValue, false);
-          } else if (this._options.length > 0) {
-            this._setValue(this._options[0].value, false);
+          } else if (this._optionData.length > 0) {
+            this._setValue(this._optionData[0].value, false);
           }
         }
       } else {
         if (this.multiple) {
           this._selectedValues = [];
           this.updateFormValue();
-        } else if (this._options.length > 0) {
-          this._setValue(this._options[0].value, false);
+        } else if (this._optionData.length > 0) {
+          this._setValue(this._optionData[0].value, false);
         }
       }
 
@@ -797,9 +821,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
       this._updateVirtualScrollDataWithSearch();
 
-      if (this._options.length > 0) {
-        this._initialValue = this._options[0].value;
-        this._initialLabel = this._options[0].textContent || '';
+      if (this._optionData.length > 0) {
+        this._initialValue = this._optionData[0].value;
+        this._initialLabel = this._optionData[0].label;
       } else {
         this._initialValue = null;
         this._initialLabel = null;
@@ -815,8 +839,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   public override addOption(option: VirtualSelectOption, index?: number): void {
     if (this._isUpdating) return;
-    
-    if (this._options.some(opt => opt.value === option.value)) {
+
+    if (this._optionData.some(opt => opt.value === option.value)) {
       console.warn(`Option with value "${option.value}" already exists`);
       return;
     }
@@ -824,21 +848,18 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._isUpdating = true;
 
     try {
-      const el = document.createElement('option');
-      el.value = option.value;
-      el.textContent = option.label;
-      el.hidden = true;
-      this._optionsCache.set(option.value, el);
+      const optionItem: VirtualSelectOption = {
+        value: option.value,
+        label: option.label
+      };
+      this._optionsCache.set(option.value, optionItem);
 
-      const insertIndex = index !== undefined ? Math.max(0, Math.min(index, this._options.length)) : this._options.length;
-      
-      if (insertIndex >= this._options.length) {
-        this._options.push(el);
-        this.appendChild(el);
+      const insertIndex = index !== undefined ? Math.max(0, Math.min(index, this._optionData.length)) : this._optionData.length;
+
+      if (insertIndex >= this._optionData.length) {
+        this._optionData.push(optionItem);
       } else {
-        const nextOption = this._options[insertIndex];
-        this._options.splice(insertIndex, 0, el);
-        this.insertBefore(el, nextOption);
+        this._optionData.splice(insertIndex, 0, optionItem);
       }
 
       this._widthCalculationCache.clear();
@@ -848,10 +869,10 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
       this._updateVirtualScrollDataWithSearch();
 
-      if (this._options.length === 1) {
+      if (this._optionData.length === 1) {
         this._initialValue = option.value;
         this._initialLabel = option.label;
-        
+
         if (!this.multiple && !this._value) {
           this._setValue(option.value, false);
         }
@@ -867,16 +888,15 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   public override clearOption(value: string): void {
     if (this._isUpdating) return;
-    
-    const optionIndex = this._options.findIndex(opt => opt.value === value);
+
+    const optionIndex = this._optionData.findIndex(opt => opt.value === value);
     if (optionIndex === -1) return;
 
     this._isUpdating = true;
 
     try {
-      const removedOption = this._options[optionIndex];
-      removedOption.remove();
-      this._options.splice(optionIndex, 1);
+      const removedOption = this._optionData[optionIndex];
+      this._optionData.splice(optionIndex, 1);
       this._optionsCache.delete(value);
       this._widthCalculationCache.clear();
 
@@ -885,12 +905,12 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         if (selectedIndex > -1) {
           this._selectedValues.splice(selectedIndex, 1);
           this.updateFormValue();
-          triggerDeselectEvent(this, removedOption.textContent || '', value);
+          triggerDeselectEvent(this, removedOption.label || '', value);
         }
       } else {
         if (this._value === value) {
-          if (this._options.length > 0) {
-            this._setValue(this._options[0].value, true);
+          if (this._optionData.length > 0) {
+            this._setValue(this._optionData[0].value, true);
           } else {
             this._setValue('', true);
             this._labelText = '';
@@ -902,9 +922,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
       this._updateVirtualScrollDataWithSearch();
 
-      if (this._options.length > 0) {
-        this._initialValue = this._options[0].value;
-        this._initialLabel = this._options[0].textContent || '';
+      if (this._optionData.length > 0) {
+        this._initialValue = this._optionData[0].value;
+        this._initialLabel = this._optionData[0].label;
       } else {
         this._initialValue = null;
         this._initialLabel = null;
@@ -927,8 +947,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     this._isUpdating = true;
 
     try {
-      this._options.forEach(opt => opt.remove());
-      this._options = [];
+      this._optionData = [];
       this._optionsCache.clear();
       this._widthCalculationCache.clear();
 
@@ -936,7 +955,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         const previousSelectedValues = [...this._selectedValues];
         this._selectedValues = [];
         this.updateFormValue();
-        
+
         if (previousSelectedValues.length > 0) {
           triggerResetEvent(this, { values: [], labels: [] });
         }
@@ -944,7 +963,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         const previousValue = this._value;
         this._setValue('', true);
         this._labelText = '';
-        
+
         if (previousValue) {
           triggerResetEvent(this, { value: '', label: '' });
         }
@@ -979,24 +998,21 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       updates.forEach(update => {
         switch (update.action) {
           case 'add':
-            if (update.option && !this._options.some(opt => opt.value === update.option!.value)) {
-              const el = document.createElement('option');
-              el.value = update.option.value;
-              el.textContent = update.option.label;
-              el.hidden = true;
-              this._optionsCache.set(update.option.value, el);
+            if (update.option && !this._optionData.some(opt => opt.value === update.option!.value)) {
+              const optionItem: VirtualSelectOption = {
+                value: update.option.value,
+                label: update.option.label
+              };
+              this._optionsCache.set(update.option.value, optionItem);
 
-              const insertIndex = update.index !== undefined ? 
-                Math.max(0, Math.min(update.index, this._options.length)) : 
-                this._options.length;
+              const insertIndex = update.index !== undefined ?
+                Math.max(0, Math.min(update.index, this._optionData.length)) :
+                this._optionData.length;
 
-              if (insertIndex >= this._options.length) {
-                this._options.push(el);
-                this.appendChild(el);
+              if (insertIndex >= this._optionData.length) {
+                this._optionData.push(optionItem);
               } else {
-                const nextOption = this._options[insertIndex];
-                this._options.splice(insertIndex, 0, el);
-                this.insertBefore(el, nextOption);
+                this._optionData.splice(insertIndex, 0, optionItem);
               }
               hasChanges = true;
             }
@@ -1004,11 +1020,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
           case 'remove':
             if (update.value) {
-              const optionIndex = this._options.findIndex(opt => opt.value === update.value);
+              const optionIndex = this._optionData.findIndex(opt => opt.value === update.value);
               if (optionIndex !== -1) {
-                const removedOption = this._options[optionIndex];
-                removedOption.remove();
-                this._options.splice(optionIndex, 1);
+                this._optionData.splice(optionIndex, 1);
                 this._optionsCache.delete(update.value);
 
                 if (this.multiple) {
@@ -1018,8 +1032,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
                   }
                 } else {
                   if (this._value === update.value) {
-                    if (this._options.length > 0) {
-                      this._setValue(this._options[0].value, false);
+                    if (this._optionData.length > 0) {
+                      this._setValue(this._optionData[0].value, false);
                     } else {
                       this._setValue('', false);
                       this._labelText = '';
@@ -1033,9 +1047,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
           case 'update':
             if (update.option && update.value) {
-              const existingOption = this._options.find(opt => opt.value === update.value);
+              const existingOption = this._optionData.find(opt => opt.value === update.value);
               if (existingOption) {
-                existingOption.textContent = update.option.label;
+                existingOption.label = update.option.label;
                 this._optionsCache.set(update.value, existingOption);
                 if (!this.multiple && this._value === update.value) {
                   this._labelText = update.option.label;
@@ -1049,7 +1063,7 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
       if (hasChanges) {
         this._widthCalculationCache.clear();
-        this._isLoading = this._options.length === 0;
+        this._isLoading = this._optionData.length === 0;
 
         this._calculatedHeight = this.calculateDropdownHeight();
 
@@ -1057,9 +1071,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
           this._updateVirtualScrollDataWithSearch();
         }
 
-        if (this._options.length > 0) {
-          this._initialValue = this._options[0].value;
-          this._initialLabel = this._options[0].textContent || '';
+        if (this._optionData.length > 0) {
+          this._initialValue = this._optionData[0].value;
+          this._initialLabel = this._optionData[0].label;
         } else {
           this._initialValue = null;
           this._initialLabel = null;
@@ -1085,9 +1099,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
   public updateOptionsWithSearch(options: VirtualSelectOption[], preserveSearch: boolean = true): void {
     const currentSearchText = preserveSearch ? this._searchText : '';
-    
+
     this.addOptions(options, true);
-    
+
     if (preserveSearch && currentSearchText) {
       this._searchText = currentSearchText;
       this._updateVirtualScrollDataWithSearch();
@@ -1095,18 +1109,18 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
   }
 
   public async loadOptionsForSearch(
-    searchText: string, 
+    searchText: string,
     optionLoader: (search: string) => Promise<VirtualSelectOption[]>
   ): Promise<void> {
     this._isLoading = true;
     this._searchText = searchText;
     this._calculatedHeight = this.calculateDropdownHeight();
-    this._debouncedUpdate();
+    this._render();
 
     try {
       const newOptions = await optionLoader(searchText);
       this.addOptions(newOptions, false);
-      
+
       this._searchText = searchText;
       if (this._virtual && this.open) {
         this._applyFilteredOptions();
@@ -1115,10 +1129,9 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       console.error('Failed to load options for search:', error);
       this._isLoading = false;
       this._calculatedHeight = this.calculateDropdownHeight();
-      this._debouncedUpdate();
+      this._render();
     }
   }
 }
 
-// SSR-safe 커스텀 엘리먼트 등록
 safeDefineCustomElement('seo-select-search', SeoSelectSearch);

@@ -1,4 +1,3 @@
-import { LitElement, html } from 'lit';
 import { InteractiveVirtualSelect } from '../../core/InteractiveVirtualSelect.js';
 import '../../styles/components/style.scss';
 import {
@@ -18,11 +17,6 @@ import {
   triggerOpenEvent,
   SeoSelectEventListener
 } from '../../event/index.js';
-import {
-  isBrowser,
-  safeRequestAnimationFrame,
-  safeDefineCustomElement
-} from '../../utils/environment.js';
 
 import type {
   VirtualSelectOption,
@@ -32,29 +26,23 @@ import type {
   LocalizedTexts
 } from '../../types/index.js';
 
-export class SeoSelect extends LitElement {
+// SSR/Browser detection
+function isBrowser(): boolean {
+  return typeof window !== 'undefined' && typeof document !== 'undefined';
+}
+
+// Safe custom element definition
+function safeDefineCustomElement(name: string, constructor: CustomElementConstructor): void {
+  if (isBrowser() && !customElements.get(name)) {
+    customElements.define(name, constructor);
+  }
+}
+
+export class SeoSelect extends HTMLElement {
   static formAssociated = true;
 
-  static get properties() {
-    return {
-      id: { type: String },
-      name: { type: String },
-      required: { type: Boolean, reflect: true },
-      width: { type: String },
-      height: { type: String },
-      optionItems: { type: Array },
-      open: { type: Boolean, state: true },
-      _labelText: { type: String, state: true },
-      showReset: { type: Boolean },
-      multiple: { type: Boolean },
-      _selectedValues: { type: Array, state: true },
-      _isLoading: { type: Boolean, state: true },
-      theme: { type: String },
-      dark: { type: Boolean },
-      language: { type: String },
-      texts: { type: Object },
-      autoWidth: { type: Boolean },
-    };
+  static get observedAttributes(): string[] {
+    return ['id', 'name', 'required', 'width', 'height', 'show-reset', 'multiple', 'theme', 'dark', 'language', 'auto-width'];
   }
 
   declare id: string;
@@ -62,7 +50,7 @@ export class SeoSelect extends LitElement {
   declare required: boolean;
   declare width: string | null;
   declare height: string;
-  declare optionItems: VirtualSelectOption[];
+  private _optionItems: VirtualSelectOption[] = [];
   declare showReset: boolean;
   declare multiple: boolean;
   declare theme: SelectTheme;
@@ -80,21 +68,23 @@ export class SeoSelect extends LitElement {
   declare _initialValue: string | null;
   declare _initialLabel: string | null;
   declare _virtual: InteractiveVirtualSelect | null;
-  declare _options: HTMLOptionElement[];
+  // Option 데이터를 순수 객체 배열로 저장 (DOM 참조 대신)
+  declare _optionData: VirtualSelectOption[];
   declare _internals: ElementInternals;
   declare _pendingActiveIndex: number | null;
   declare _calculatedWidth: string | null;
-  declare _calculatedHeight: string | null; 
+  declare _calculatedHeight: string | null;
 
-  public _optionsCache: Map<string, HTMLOptionElement> = new Map();
+  // 레거시 호환성을 위한 getter (HTMLOptionElement[] 대신 VirtualSelectOption[] 사용)
+  public _optionsCache: Map<string, VirtualSelectOption> = new Map();
   private _localizedTextCache: LocalizedTexts | null = null;
   private _lastLanguage: string = '';
   private _lastTextsHash: string = '';
   protected _widthCalculationCache: Map<string, number> = new Map();
   protected _isUpdating: boolean = false;
   private _updateDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-
   private _handleKeydownBound: (e: KeyboardEvent) => void;
+  private _initialized: boolean = false;
 
   constructor() {
     super();
@@ -103,10 +93,10 @@ export class SeoSelect extends LitElement {
     this._initialValue = null;
     this._initialLabel = null;
     this._virtual = null;
-    this._options = [];
+    this._optionData = [];
     this.width = null;
     this.required = DEFAULT_CONFIG.required;
-    this.optionItems = [];
+    this._optionItems = [];
     this.open = false;
     this._labelText = '';
     this.showReset = DEFAULT_CONFIG.showReset;
@@ -123,6 +113,268 @@ export class SeoSelect extends LitElement {
     this._handleKeydownBound = (e: KeyboardEvent) => this._virtual?.handleKeydown(e);
     this.tabIndex = 0;
     this._pendingActiveIndex = null;
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    if (oldValue === newValue) return;
+
+    switch (name) {
+      case 'id':
+        // id is handled natively
+        break;
+      case 'name':
+        this.name = newValue || '';
+        break;
+      case 'required':
+        this.required = newValue !== null;
+        break;
+      case 'width':
+        this.width = newValue;
+        break;
+      case 'height':
+        this.height = newValue || DEFAULT_CONFIG.height;
+        break;
+      case 'show-reset':
+        this.showReset = newValue !== null;
+        break;
+      case 'multiple':
+        this.multiple = newValue !== null;
+        break;
+      case 'theme':
+        this.theme = (newValue as SelectTheme) || DEFAULT_CONFIG.theme;
+        break;
+      case 'dark':
+        this.dark = newValue !== null;
+        break;
+      case 'language':
+        this.language = (newValue as SupportedLanguage) || DEFAULT_CONFIG.language;
+        this._localizedTextCache = null;
+        break;
+      case 'auto-width':
+        this.autoWidth = newValue !== null;
+        break;
+    }
+
+    if (this._initialized) {
+      this._render();
+    }
+  }
+
+  connectedCallback(): void {
+    if (!isBrowser()) return;
+
+    this.style.width = this.width !== '100%' ? '' : '100%';
+    this.initializeOptionsFromPropsOrSlot();
+    this._render();
+    this._initialized = true;
+
+    window.addEventListener(EVENT_NAMES.SELECT_OPEN, this.onOtherSelectOpened);
+    window.addEventListener('click', this.handleOutsideClick, true);
+    this.addEventListener('keydown', this._handleKeydownBound);
+  }
+
+  disconnectedCallback(): void {
+    window.removeEventListener(EVENT_NAMES.SELECT_OPEN, this.onOtherSelectOpened);
+    window.removeEventListener('click', this.handleOutsideClick);
+    this.removeEventListener('keydown', this._handleKeydownBound);
+    this._virtual?.destroy();
+    this._virtual = null;
+    this._optionsCache.clear();
+    this._widthCalculationCache.clear();
+    this._localizedTextCache = null;
+
+    if (this._updateDebounceTimer) {
+      clearTimeout(this._updateDebounceTimer);
+    }
+
+    if (this.multiple) {
+      this._selectedValues = [];
+    } else {
+      this.value = '';
+    }
+  }
+
+  protected _render(): void {
+    if (this.multiple) {
+      this._renderMultiSelect();
+    } else {
+      this._renderSingleSelect();
+    }
+    this._bindEvents();
+  }
+
+  protected _renderMultiSelect(): void {
+    const texts = this.getLocalizedText();
+    const showResetButton = this.showReset && this._selectedValues.length > 0;
+    const effectiveWidth = this.getEffectiveWidth();
+    const effectiveHeight = this.getEffectiveHeight();
+
+    const tagsHtml = this._selectedValues.map(value => {
+      const option = this._optionsCache.get(value) || this._optionData.find(opt => opt.value === value);
+      const label = option?.label || value;
+      return `
+        <span class="${CSS_CLASSES.TAG}">
+          ${this._escapeHtml(label)}
+          <button
+            type="button"
+            class="${CSS_CLASSES.TAG_REMOVE}"
+            data-value="${this._escapeHtml(value)}"
+            title="${texts.removeTag}"
+          >${ICONS.CLOSE()}</button>
+        </span>
+      `;
+    }).join('');
+
+    const placeholderHtml = this._selectedValues.length === 0
+      ? `<span class="${CSS_CLASSES.PLACEHOLDER}">${texts.placeholder}</span>`
+      : '';
+
+    const resetButtonHtml = showResetButton
+      ? `<button
+          type="button"
+          class="${CSS_CLASSES.MULTI_RESET_BUTTON}"
+          data-action="reset"
+          title="${texts.clearAll}"
+        >${ICONS.CLOSE()}</button>`
+      : '';
+
+    const dropdownContent = this._getDropdownContent();
+
+    this.innerHTML = `
+      <div class="${CSS_CLASSES.SELECT} ${CSS_CLASSES.MULTI_SELECT} ${this._getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
+        <div class="${CSS_CLASSES.SELECTED_CONTAINER} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" data-action="toggle">
+          <div class="${CSS_CLASSES.SELECTED_TAGS}">
+            ${tagsHtml}
+            ${placeholderHtml}
+          </div>
+          ${resetButtonHtml}
+          <span class="${CSS_CLASSES.ARROW}">${this.open ? ICONS.CHEVRON_UP() : ICONS.CHEVRON_DOWN()}</span>
+        </div>
+        <div class="${CSS_CLASSES.LISTBOX} ${CSS_CLASSES.SCROLL} ${this.open ? '' : CSS_CLASSES.HIDDEN}"
+             role="listbox"
+             style="width: ${effectiveWidth}; height: ${effectiveHeight};">
+          ${dropdownContent}
+        </div>
+      </div>
+    `;
+  }
+
+  protected _renderSingleSelect(): void {
+    const texts = this.getLocalizedText();
+    const firstOptionValue = this._optionData.length > 0 ? this._optionData[0].value : null;
+    const showResetButton = this.showReset &&
+                          this._value !== null &&
+                          firstOptionValue !== null &&
+                          this._value !== firstOptionValue;
+    const effectiveWidth = this.getEffectiveWidth();
+    const effectiveHeight = this.getEffectiveHeight();
+
+    const resetButtonHtml = showResetButton
+      ? `<button
+          type="button"
+          class="${CSS_CLASSES.RESET_BUTTON}"
+          data-action="reset"
+          title="${texts.resetToDefault}"
+        >${ICONS.CLOSE()}</button>`
+      : '';
+
+    const dropdownContent = this._getDropdownContent();
+
+    this.innerHTML = `
+      <div class="${CSS_CLASSES.SELECT} ${this._getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
+        <div class="${CSS_CLASSES.SELECTED} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" data-action="toggle">
+          ${this._escapeHtml(this._labelText)}
+          ${resetButtonHtml}
+          <span class="${CSS_CLASSES.ARROW}">${this.open ? ICONS.CHEVRON_UP() : ICONS.CHEVRON_DOWN()}</span>
+        </div>
+        <div class="${CSS_CLASSES.LISTBOX} ${CSS_CLASSES.SCROLL} ${this.open ? '' : CSS_CLASSES.HIDDEN}"
+             role="listbox"
+             style="width: ${effectiveWidth}; height: ${effectiveHeight};">
+          ${dropdownContent}
+        </div>
+      </div>
+    `;
+  }
+
+  protected _getDropdownContent(): string {
+    const hasOptions = this.getAllOptionData().length > 0;
+    const showNoData = this.multiple && !this._isLoading && !hasOptions;
+
+    if (this._isLoading) {
+      return this._renderLoadingSpinner();
+    }
+    if (showNoData) {
+      return this._renderNoData();
+    }
+    return '';
+  }
+
+  protected _renderLoadingSpinner(): string {
+    const texts = this.getLocalizedText();
+    return `
+      <div class="${CSS_CLASSES.LOADING_CONTAINER}">
+        <div class="${CSS_CLASSES.LOADING_DOTS}">
+          <div class="${CSS_CLASSES.DOT}"></div>
+          <div class="${CSS_CLASSES.DOT}"></div>
+          <div class="${CSS_CLASSES.DOT}"></div>
+        </div>
+        <span class="${CSS_CLASSES.LOADING_TEXT}">${texts.loadingText}</span>
+      </div>
+    `;
+  }
+
+  protected _renderNoData(): string {
+    const texts = this.getLocalizedText();
+    return `
+      <div class="${CSS_CLASSES.NO_DATA_CONTAINER}">
+        <span class="${CSS_CLASSES.NO_DATA_TEXT}">${texts.noDataText}</span>
+      </div>
+    `;
+  }
+
+  protected _bindEvents(): void {
+    // Toggle dropdown
+    const toggleEl = this.querySelector('[data-action="toggle"]');
+    if (toggleEl) {
+      toggleEl.addEventListener('click', (e: Event) => {
+        const target = e.target as HTMLElement;
+        // Don't toggle if clicking reset or remove buttons
+        if (target.closest('[data-action="reset"]') || target.closest(`.${CSS_CLASSES.TAG_REMOVE}`)) {
+          return;
+        }
+        this.toggleDropdown();
+      });
+    }
+
+    // Reset button
+    const resetBtn = this.querySelector('[data-action="reset"]');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', (e: Event) => this.resetToDefault(e));
+    }
+
+    // Tag remove buttons
+    const tagRemoveBtns = this.querySelectorAll(`.${CSS_CLASSES.TAG_REMOVE}`);
+    tagRemoveBtns.forEach(btn => {
+      btn.addEventListener('click', (e: Event) => {
+        e.stopPropagation();
+        const value = (btn as HTMLElement).dataset.value;
+        if (value) {
+          this.removeTag(e, value);
+        }
+      });
+    });
+  }
+
+  protected _getThemeClass(): string {
+    const themeClass = `theme-${this.theme}`;
+    const darkClass = this.dark ? 'dark' : '';
+    return `${themeClass} ${darkClass}`.trim();
+  }
+
+  protected _escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   public addSeoSelectEventListener<T extends keyof HTMLElementEventMap>(
@@ -143,9 +395,9 @@ export class SeoSelect extends LitElement {
 
   public getLocalizedText(): LocalizedTexts {
     const textsHash = JSON.stringify(this.texts);
-    
-    if (this._localizedTextCache && 
-        this._lastLanguage === this.language && 
+
+    if (this._localizedTextCache &&
+        this._lastLanguage === this.language &&
         this._lastTextsHash === textsHash) {
       return this._localizedTextCache;
     }
@@ -161,120 +413,34 @@ export class SeoSelect extends LitElement {
     return this._localizedTextCache;
   }
 
-  createRenderRoot() {
-    return this;
-  }
-
-  connectedCallback(): void {
-    if (!isBrowser()) return;
-
-    this.style.width = this.width !== '100%' ? '' : '100%';
-    super.connectedCallback();
-    this.initializeOptionsFromPropsOrSlot();
-    window.addEventListener(EVENT_NAMES.SELECT_OPEN, this.onOtherSelectOpened);
-    window.addEventListener('click', this.handleOutsideClick, true);
-    this.addEventListener('keydown', this._handleKeydownBound);
-  }
-
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-
-    if (isBrowser()) {
-      window.removeEventListener(EVENT_NAMES.SELECT_OPEN, this.onOtherSelectOpened);
-      window.removeEventListener('click', this.handleOutsideClick);
-    }
-
-    this.removeEventListener('keydown', this._handleKeydownBound);
-
-    // Virtual select 정리
-    this._virtual?.destroy();
-    this._virtual = null;
-
-    // 캐시 정리
-    this._optionsCache.clear();
-    this._widthCalculationCache.clear();
-    this._localizedTextCache = null;
-
-    // 디바운스 타이머 정리
-    if (this._updateDebounceTimer) {
-      clearTimeout(this._updateDebounceTimer);
-      this._updateDebounceTimer = null;
-    }
-
-    // 옵션 요소 참조 해제 (메모리 누수 방지)
-    this._options.forEach(opt => opt.remove());
-    this._options = [];
-
-    // 상태 초기화
-    if (this.multiple) {
-      this._selectedValues = [];
-    } else {
-      this._value = null;
-      this._labelText = '';
-    }
-
-    // 초기값 참조 해제
-    this._initialValue = null;
-    this._initialLabel = null;
-  }
-
   public _debouncedUpdate(): void {
     if (this._updateDebounceTimer) {
       clearTimeout(this._updateDebounceTimer);
     }
-    
+
     this._updateDebounceTimer = setTimeout(() => {
-      this.requestUpdate();
+      this._render();
       this._updateDebounceTimer = null;
     }, 16) as ReturnType<typeof setTimeout>;
   }
 
-  updated(changed: Map<string, unknown>) {
-    if (this._isUpdating) return;
-    this.style.width = this.width !== '100%' ? '' : '100%';
-    
-    const needsOptionsUpdate = changed.has('optionItems') || 
-                              changed.has('language') || 
-                              changed.has('texts');
-    
-    const needsWidthUpdate = changed.has('width') || 
-                            changed.has('optionItems') || 
-                            changed.has('_options');
-
-    const needsHeightUpdate = changed.has('_options') || 
-                             changed.has('_isLoading') ||
-                             changed.has('open');
-
-    if (needsOptionsUpdate) {
-      this.initializeOptionsFromPropsOrSlot();
-    }
-    
-    if (needsWidthUpdate) {
-      this.calculateAutoWidth();
-    }
-
-    if (needsHeightUpdate) {
-      this._calculatedHeight = this.calculateDropdownHeight();
-    }
-  }
-
   public calculateDropdownHeight(): string {
     if (this._isLoading) {
-      return '80px'; 
+      return '80px';
     }
 
-    if (this._options.length === 0) {
+    if (this._optionData.length === 0) {
       if (this.multiple) {
-        return '60px'; 
+        return '60px';
       }
-      return 'auto'; 
+      return 'auto';
     }
 
     const rowHeight = 36;
     const maxHeight = 360;
-    const computedHeight = this._options.length * rowHeight;
-    const finalHeight = this._options.length > 10 ? maxHeight : computedHeight;
-    
+    const computedHeight = this._optionData.length * rowHeight;
+    const finalHeight = this._optionData.length > 10 ? maxHeight : computedHeight;
+
     return `${finalHeight + 5}px`;
   }
 
@@ -286,14 +452,12 @@ export class SeoSelect extends LitElement {
   }
 
   public calculateAutoWidth(): void {
-    if (!isBrowser()) return;
-
-    if (this.width || this._options.length === 0) {
+    if (this.width || this._optionData.length === 0) {
       this._calculatedWidth = null;
       return;
     }
 
-    const optionTexts = this._options.map(opt => opt.textContent || '');
+    const optionTexts = this._optionData.map(opt => opt.label || '');
     const cacheKey = optionTexts.join('|') + `|${this.multiple}`;
 
     if (this._widthCalculationCache.has(cacheKey)) {
@@ -302,7 +466,7 @@ export class SeoSelect extends LitElement {
       return;
     }
 
-    safeRequestAnimationFrame(() => {
+    requestAnimationFrame(() => {
       const texts = this.getLocalizedText();
       const textsToMeasure = [...optionTexts];
 
@@ -336,155 +500,12 @@ export class SeoSelect extends LitElement {
     return 'auto';
   }
 
-  protected getCloseIcon() {
-    return ICONS.CLOSE();
-  }
-
-  protected getChevronDownIcon() {
-    return ICONS.CHEVRON_DOWN();
-  }
-
-  protected getChevronUpIcon() {
-    return ICONS.CHEVRON_UP();
-  }
-
-  protected renderLoadingSpinner() {
-    const texts = this.getLocalizedText();
-    return html`
-      <div class="${CSS_CLASSES.LOADING_CONTAINER}">
-        <div class="${CSS_CLASSES.LOADING_DOTS}">
-          <div class="${CSS_CLASSES.DOT}"></div>
-          <div class="${CSS_CLASSES.DOT}"></div>
-          <div class="${CSS_CLASSES.DOT}"></div>
-        </div>  
-        <span class="${CSS_CLASSES.LOADING_TEXT}">${texts.loadingText}</span>
-      </div>
-    `;
-  }
-
-  protected renderNoData() {
-    const texts = this.getLocalizedText();
-    return html`
-      <div class="${CSS_CLASSES.NO_DATA_CONTAINER}">
-        <span class="${CSS_CLASSES.NO_DATA_TEXT}">${texts.noDataText}</span>
-      </div>
-    `;
-  }
-
-  protected renderDropdown() {
-    const hasOptions = this.getAllOptionData().length > 0;
-    const showNoData = this.multiple && !this._isLoading && !hasOptions;
-    const effectiveWidth = this.getEffectiveWidth();
-    const effectiveHeight = this.getEffectiveHeight();
-    
-    return html`
-      <div class="${CSS_CLASSES.LISTBOX} ${CSS_CLASSES.SCROLL} ${this.open ? '' : CSS_CLASSES.HIDDEN}" 
-           role="listbox" 
-           style="width: ${effectiveWidth}; height: ${effectiveHeight};">
-        ${this._isLoading
-          ? this.renderLoadingSpinner()
-          : showNoData
-            ? this.renderNoData()
-            : ''
-        }
-      </div>
-    `;
-  }
-
-  protected getThemeClass(): string {
-    const themeClass = `theme-${this.theme}`;
-    const darkClass = this.dark ? 'dark' : '';
-    return `${themeClass} ${darkClass}`.trim();
-  }
-
-  render() {
-    if (this.multiple) {
-      return this.renderMultiSelect();
-    } else {
-      return this.renderSingleSelect();
-    }
-  }
-
-  protected renderMultiSelect() {
-    const texts = this.getLocalizedText();
-    const showResetButton = this.showReset && this._selectedValues.length > 0;
-    const effectiveWidth = this.getEffectiveWidth();
-
-    return html`
-      <div class="${CSS_CLASSES.SELECT} ${CSS_CLASSES.MULTI_SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
-        <div class="${CSS_CLASSES.SELECTED_CONTAINER} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" @click=${this.toggleDropdown}>
-          <div class="${CSS_CLASSES.SELECTED_TAGS}">
-            ${this._selectedValues.map(value => {
-              const option = this._optionsCache.get(value) || this._options.find(opt => opt.value === value);
-              const label = option?.textContent || value;
-              return html`
-                <span class="${CSS_CLASSES.TAG}">
-                  ${label}
-                  <button
-                    type="button"
-                    class="${CSS_CLASSES.TAG_REMOVE}"
-                    @click=${(e: Event) => this.removeTag(e, value)}
-                    title="${texts.removeTag}"
-                  >${this.getCloseIcon()}</button>
-                </span>
-              `;
-            })}
-            ${this._selectedValues.length === 0
-              ? html`<span class="${CSS_CLASSES.PLACEHOLDER}">${texts.placeholder}</span>`
-              : ''
-            }
-          </div>
-          ${showResetButton
-            ? html`<button
-                type="button"
-                class="${CSS_CLASSES.MULTI_RESET_BUTTON}"
-                @click=${this.resetToDefault}
-                title="${texts.clearAll}"
-              >${this.getCloseIcon()}</button>`
-            : ''
-          }
-          <span class="${CSS_CLASSES.ARROW}">${this.open ? this.getChevronUpIcon() : this.getChevronDownIcon()}</span>
-        </div>
-        ${this.renderDropdown()}
-      </div>
-    `;
-  }
-
-  protected renderSingleSelect() {
-    const texts = this.getLocalizedText();
-    const firstOptionValue = this._options && this._options.length > 0 ? this._options[0].value : null;
-    const showResetButton = this.showReset &&
-                          this._value !== null &&
-                          firstOptionValue !== null &&
-                          this._value !== firstOptionValue;
-    const effectiveWidth = this.getEffectiveWidth();
-
-    return html`
-      <div class="${CSS_CLASSES.SELECT} ${this.getThemeClass()} ${this.open ? CSS_CLASSES.OPEN : ''}" style="width: ${effectiveWidth};">
-        <div class="${CSS_CLASSES.SELECTED} ${showResetButton ? CSS_CLASSES.WITH_RESET : ''}" @click=${this.toggleDropdown}>
-          ${this._labelText}
-          ${showResetButton
-            ? html`<button
-                type="button"
-                class="${CSS_CLASSES.RESET_BUTTON}"
-                @click=${this.resetToDefault}
-                title="${texts.resetToDefault}"
-              >${this.getCloseIcon()}</button>`
-            : ''
-          }
-          <span class="${CSS_CLASSES.ARROW}">${this.open ? this.getChevronUpIcon() : this.getChevronDownIcon()}</span>
-        </div>
-        ${this.renderDropdown()}
-      </div>
-    `;
-  }
-
   public removeTag = (e: Event, valueToRemove: string): void => {
     e.stopPropagation();
     this._selectedValues = this._selectedValues.filter(value => value !== valueToRemove);
     this.updateFormValue();
 
-    const option = this._optionsCache.get(valueToRemove) || this._options.find(opt => opt.value === valueToRemove);
+    const option = this._optionsCache.get(valueToRemove) || this._optionData.find(opt => opt.value === valueToRemove);
 
     if (this.open) {
       this._virtual?.destroy();
@@ -500,11 +521,11 @@ export class SeoSelect extends LitElement {
           });
         }
       }
-      
+
       this._calculatedHeight = this.calculateDropdownHeight();
     }
 
-    triggerDeselectEvent(this, option?.textContent || '', valueToRemove);
+    triggerDeselectEvent(this, option?.label || '', valueToRemove);
 
     this._debouncedUpdate();
   };
@@ -528,7 +549,7 @@ export class SeoSelect extends LitElement {
             this._virtual?.setActiveIndex(0);
           });
         }
-        
+
         this._calculatedHeight = this.calculateDropdownHeight();
       } else {
         this._pendingActiveIndex = 0;
@@ -536,10 +557,10 @@ export class SeoSelect extends LitElement {
 
       triggerResetEvent(this, { values: [], labels: [] });
     } else {
-      if (this._options.length > 0) {
-        const firstOption = this._options[0];
+      if (this._optionData.length > 0) {
+        const firstOption = this._optionData[0];
         this.value = firstOption.value;
-        this._labelText = firstOption.textContent || '';
+        this._labelText = firstOption.label || '';
 
         if (this.open && this._virtual) {
           requestAnimationFrame(() => {
@@ -551,17 +572,17 @@ export class SeoSelect extends LitElement {
           });
         } else {
           this._pendingActiveIndex = 0;
-          
+
           if (this._virtual) {
             this._virtual.destroy();
             this._virtual = null;
           }
         }
 
-        triggerResetEvent(this, { value: firstOption.value, label: firstOption.textContent || '' });
+        triggerResetEvent(this, { value: firstOption.value, label: firstOption.label || '' });
       }
     }
-    
+
     this._debouncedUpdate();
   };
 
@@ -571,92 +592,116 @@ export class SeoSelect extends LitElement {
   };
 
   public hasNoOptions(): boolean {
-    return this._options.length === 0;
+    return this._optionData.length === 0;
   }
 
+  /**
+   * Option 초기화 - Slot Method와 Array Method 둘 다 지원
+   *
+   * Slot Method (권장): HTML에서 <option> 요소를 직접 선언
+   * <seo-select>
+   *   <option value="1">Option 1</option>
+   *   <option value="2" selected>Option 2</option>
+   * </seo-select>
+   *
+   * Array Method (대체): optionItems 속성으로 전달
+   * element.optionItems = [{ value: '1', label: 'Option 1' }]
+   */
   public initializeOptionsFromPropsOrSlot(): void {
     if (this._isUpdating) return;
     this._isUpdating = true;
 
     try {
+      // 캐시 초기화
       this._optionsCache.clear();
       this._widthCalculationCache.clear();
+      this._optionData = [];
 
-      const optionEls = Array.from(this.querySelectorAll('option')) as HTMLOptionElement[];
+      // 초기 선택 값 추적용 배열
+      const selectedValues: string[] = [];
 
-      if (optionEls.length > 0) {
-        this._options = optionEls.map(opt => {
-          opt.hidden = true;
-          this._optionsCache.set(opt.value, opt);
-          return opt;
+      // 1. Slot Method: HTML에서 <option> 요소 읽기
+      const slotOptions = Array.from(this.querySelectorAll('option')) as HTMLOptionElement[];
+
+      if (slotOptions.length > 0) {
+        // Slot에서 option 데이터 추출
+        this._optionData = slotOptions.map(opt => {
+          const optionItem: VirtualSelectOption = {
+            value: opt.value,
+            label: opt.textContent || opt.value
+          };
+
+          // 선택된 option 추적
+          if (opt.selected) {
+            selectedValues.push(opt.value);
+          }
+
+          // 캐시에 저장
+          this._optionsCache.set(opt.value, optionItem);
+
+          return optionItem;
         });
 
-        optionEls.forEach((el) => {
-          el.remove();
+        // 원본 option 요소 제거 (innerHTML 렌더링과 충돌 방지)
+        slotOptions.forEach(el => el.remove());
+      }
+      // 2. Array Method: optionItems 속성에서 읽기
+      else if (Array.isArray(this.optionItems) && this.optionItems.length > 0) {
+        this._optionData = this.optionItems.map(opt => {
+          const optionItem: VirtualSelectOption = {
+            value: opt.value,
+            label: opt.label
+          };
+
+          // 캐시에 저장
+          this._optionsCache.set(opt.value, optionItem);
+
+          return optionItem;
         });
-
-      } else if (Array.isArray(this.optionItems) && this.optionItems.length > 0) {
-        this._options.forEach(opt => opt.remove());
-        this._options = [];
-
-        const fragment = document.createDocumentFragment();
-        
-        this._options = this.optionItems.map(opt => {
-          const el = document.createElement('option');
-          el.value = opt.value;
-          el.textContent = opt.label;
-          el.hidden = true;
-          this._optionsCache.set(opt.value, el);
-          fragment.appendChild(el);
-          return el;
-        });
-        
-        this.appendChild(fragment);
-      } 
-
-      if (this._options.length > 0) {
-        this._isLoading = false;
       }
 
+      // 로딩 상태 업데이트
+      this._isLoading = this._optionData.length === 0;
+
+      // 초기 선택 상태 설정
       if (this.multiple) {
-        const selectedOptions = this._options.filter(opt => opt.selected);
-        this._selectedValues = selectedOptions.map(opt => opt.value);
+        this._selectedValues = selectedValues;
       } else {
-        const selected = this._options.find(opt => opt.selected);
-        if (selected) {
-          this._setValue(selected.value, false);
-        } else if (this._options.length > 0) {
-          this._setValue(this._options[0].value, false);
+        // single select: 선택된 값이 있으면 사용, 없으면 첫 번째 option 선택
+        if (selectedValues.length > 0) {
+          this._setValue(selectedValues[0], false);
+        } else if (this._optionData.length > 0) {
+          this._setValue(this._optionData[0].value, false);
         } else {
           this._setValue('', false);
           this._labelText = '';
         }
       }
 
-      if (this._options.length > 0) {
-        this._initialValue = this._options[0].value;
-        this._initialLabel = this._options[0].textContent || '';
+      // 초기값 저장 (reset 기능용)
+      if (this._optionData.length > 0) {
+        this._initialValue = this._optionData[0].value;
+        this._initialLabel = this._optionData[0].label;
       }
 
+      // 높이 및 너비 계산
       this._calculatedHeight = this.calculateDropdownHeight();
-      
       this.calculateAutoWidth();
-      
+
     } finally {
       this._isUpdating = false;
-      this._debouncedUpdate();
     }
   }
 
   public openDropdown(): void {
     triggerOpenEvent(this);
     this.open = true;
-    this._debouncedUpdate();
+    this._render();
 
     if (this.hasNoOptions()) {
       this._isLoading = true;
       this._calculatedHeight = this.calculateDropdownHeight();
-      this._debouncedUpdate();
+      this._render();
 
       this.loadOptionsAsync().then(() => {
         this._calculatedHeight = this.calculateDropdownHeight();
@@ -664,31 +709,31 @@ export class SeoSelect extends LitElement {
       }).catch(() => {
         this._isLoading = false;
         this._calculatedHeight = this.calculateDropdownHeight();
-        this._debouncedUpdate();
+        this._render();
       });
     } else {
       if (this._virtual) {
         this._virtual.destroy();
         this._virtual = null;
       }
-      
+
       this._calculatedHeight = this.calculateDropdownHeight();
-      
+
       this.initializeVirtualSelect();
     }
   }
 
   public closeDropdown(): void {
     this.open = false;
-    
+
     if (this._virtual) {
       this._virtual.destroy();
       this._virtual = null;
     }
-    
+
     this._calculatedHeight = null;
-    
-    this._debouncedUpdate();
+
+    this._render();
   }
 
   protected initializeVirtualSelect(): void {
@@ -723,10 +768,10 @@ export class SeoSelect extends LitElement {
         Math.random() * (TIMING.LOADING_MAX - TIMING.LOADING_MIN) + TIMING.LOADING_MIN,
         500
       );
-      
+
       setTimeout(() => {
         this._calculatedHeight = this.calculateDropdownHeight();
-        this._debouncedUpdate();
+        this._render();
         resolve();
       }, loadingTime);
     });
@@ -736,7 +781,7 @@ export class SeoSelect extends LitElement {
     if (this.multiple) {
       this._selectedValues = [...this._selectedValues, value];
       this.updateFormValue();
-      this._debouncedUpdate();
+      this._render();
 
       this._virtual?.destroy();
       this._virtual = null;
@@ -751,7 +796,7 @@ export class SeoSelect extends LitElement {
           });
         }
       }
-      
+
       this._calculatedHeight = this.calculateDropdownHeight();
 
       triggerSelectEvent(this, label, value);
@@ -767,7 +812,7 @@ export class SeoSelect extends LitElement {
 
   protected updateFormValue(): void {
     const texts = this.getLocalizedText();
-    
+
     if (this.multiple) {
       const formValue = this._selectedValues.join(',');
       this._internals.setFormValue(formValue);
@@ -795,11 +840,6 @@ export class SeoSelect extends LitElement {
   };
 
   public getMaxOptionWidth(texts: string[], font: string): number {
-    if (!isBrowser()) {
-      // SSR 환경에서는 문자열 길이 기반 추정값 반환
-      return Math.max(...texts.map(t => t.length * 8), 100);
-    }
-
     const cacheKey = `${texts.join('|')}|${font}`;
 
     if (this._widthCalculationCache.has(cacheKey)) {
@@ -821,17 +861,11 @@ export class SeoSelect extends LitElement {
 
   public getAllOptionData(): VirtualSelectOption[] {
     if (this.multiple) {
-      return this._options
-        .filter((opt) => !this._selectedValues.includes(opt.value))
-        .map((opt) => ({
-          value: opt.value,
-          label: opt.textContent ?? '',
-        }));
+      // multi-select: 이미 선택된 항목 제외
+      return this._optionData.filter(opt => !this._selectedValues.includes(opt.value));
     } else {
-      return this._options.map((opt) => ({
-        value: opt.value,
-        label: opt.textContent ?? '',
-      }));
+      // single select: 모든 옵션 반환
+      return this._optionData;
     }
   }
 
@@ -858,8 +892,10 @@ export class SeoSelect extends LitElement {
     if (this._value === newVal) return;
 
     this._value = newVal;
-    const matched = this._optionsCache.get(newVal) || this._options.find((opt) => opt.value === newVal);
-    this._labelText = matched?.textContent ?? this._labelText ?? '';
+    const matched = this._optionsCache.get(newVal) || this._optionData.find((opt) => opt.value === newVal);
+    // 문자열인지 확인하여 [object Object] 방지
+    const label = matched?.label;
+    this._labelText = typeof label === 'string' ? label : (this._labelText || '');
 
     this._internals.setFormValue(this._value || '');
 
@@ -870,20 +906,24 @@ export class SeoSelect extends LitElement {
       this._internals.setValidity({});
     }
 
-    this._debouncedUpdate();
-    
     if (emit) triggerChangeEvent(this);
   }
 
-  get options(): HTMLOptionElement[] {
-    return this._options;
+  // 레거시 호환성을 위한 getter - VirtualSelectOption[] 반환
+  get options(): VirtualSelectOption[] {
+    return this._optionData;
+  }
+
+  // 레거시 호환성을 위한 _options getter
+  get _options(): VirtualSelectOption[] {
+    return this._optionData;
   }
 
   get selectedIndex(): number {
     if (this.multiple) {
       return -1;
     }
-    return this._options.findIndex((opt) => opt.value === this._value);
+    return this._optionData.findIndex((opt) => opt.value === this._value);
   }
 
   get value(): string | null {
@@ -904,7 +944,7 @@ export class SeoSelect extends LitElement {
   }
 
   get defaultValue(): string | null {
-    return this._options.length > 0 ? this._options[0].value : null;
+    return this._optionData.length > 0 ? this._optionData[0].value : null;
   }
 
   get selectedValues(): string[] {
@@ -916,6 +956,19 @@ export class SeoSelect extends LitElement {
       this._selectedValues = [...values];
       this.updateFormValue();
       this._debouncedUpdate();
+    }
+  }
+
+  // optionItems getter/setter - Array Method 지원
+  get optionItems(): VirtualSelectOption[] {
+    return this._optionItems;
+  }
+
+  set optionItems(items: VirtualSelectOption[]) {
+    this._optionItems = items;
+    // 이미 초기화된 상태에서 optionItems가 설정되면 옵션 다시 초기화
+    if (this._initialized && Array.isArray(items) && items.length > 0) {
+      this.addOptions(items, false);
     }
   }
 
@@ -948,7 +1001,7 @@ export class SeoSelect extends LitElement {
     try {
       let previousValue: string | null = null;
       let previousSelectedValues: string[] = [];
-      
+
       if (preserveSelection) {
         if (this.multiple) {
           previousSelectedValues = [...this._selectedValues];
@@ -957,25 +1010,21 @@ export class SeoSelect extends LitElement {
         }
       }
 
-      this._options.forEach(opt => opt.remove());
-      this._options = [];
+      // 캐시 및 데이터 초기화
       this._optionsCache.clear();
       this._widthCalculationCache.clear();
+      this._optionData = [];
 
       if (Array.isArray(options) && options.length > 0) {
-        const fragment = document.createDocumentFragment();
-        
-        this._options = options.map(opt => {
-          const el = document.createElement('option');
-          el.value = opt.value;
-          el.textContent = opt.label;
-          el.hidden = true;
-          this._optionsCache.set(opt.value, el);
-          fragment.appendChild(el);
-          return el;
+        // 옵션 데이터 저장
+        this._optionData = options.map(opt => {
+          const optionItem: VirtualSelectOption = {
+            value: opt.value,
+            label: opt.label
+          };
+          this._optionsCache.set(opt.value, optionItem);
+          return optionItem;
         });
-        
-        this.appendChild(fragment);
         this._isLoading = false;
       } else {
         this._isLoading = true;
@@ -986,16 +1035,16 @@ export class SeoSelect extends LitElement {
 
       if (preserveSelection && options.length > 0) {
         if (this.multiple) {
-          const validValues = previousSelectedValues.filter(value => 
-            this._options.some(opt => opt.value === value)
+          const validValues = previousSelectedValues.filter(value =>
+            this._optionData.some(opt => opt.value === value)
           );
           this._selectedValues = validValues;
           this.updateFormValue();
         } else {
-          if (previousValue && this._options.some(opt => opt.value === previousValue)) {
+          if (previousValue && this._optionData.some(opt => opt.value === previousValue)) {
             this._setValue(previousValue, false);
-          } else if (this._options.length > 0) {
-            this._setValue(this._options[0].value, false);
+          } else if (this._optionData.length > 0) {
+            this._setValue(this._optionData[0].value, false);
           } else {
             this._setValue('', false);
             this._labelText = '';
@@ -1005,8 +1054,8 @@ export class SeoSelect extends LitElement {
         if (this.multiple) {
           this._selectedValues = [];
           this.updateFormValue();
-        } else if (this._options.length > 0) {
-          this._setValue(this._options[0].value, false);
+        } else if (this._optionData.length > 0) {
+          this._setValue(this._optionData[0].value, false);
         } else {
           this._setValue('', false);
           this._labelText = '';
@@ -1019,9 +1068,9 @@ export class SeoSelect extends LitElement {
         this._updateVirtualScrollData();
       }
 
-      if (this._options.length > 0) {
-        this._initialValue = this._options[0].value;
-        this._initialLabel = this._options[0].textContent || '';
+      if (this._optionData.length > 0) {
+        this._initialValue = this._optionData[0].value;
+        this._initialLabel = this._optionData[0].label;
       } else {
         this._initialValue = null;
         this._initialLabel = null;
@@ -1037,8 +1086,8 @@ export class SeoSelect extends LitElement {
 
   public addOption(option: VirtualSelectOption, index?: number): void {
     if (this._isUpdating) return;
-    
-    if (this._options.some(opt => opt.value === option.value)) {
+
+    if (this._optionData.some(opt => opt.value === option.value)) {
       console.warn(`Option with value "${option.value}" already exists`);
       return;
     }
@@ -1046,21 +1095,18 @@ export class SeoSelect extends LitElement {
     this._isUpdating = true;
 
     try {
-      const el = document.createElement('option');
-      el.value = option.value;
-      el.textContent = option.label;
-      el.hidden = true;
-      this._optionsCache.set(option.value, el);
+      const optionItem: VirtualSelectOption = {
+        value: option.value,
+        label: option.label
+      };
+      this._optionsCache.set(option.value, optionItem);
 
-      const insertIndex = index !== undefined ? Math.max(0, Math.min(index, this._options.length)) : this._options.length;
-      
-      if (insertIndex >= this._options.length) {
-        this._options.push(el);
-        this.appendChild(el);
+      const insertIndex = index !== undefined ? Math.max(0, Math.min(index, this._optionData.length)) : this._optionData.length;
+
+      if (insertIndex >= this._optionData.length) {
+        this._optionData.push(optionItem);
       } else {
-        const nextOption = this._options[insertIndex];
-        this._options.splice(insertIndex, 0, el);
-        this.insertBefore(el, nextOption);
+        this._optionData.splice(insertIndex, 0, optionItem);
       }
 
       this._widthCalculationCache.clear();
@@ -1072,10 +1118,10 @@ export class SeoSelect extends LitElement {
         this._updateVirtualScrollData();
       }
 
-      if (this._options.length === 1) {
+      if (this._optionData.length === 1) {
         this._initialValue = option.value;
         this._initialLabel = option.label;
-        
+
         if (!this.multiple && !this._value) {
           this._setValue(option.value, false);
         }
@@ -1091,16 +1137,15 @@ export class SeoSelect extends LitElement {
 
   public clearOption(value: string): void {
     if (this._isUpdating) return;
-    
-    const optionIndex = this._options.findIndex(opt => opt.value === value);
+
+    const optionIndex = this._optionData.findIndex(opt => opt.value === value);
     if (optionIndex === -1) return;
 
     this._isUpdating = true;
 
     try {
-      const removedOption = this._options[optionIndex];
-      removedOption.remove();
-      this._options.splice(optionIndex, 1);
+      const removedOption = this._optionData[optionIndex];
+      this._optionData.splice(optionIndex, 1);
       this._optionsCache.delete(value);
       this._widthCalculationCache.clear();
 
@@ -1109,12 +1154,12 @@ export class SeoSelect extends LitElement {
         if (selectedIndex > -1) {
           this._selectedValues.splice(selectedIndex, 1);
           this.updateFormValue();
-          triggerDeselectEvent(this, removedOption.textContent || '', value);
+          triggerDeselectEvent(this, removedOption.label || '', value);
         }
       } else {
         if (this._value === value) {
-          if (this._options.length > 0) {
-            this._setValue(this._options[0].value, true);
+          if (this._optionData.length > 0) {
+            this._setValue(this._optionData[0].value, true);
           } else {
             this._setValue('', true);
             this._labelText = '';
@@ -1128,9 +1173,9 @@ export class SeoSelect extends LitElement {
         this._updateVirtualScrollData();
       }
 
-      if (this._options.length > 0) {
-        this._initialValue = this._options[0].value;
-        this._initialLabel = this._options[0].textContent || '';
+      if (this._optionData.length > 0) {
+        this._initialValue = this._optionData[0].value;
+        this._initialLabel = this._optionData[0].label;
       } else {
         this._initialValue = null;
         this._initialLabel = null;
@@ -1153,8 +1198,7 @@ export class SeoSelect extends LitElement {
     this._isUpdating = true;
 
     try {
-      this._options.forEach(opt => opt.remove());
-      this._options = [];
+      this._optionData = [];
       this._optionsCache.clear();
       this._widthCalculationCache.clear();
 
@@ -1162,7 +1206,7 @@ export class SeoSelect extends LitElement {
         const previousSelectedValues = [...this._selectedValues];
         this._selectedValues = [];
         this.updateFormValue();
-        
+
         if (previousSelectedValues.length > 0) {
           triggerResetEvent(this, { values: [], labels: [] });
         }
@@ -1170,7 +1214,7 @@ export class SeoSelect extends LitElement {
         const previousValue = this._value;
         this._setValue('', true);
         this._labelText = '';
-        
+
         if (previousValue) {
           triggerResetEvent(this, { value: '', label: '' });
         }
@@ -1197,14 +1241,14 @@ export class SeoSelect extends LitElement {
     if (!this._virtual) return;
 
     const optionData = this.getAllOptionData();
-    
+
     if (optionData.length > 0) {
       const activeValue = this.multiple ? undefined : this._value || undefined;
       this._virtual.setData(optionData, activeValue);
-      
+
       requestAnimationFrame(() => {
         if (!this._virtual) return;
-        
+
         if (this.multiple) {
           this._virtual.setActiveIndex(0);
         } else {
@@ -1226,24 +1270,21 @@ export class SeoSelect extends LitElement {
       updates.forEach(update => {
         switch (update.action) {
           case 'add':
-            if (update.option && !this._options.some(opt => opt.value === update.option!.value)) {
-              const el = document.createElement('option');
-              el.value = update.option.value;
-              el.textContent = update.option.label;
-              el.hidden = true;
-              this._optionsCache.set(update.option.value, el);
+            if (update.option && !this._optionData.some(opt => opt.value === update.option!.value)) {
+              const optionItem: VirtualSelectOption = {
+                value: update.option.value,
+                label: update.option.label
+              };
+              this._optionsCache.set(update.option.value, optionItem);
 
-              const insertIndex = update.index !== undefined ? 
-                Math.max(0, Math.min(update.index, this._options.length)) : 
-                this._options.length;
+              const insertIndex = update.index !== undefined ?
+                Math.max(0, Math.min(update.index, this._optionData.length)) :
+                this._optionData.length;
 
-              if (insertIndex >= this._options.length) {
-                this._options.push(el);
-                this.appendChild(el);
+              if (insertIndex >= this._optionData.length) {
+                this._optionData.push(optionItem);
               } else {
-                const nextOption = this._options[insertIndex];
-                this._options.splice(insertIndex, 0, el);
-                this.insertBefore(el, nextOption);
+                this._optionData.splice(insertIndex, 0, optionItem);
               }
               hasChanges = true;
             }
@@ -1251,11 +1292,9 @@ export class SeoSelect extends LitElement {
 
           case 'remove':
             if (update.value) {
-              const optionIndex = this._options.findIndex(opt => opt.value === update.value);
+              const optionIndex = this._optionData.findIndex(opt => opt.value === update.value);
               if (optionIndex !== -1) {
-                const removedOption = this._options[optionIndex];
-                removedOption.remove();
-                this._options.splice(optionIndex, 1);
+                this._optionData.splice(optionIndex, 1);
                 this._optionsCache.delete(update.value);
 
                 if (this.multiple) {
@@ -1265,8 +1304,8 @@ export class SeoSelect extends LitElement {
                   }
                 } else {
                   if (this._value === update.value) {
-                    if (this._options.length > 0) {
-                      this._setValue(this._options[0].value, false);
+                    if (this._optionData.length > 0) {
+                      this._setValue(this._optionData[0].value, false);
                     } else {
                       this._setValue('', false);
                       this._labelText = '';
@@ -1280,9 +1319,9 @@ export class SeoSelect extends LitElement {
 
           case 'update':
             if (update.option && update.value) {
-              const existingOption = this._options.find(opt => opt.value === update.value);
+              const existingOption = this._optionData.find(opt => opt.value === update.value);
               if (existingOption) {
-                existingOption.textContent = update.option.label;
+                existingOption.label = update.option.label;
                 this._optionsCache.set(update.value, existingOption);
                 if (!this.multiple && this._value === update.value) {
                   this._labelText = update.option.label;
@@ -1296,7 +1335,7 @@ export class SeoSelect extends LitElement {
 
       if (hasChanges) {
         this._widthCalculationCache.clear();
-        this._isLoading = this._options.length === 0;
+        this._isLoading = this._optionData.length === 0;
 
         this._calculatedHeight = this.calculateDropdownHeight();
 
@@ -1304,9 +1343,9 @@ export class SeoSelect extends LitElement {
           this._updateVirtualScrollData();
         }
 
-        if (this._options.length > 0) {
-          this._initialValue = this._options[0].value;
-          this._initialLabel = this._options[0].textContent || '';
+        if (this._optionData.length > 0) {
+          this._initialValue = this._optionData[0].value;
+          this._initialLabel = this._optionData[0].label;
         } else {
           this._initialValue = null;
           this._initialLabel = null;
@@ -1368,5 +1407,4 @@ export class SeoSelect extends LitElement {
   }
 }
 
-// SSR-safe 커스텀 엘리먼트 등록
 safeDefineCustomElement('seo-select', SeoSelect);

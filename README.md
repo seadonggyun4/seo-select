@@ -4,7 +4,7 @@
 
 <img width="300" height="300" alt="logo" src="https://github.com/user-attachments/assets/e567ea31-d046-45b3-80d1-9a1e32c7e002" />
 
-A lightweight and extensible select component built with Lit, designed to work seamlessly across frameworks. Supports search, virtual scrolling, multiple selection, i18n, and flexible theming.
+A lightweight and extensible select component built with pure Web Components (no dependencies), designed to work seamlessly across frameworks. Supports search, virtual scrolling, multiple selection, i18n, and flexible theming.
 
 > 🌟 Support with a `GitHub star` — your encouragement means the world to me!
 
@@ -20,7 +20,7 @@ A lightweight and extensible select component built with Lit, designed to work s
 - 🚀 **Virtual Scrolling**: High performance with large datasets
 - 📏 **Auto Width**: Automatic width calculation based on content
 - 🎯 **Multiple Selection**: Tag-based multi-select with individual remove buttons
-- 💡 **Lightweight Web Component**: Built with native Web Components for minimal size and seamless integration across any framework.
+- 💡 **Zero Dependencies**: Built with native Web Components (no Lit, no external libraries) for minimal bundle size and maximum compatibility.
 - ⚡ **Modern Event System**: Standard addEventListener with type-safe helpers
 
 ## Installation

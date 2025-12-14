@@ -1,7 +1,7 @@
 {
   "name": "seo-select",
   "version": "4.2.2",
-  "description": "A customizable and accessible select component with search functionality built with Lit",
+  "description": "A customizable and accessible select component with search functionality built with Web Components",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -57,7 +57,6 @@
     "LICENSE"
   ],
   "keywords": [
-    "lit",
     "web-components",
     "select",
     "dropdown",
@@ -100,9 +99,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublishOnly": "npm run type-check && npm run build"
   },
-  "dependencies": {
-    "lit": "^3.0.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^24.1.0",
     "@types/react": "^18.2.0",
