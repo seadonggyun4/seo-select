@@ -39,3 +39,8 @@ min
 
 # Package manager lock files
 package-lock.json
+
+# guideline
+.github
+CLAUDE.md
+FRAMEWORK_COMPATIBILITY_GUIDE.md

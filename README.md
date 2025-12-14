@@ -502,23 +502,47 @@ import 'seo-select/components/seo-select-search';
 
 ## React / Next.js / Remix
 
+> ⚠️ **Important**: React's synthetic event system does not automatically bind to Web Component custom events. You must use `ref` with `addEventListener` for event handling.
+
+### Basic Usage (Recommended)
+
 ```tsx
 import { useRef, useEffect } from 'react';
 import 'seo-select/types';
-import 'seo-select/styles'
+import 'seo-select/styles';
 import 'seo-select';
 
 export default function MyComponent() {
   const selectRef = useRef<SeoSelectElement>(null);
 
   useEffect(() => {
-    if (selectRef.current) {
-      selectRef.current.optionItems = [
-        { value: 'react', label: 'React' },
-        { value: 'nextjs', label: 'Next.js' },
-        { value: 'remix', label: 'Remix' }
-      ];
-    }
+    const element = selectRef.current;
+    if (!element) return;
+
+    // Set options
+    element.optionItems = [
+      { value: 'react', label: 'React' },
+      { value: 'nextjs', label: 'Next.js' },
+      { value: 'remix', label: 'Remix' }
+    ];
+
+    // Event listeners (required for Web Components in React)
+    const handleSelect = (e: CustomEvent<{ label: string; value: string }>) => {
+      console.log('Selected:', e.detail.label, e.detail.value);
+    };
+
+    const handleReset = (e: CustomEvent) => {
+      console.log('Reset:', e.detail);
+    };
+
+    element.addEventListener('onSelect', handleSelect);
+    element.addEventListener('onReset', handleReset);
+
+    // Cleanup
+    return () => {
+      element.removeEventListener('onSelect', handleSelect);
+      element.removeEventListener('onReset', handleReset);
+    };
   }, []);
 
   return (
@@ -527,11 +551,138 @@ export default function MyComponent() {
       name="framework"
       theme="float"
       language="ko"
-      onSelect={(event) => {
-        console.log('Selected:', event.detail); // Fully typed!
-      }}
     />
   );
+}
+```
+
+### Next.js App Router (SSR)
+
+For Next.js with Server Components, use dynamic import with `ssr: false`:
+
+```tsx
+'use client';
+
+import dynamic from 'next/dynamic';
+import { useRef, useEffect } from 'react';
+
+// Dynamic import to avoid SSR issues
+const SeoSelectLoader = dynamic(
+  () => import('seo-select').then(() => ({ default: () => null })),
+  { ssr: false }
+);
+
+export default function SelectComponent() {
+  const selectRef = useRef<SeoSelectElement>(null);
+
+  useEffect(() => {
+    // Import client-side only
+    import('seo-select/types');
+    import('seo-select/styles');
+    import('seo-select');
+
+    const element = selectRef.current;
+    if (!element) return;
+
+    element.optionItems = [
+      { value: 'next', label: 'Next.js' },
+      { value: 'remix', label: 'Remix' }
+    ];
+
+    const handleSelect = (e: CustomEvent<{ label: string; value: string }>) => {
+      console.log('Selected:', e.detail);
+    };
+
+    element.addEventListener('onSelect', handleSelect);
+    return () => element.removeEventListener('onSelect', handleSelect);
+  }, []);
+
+  return (
+    <>
+      <SeoSelectLoader />
+      <seo-select ref={selectRef} name="framework" theme="float" />
+    </>
+  );
+}
+```
+
+### Custom React Hook (Reusable)
+
+Create a reusable hook for cleaner code:
+
+```tsx
+// hooks/useSeoSelect.ts
+import { useRef, useEffect, useCallback } from 'react';
+
+interface UseSeoSelectOptions {
+  options?: Array<{ value: string; label: string }>;
+  onSelect?: (detail: { label: string; value: string }) => void;
+  onDeselect?: (detail: { label: string; value: string }) => void;
+  onReset?: (detail: any) => void;
+  onChange?: () => void;
+}
+
+export function useSeoSelect<T extends SeoSelectElement = SeoSelectElement>(
+  config: UseSeoSelectOptions = {}
+) {
+  const ref = useRef<T>(null);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    if (config.options) {
+      element.optionItems = config.options;
+    }
+
+    const handlers: Array<[string, EventListener]> = [];
+
+    if (config.onSelect) {
+      const handler = (e: Event) => config.onSelect!((e as CustomEvent).detail);
+      element.addEventListener('onSelect', handler);
+      handlers.push(['onSelect', handler]);
+    }
+
+    if (config.onDeselect) {
+      const handler = (e: Event) => config.onDeselect!((e as CustomEvent).detail);
+      element.addEventListener('onDeselect', handler);
+      handlers.push(['onDeselect', handler]);
+    }
+
+    if (config.onReset) {
+      const handler = (e: Event) => config.onReset!((e as CustomEvent).detail);
+      element.addEventListener('onReset', handler);
+      handlers.push(['onReset', handler]);
+    }
+
+    if (config.onChange) {
+      const handler = () => config.onChange!();
+      element.addEventListener('onChange', handler);
+      handlers.push(['onChange', handler]);
+    }
+
+    return () => {
+      handlers.forEach(([event, handler]) => {
+        element.removeEventListener(event, handler);
+      });
+    };
+  }, [config.options, config.onSelect, config.onDeselect, config.onReset, config.onChange]);
+
+  return ref;
+}
+
+// Usage
+export default function MyComponent() {
+  const selectRef = useSeoSelect({
+    options: [
+      { value: 'react', label: 'React' },
+      { value: 'vue', label: 'Vue' }
+    ],
+    onSelect: (detail) => console.log('Selected:', detail),
+    onReset: (detail) => console.log('Reset:', detail)
+  });
+
+  return <seo-select ref={selectRef} name="framework" theme="float" />;
 }
 ```
 
@@ -1258,6 +1409,40 @@ The component uses a sophisticated color system based on Open Color with primary
 | `--dark-search-input-focus-shadow` | `0 0 0 2px rgba(96, 165, 250, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3)` | Search input focus shadow |
 
 </details>
+
+## Troubleshooting
+
+### CSS Style Conflicts
+
+By default, seo-select uses Light DOM (no Shadow DOM) for maximum CSS compatibility. If you experience style conflicts with your existing CSS:
+
+**Option 1: CSS Scoping with Wrapper Class**
+```css
+/* Scope your styles to avoid conflicts */
+.my-app-container .seo-select {
+  /* Your custom styles */
+}
+```
+
+**Option 2: Use CSS Custom Properties**
+```css
+/* Override using CSS variables instead of direct selectors */
+seo-select {
+  --select-font-size: 14px;
+  --primary-color: #your-brand-color;
+}
+```
+
+### SPA Memory Management
+
+seo-select properly cleans up resources when components are removed from the DOM. For SPA applications (React, Vue, etc.):
+
+- Event listeners are automatically removed in `disconnectedCallback`
+- Virtual scroll instances are destroyed
+- All DOM references are released
+- Static instance references are nullified
+
+If you notice memory leaks in your SPA, ensure components are properly unmounted when navigating between routes.
 
 ## License
 
