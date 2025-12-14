@@ -180,8 +180,8 @@
                         <span class="text-item javascript active">JavaScript</span>
                         <span class="text-item react">React</span>
                         <span class="text-item vue">Vue</span>
-                        <span class="text-item svelte">Svelte</span>
                         <span class="text-item angular">Angular</span>
+                        <span class="text-item solid">Solid</span>
                         <span class="text-item qwik">Qwik</span>
                         <span class="text-item typescript">TypeScript</span>
                     </div>
@@ -213,31 +213,27 @@
                   <div class="tech-list">
                         <div class="tech-item">
                             <div class="tech-name" style="color: #61DAFB;">React</div>
-                            <div class="tech-desc">Next.js, Remix, Gatsby</div>
+                            <div class="tech-desc">seo-select/react</div>
                         </div>
                         <div class="tech-item">
                             <div class="tech-name" style="color: #4FC08D;">Vue</div>
-                            <div class="tech-desc">Vue 2/3, Nuxt 2/3</div>
-                        </div>
-                        <div class="tech-item">
-                            <div class="tech-name" style="color: #FF3E00;">Svelte</div>
-                            <div class="tech-desc">SvelteKit support</div>
+                            <div class="tech-desc">seo-select/vue</div>
                         </div>
                         <div class="tech-item">
                             <div class="tech-name" style="color: #DD0031;">Angular</div>
-                            <div class="tech-desc">Full TypeScript integration</div>
+                            <div class="tech-desc">seo-select/angular</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-name" style="color: #2C4F7C;">Solid.js</div>
+                            <div class="tech-desc">seo-select/solid</div>
                         </div>
                         <div class="tech-item">
                             <div class="tech-name" style="color: #18B6F6;">Qwik</div>
-                            <div class="tech-desc">QwikCity, Resumable</div>
+                            <div class="tech-desc">seo-select/qwik</div>
                         </div>
                         <div class="tech-item">
                             <div class="tech-name" style="color: #324FFF;">Lit</div>
                             <div class="tech-desc">Web Components</div>
-                        </div>
-                        <div class="tech-item">
-                            <div class="tech-name" style="color: #5851FF;">Stencil</div>
-                            <div class="tech-desc">Ionic, Compiler</div>
                         </div>
                         <div class="tech-item">
                             <div class="tech-name" style="color: #3178C6;">TypeScript</div>
@@ -944,75 +940,76 @@ selectElement.value = 'hyundai';</code></pre>
             <section id="frameworks" class="demo-section">
                 <h2 class="section-title">
                     <i class="fas fa-code"></i>
-                    Framework Integration
+                    Framework Wrappers
                 </h2>
 
                 <div class="feature-highlight">
-                    <h4>Universal Framework Support</h4>
-                    <p>SEO Select components work seamlessly across all modern frameworks as Web Components. Each framework requires slight integration differences for optimal TypeScript support and event handling.</p>
+                    <h4>Official Framework Wrappers</h4>
+                    <p>SEO Select provides official wrapper components for major frameworks. Each wrapper offers native-feeling APIs with proper event handling and TypeScript support. All framework dependencies are optional peer dependencies.</p>
                 </div>
 
                 <div class="framework-tabs">
                     <button class="framework-tab active" data-framework="react">React</button>
                     <button class="framework-tab" data-framework="vue">Vue</button>
                     <button class="framework-tab" data-framework="angular">Angular</button>
-                    <button class="framework-tab" data-framework="svelte">Svelte</button>
-                    <button class="framework-tab" data-framework="nextjs">Next.js</button>
+                    <button class="framework-tab" data-framework="solid">Solid.js</button>
+                    <button class="framework-tab" data-framework="qwik">Qwik</button>
                     <button class="framework-tab" data-framework="vanilla">Vanilla JS</button>
                 </div>
 
                 <!-- React Framework -->
                 <div id="react-content" class="framework-content active">
                     <div class="use-case">
-                        <h3>React Integration</h3>
-                        <p>React integration requires custom event handling and ref management for optimal TypeScript support:</p>
-                        
+                        <h3>React Wrapper</h3>
+                        <p>Use the official React wrapper for native React experience with proper event handling:</p>
+
                         <div class="code-example">
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
-                                <pre><code class="language-javascript">// React Component Example
-import React, { useRef, useEffect, useState } from 'react';
-import 'seo-select';
+                                <pre><code class="language-javascript">import { SeoSelect, SeoSelectSearch } from 'seo-select/react';
 import 'seo-select/styles';
-import 'seo-select/types';
 
-const MySelectComponent = () => {
-    const selectRef = useRef(null);
-    const [selectedValue, setSelectedValue] = useState('');
+export default function MyComponent() {
+  const options = [
+    { value: 'react', label: 'React' },
+    { value: 'nextjs', label: 'Next.js' },
+    { value: 'remix', label: 'Remix' }
+  ];
 
-    useEffect(() => {
-        const selectElement = selectRef.current;
-        if (!selectElement) return;
+  return (
+    &lt;SeoSelect
+      name="framework"
+      theme="float"
+      language="ko"
+      optionItems={options}
+      onSelect={(e) =&gt; console.log('Selected:', e.detail)}
+      onReset={(e) =&gt; console.log('Reset:', e.detail)}
+    /&gt;
+  );
+}
 
-        const handleSelect = (event) => {
-            console.log('Selected:', event.detail);
-            setSelectedValue(event.detail.value);
-        };
+// With Search and Ref
+import { useRef } from 'react';
+import { SeoSelectSearch, type SeoSelectRef } from 'seo-select/react';
 
-        selectElement.addEventListener('onSelect', handleSelect);
+function SearchExample() {
+  const selectRef = useRef&lt;SeoSelectRef&gt;(null);
 
-        return () => {
-            selectElement.removeEventListener('onSelect', handleSelect);
-        };
-    }, []);
-
-    return (
-        &lt;div&gt;
-            &lt;seo-select 
-                ref={selectRef}
-                name="framework" 
-                width="200px"
-                theme="float"
-            &gt;
-                &lt;option value="react"&gt;React&lt;/option&gt;
-                &lt;option value="vue"&gt;Vue.js&lt;/option&gt;
-                &lt;option value="angular"&gt;Angular&lt;/option&gt;
-            &lt;/seo-select&gt;
-            
-            &lt;p&gt;Selected: {selectedValue}&lt;/p&gt;
-        &lt;/div&gt;
-    );
-};</code></pre>
+  return (
+    &lt;SeoSelectSearch
+      ref={selectRef}
+      name="city"
+      multiple
+      showReset
+      optionItems={[
+        { value: 'seoul', label: 'Seoul' },
+        { value: 'tokyo', label: 'Tokyo' }
+      ]}
+      onSelect={(e) =&gt; console.log('Selected:', e.detail)}
+      onSearchChange={(e) =&gt; console.log('Search:', e.detail.searchText)}
+    /&gt;
+  );
+}</code></pre>
                             </div>
                         </div>
                     </div>
@@ -1021,42 +1018,59 @@ const MySelectComponent = () => {
                 <!-- Vue Framework -->
                 <div id="vue-content" class="framework-content">
                     <div class="use-case">
-                        <h3>Vue.js Integration</h3>
-                        <p>Vue integration with composition API and reactive data binding:</p>
-                        
+                        <h3>Vue 3 Wrapper</h3>
+                        <p>Use the official Vue wrapper with Composition API support:</p>
+
                         <div class="code-example">
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
-                                <pre><code class="language-javascript">&lt;template&gt;
-  &lt;div&gt;
-    &lt;seo-select 
-      ref="selectRef"
-      name="framework" 
-      width="200px"
-      @onSelect="handleSelect"
-    &gt;
-      &lt;option value="vue"&gt;Vue.js&lt;/option&gt;
-      &lt;option value="nuxt"&gt;Nuxt.js&lt;/option&gt;
-      &lt;option value="quasar"&gt;Quasar&lt;/option&gt;
-    &lt;/seo-select&gt;
-    
-    &lt;p&gt;Selected: {{ selectedValue }}&lt;/p&gt;
-  &lt;/div&gt;
+                                <pre><code class="language-javascript">&lt;script setup lang="ts"&gt;
+import { SeoSelect, SeoSelectSearch } from 'seo-select/vue';
+import 'seo-select/styles';
+
+const options = [
+  { value: 'vue', label: 'Vue 3' },
+  { value: 'nuxt', label: 'Nuxt 3' },
+  { value: 'vite', label: 'Vite' }
+];
+
+const handleSelect = (detail: { label: string; value: string }) =&gt; {
+  console.log('Selected:', detail);
+};
+&lt;/script&gt;
+
+&lt;template&gt;
+  &lt;SeoSelect
+    name="framework"
+    theme="float"
+    :optionItems="options"
+    @select="handleSelect"
+  /&gt;
 &lt;/template&gt;
 
-&lt;script setup&gt;
+// With Search and Multiple Selection
+&lt;script setup lang="ts"&gt;
 import { ref } from 'vue';
-import 'seo-select';
-import 'seo-select/styles';
-import 'seo-select/types';
+import { SeoSelectSearch } from 'seo-select/vue';
 
-const selectRef = ref(null);
-const selectedValue = ref('');
+const selectRef = ref();
+const handleReset = () =&gt; selectRef.value?.reset();
+&lt;/script&gt;
 
-const handleSelect = (event) => {
-  selectedValue.value = event.detail.value;
-};
-&lt;/script&gt;</code></pre>
+&lt;template&gt;
+  &lt;SeoSelectSearch
+    ref="selectRef"
+    name="city"
+    multiple
+    showReset
+    :optionItems="[
+      { value: 'seoul', label: 'Seoul' },
+      { value: 'tokyo', label: 'Tokyo' }
+    ]"
+    @select="(detail) =&gt; console.log('Selected:', detail)"
+    @searchChange="(detail) =&gt; console.log('Search:', detail.searchText)"
+  /&gt;
+&lt;/template&gt;</code></pre>
                             </div>
                         </div>
                     </div>
@@ -1065,121 +1079,173 @@ const handleSelect = (event) => {
                 <!-- Angular Framework -->
                 <div id="angular-content" class="framework-content">
                     <div class="use-case">
-                        <h3>Angular Integration</h3>
-                        <p>Angular integration with custom elements schema and TypeScript decorators:</p>
-                        
+                        <h3>Angular Wrapper</h3>
+                        <p>Use the official Angular wrapper as standalone components:</p>
+
                         <div class="code-example">
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
-                                <pre><code class="language-typescript">// Angular Component
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import 'seo-select';
+                                <pre><code class="language-typescript">import { Component } from '@angular/core';
+import { SeoSelectComponent, SeoSelectSearchComponent } from 'seo-select/angular';
 import 'seo-select/styles';
-import 'seo-select/types';
 
 @Component({
   selector: 'app-select-demo',
+  standalone: true,
+  imports: [SeoSelectComponent, SeoSelectSearchComponent],
   template: `
-    &lt;seo-select 
-      name="framework" 
-      width="200px"
-      (onSelect)="handleSelect($event)"
-    &gt;
-      &lt;option value="angular"&gt;Angular&lt;/option&gt;
-      &lt;option value="ionic"&gt;Ionic&lt;/option&gt;
-    &lt;/seo-select&gt;
-  `,
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    &lt;app-seo-select
+      name="framework"
+      theme="float"
+      [optionItems]="options"
+      (selectEvent)="onSelect($event)"
+      (resetEvent)="onReset($event)"
+    /&gt;
+  `
 })
 export class SelectDemoComponent {
-  handleSelect(event: any) {
-    console.log('Selected:', event.detail);
+  options = [
+    { value: 'angular', label: 'Angular' },
+    { value: 'ionic', label: 'Ionic' },
+    { value: 'ngrx', label: 'NgRx' }
+  ];
+
+  onSelect(detail: { label: string; value: string }) {
+    console.log('Selected:', detail);
   }
+
+  onReset(detail: any) {
+    console.log('Reset:', detail);
+  }
+}
+
+// With Search
+@Component({
+  selector: 'app-search-demo',
+  standalone: true,
+  imports: [SeoSelectSearchComponent],
+  template: `
+    &lt;app-seo-select-search
+      name="city"
+      [multiple]="true"
+      [showReset]="true"
+      [optionItems]="options"
+      (selectEvent)="onSelect($event)"
+      (searchChangeEvent)="onSearchChange($event)"
+    /&gt;
+  `
+})
+export class SearchDemoComponent {
+  // ...
 }</code></pre>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Svelte Framework -->
-                <div id="svelte-content" class="framework-content">
+                <!-- Solid.js Framework -->
+                <div id="solid-content" class="framework-content">
                     <div class="use-case">
-                        <h3>Svelte Integration</h3>
-                        <p>Svelte integration with reactive stores and custom event handling:</p>
-                        
+                        <h3>Solid.js Wrapper</h3>
+                        <p>Use the official Solid.js wrapper with reactive primitives:</p>
+
                         <div class="code-example">
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
-                                <pre><code class="language-javascript">&lt;script&gt;
-  import { onMount } from 'svelte';
-  import 'seo-select';
-  import 'seo-select/styles';
-  import 'seo-select/types';
+                                <pre><code class="language-javascript">import { SeoSelect, SeoSelectSearch } from 'seo-select/solid';
+import 'seo-select/styles';
 
-  let selectElement;
-  let selectedValue = '';
+export default function MyComponent() {
+  const options = [
+    { value: 'solid', label: 'Solid.js' },
+    { value: 'start', label: 'SolidStart' }
+  ];
 
-  onMount(() => {
-    if (selectElement) {
-      selectElement.addEventListener('onSelect', handleSelect);
-    }
-  });
+  return (
+    &lt;SeoSelect
+      name="framework"
+      theme="float"
+      optionItems={options}
+      onSelect={(e) =&gt; console.log('Selected:', e.detail)}
+    /&gt;
+  );
+}
 
-  function handleSelect(event) {
-    selectedValue = event.detail.value;
-  }
-&lt;/script&gt;
+// With Ref
+export default function SearchExample() {
+  let selectEl;
 
-&lt;seo-select 
-  bind:this={selectElement}
-  name="framework" 
-  width="200px"
-&gt;
-  &lt;option value="svelte"&gt;Svelte&lt;/option&gt;
-  &lt;option value="sveltekit"&gt;SvelteKit&lt;/option&gt;
-&lt;/seo-select&gt;
+  const handleReset = () =&gt; {
+    selectEl?.reset?.();
+  };
 
-&lt;p&gt;Selected: {selectedValue}&lt;/p&gt;</code></pre>
+  return (
+    &lt;&gt;
+      &lt;SeoSelectSearch
+        ref={(el) =&gt; { selectEl = el; }}
+        name="city"
+        multiple
+        optionItems={[
+          { value: 'seoul', label: 'Seoul' },
+          { value: 'tokyo', label: 'Tokyo' }
+        ]}
+        onSelect={(e) =&gt; console.log('Selected:', e.detail)}
+        onSearchChange={(e) =&gt; console.log('Search:', e.detail.searchText)}
+      /&gt;
+      &lt;button onClick={handleReset}&gt;Reset&lt;/button&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Next.js Framework -->
-                <div id="nextjs-content" class="framework-content">
+                <!-- Qwik Framework -->
+                <div id="qwik-content" class="framework-content">
                     <div class="use-case">
-                        <h3>Next.js Integration</h3>
-                        <p>Next.js integration with SSR considerations and dynamic imports:</p>
-                        
+                        <h3>Qwik Wrapper</h3>
+                        <p>Use the official Qwik wrapper with QRL event handlers:</p>
+
                         <div class="code-example">
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
-                                <pre><code class="language-javascript">// Next.js Component with SSR Support
-import { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
+                                <pre><code class="language-javascript">import { component$ } from '@builder.io/qwik';
+import { SeoSelect, SeoSelectSearch } from 'seo-select/qwik';
+import 'seo-select/styles';
 
-const SeoSelectWrapper = dynamic(() => 
-  import('../components/SeoSelectWrapper'), {
-    ssr: false,
-    loading: () => &lt;p&gt;Loading...&lt;/p&gt;
-  }
-);
+export const SelectDemo = component$(() =&gt; {
+  const options = [
+    { value: 'qwik', label: 'Qwik' },
+    { value: 'qwikcity', label: 'QwikCity' }
+  ];
 
-export default function NextSelectPage() {
-  const [mounted, setMounted] = useState(false);
+  return (
+    &lt;SeoSelect
+      name="framework"
+      theme="float"
+      optionItems={options}
+      onSelect$={(e) =&gt; console.log('Selected:', e.detail)}
+    /&gt;
+  );
+});
 
-  useEffect(() => {
-    setMounted(true);
-    import('seo-select').then(() => {
-      import('seo-select/styles');
-      import('seo-select/types');
-    });
-  }, []);
-
-  if (!mounted) return &lt;div&gt;Loading...&lt;/div&gt;;
-
-  return &lt;SeoSelectWrapper /&gt;;
-}</code></pre>
+// With Search
+export const SearchDemo = component$(() =&gt; {
+  return (
+    &lt;SeoSelectSearch
+      name="city"
+      multiple
+      showReset
+      optionItems={[
+        { value: 'seoul', label: 'Seoul' },
+        { value: 'tokyo', label: 'Tokyo' }
+      ]}
+      onSelect$={(e) =&gt; console.log('Selected:', e.detail)}
+      onSearchChange$={(e) =&gt; console.log('Search:', e.detail.searchText)}
+    /&gt;
+  );
+});</code></pre>
                             </div>
                         </div>
                     </div>
@@ -1188,33 +1254,34 @@ export default function NextSelectPage() {
                 <!-- Vanilla JS Framework -->
                 <div id="vanilla-content" class="framework-content">
                     <div class="use-case">
-                        <h3>Vanilla JavaScript</h3>
-                        <p>Pure JavaScript integration without framework dependencies:</p>
-                        
+                        <h3>Vanilla JavaScript / Web Component</h3>
+                        <p>Use the web component directly for vanilla JavaScript or unsupported frameworks:</p>
+
                         <div class="code-example">
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
-                                <pre><code class="language-javascript">// Import SEO Select components
-import 'seo-select';
+                                <pre><code class="language-javascript">import 'seo-select/types';
 import 'seo-select/styles';
-import 'seo-select/types';
+import 'seo-select/components/seo-select-search';
 
-// Wait for components to be defined
-await customElements.whenDefined('seo-select');
+const select = document.createElement('seo-select-search');
 
-// Get element reference
-const selectElement = document.querySelector('seo-select');
+select.optionItems = [
+  { value: 'vanilla', label: 'Vanilla JS' },
+  { value: 'typescript', label: 'TypeScript' }
+];
+select.theme = 'float';
+select.multiple = true;
 
-// Add event listeners
-selectElement.addEventListener('onSelect', (event) => {
+select.addEventListener('onSelect', (event) =&gt; {
   console.log('Selected:', event.detail);
 });
 
-// Set options programmatically
-selectElement.optionItems = [
-  { value: 'js', label: 'JavaScript' },
-  { value: 'ts', label: 'TypeScript' }
-];</code></pre>
+select.addEventListener('onSearchChange', (event) =&gt; {
+  console.log('Search:', event.detail.searchText);
+});
+
+document.body.appendChild(select);</code></pre>
                             </div>
                         </div>
                     </div>

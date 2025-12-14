@@ -475,512 +475,348 @@ searchSelect.clearCaches();
 // Use preserveSelection for better UX when updating options
 searchSelect.addOptions(newOptions, true); // Preserves current selection
 ```
-# Framework Support
+# Framework Wrappers
 
-seo-select is built as a **universal web component** that works seamlessly across all major frameworks and meta-frameworks with full TypeScript support and type safety.
+seo-select provides official wrapper components for major frameworks. Each wrapper offers native-feeling APIs with proper event handling and TypeScript support.
 
 ## Supported Frameworks
 
-- ✅ **React** (Next.js, Remix, Gatsby)
-- ✅ **Vue** (Nuxt, Vue 2/3)
-- ✅ **Svelte** (SvelteKit)
-- ✅ **Angular**
-- ✅ **Qwik** (QwikCity)
-- ✅ **Lit** (Web Components)
-- ✅ **Stencil** (Ionic)
-- ✅ **Vanilla** (TypeScript/JavaScript)
+| Framework | Import Path | Version |
+|-----------|-------------|---------|
+| React | `seo-select/react` | >= 17.0.0 |
+| Vue | `seo-select/vue` | >= 3.0.0 |
+| Angular | `seo-select/angular` | >= 14.0.0 |
+| Solid.js | `seo-select/solid` | >= 1.0.0 |
+| Qwik | `seo-select/qwik` | >= 1.0.0 |
 
-## Quick Setup
+> All framework dependencies are **optional peer dependencies** - only install what you need!
 
-```typescript
-// Enable type safety for all frameworks
-import 'seo-select/types';
-import 'seo-select/styles'
-import 'seo-select';
-import 'seo-select/components/seo-select-search';
-```
+---
 
-## React / Next.js / Remix
-
-> ⚠️ **Important**: React's synthetic event system does not automatically bind to Web Component custom events. You must use `ref` with `addEventListener` for event handling.
-
-### Basic Usage (Recommended)
+## React
 
 ```tsx
-import { useRef, useEffect } from 'react';
-import 'seo-select/types';
+import { SeoSelect, SeoSelectSearch } from 'seo-select/react';
 import 'seo-select/styles';
-import 'seo-select';
 
 export default function MyComponent() {
-  const selectRef = useRef<SeoSelectElement>(null);
-
-  useEffect(() => {
-    const element = selectRef.current;
-    if (!element) return;
-
-    // Set options
-    element.optionItems = [
-      { value: 'react', label: 'React' },
-      { value: 'nextjs', label: 'Next.js' },
-      { value: 'remix', label: 'Remix' }
-    ];
-
-    // Event listeners (required for Web Components in React)
-    const handleSelect = (e: CustomEvent<{ label: string; value: string }>) => {
-      console.log('Selected:', e.detail.label, e.detail.value);
-    };
-
-    const handleReset = (e: CustomEvent) => {
-      console.log('Reset:', e.detail);
-    };
-
-    element.addEventListener('onSelect', handleSelect);
-    element.addEventListener('onReset', handleReset);
-
-    // Cleanup
-    return () => {
-      element.removeEventListener('onSelect', handleSelect);
-      element.removeEventListener('onReset', handleReset);
-    };
-  }, []);
+  const options = [
+    { value: 'react', label: 'React' },
+    { value: 'nextjs', label: 'Next.js' },
+    { value: 'remix', label: 'Remix' }
+  ];
 
   return (
-    <seo-select
-      ref={selectRef}
+    <SeoSelect
       name="framework"
       theme="float"
       language="ko"
+      optionItems={options}
+      onSelect={(e) => console.log('Selected:', e.detail)}
+      onReset={(e) => console.log('Reset:', e.detail)}
     />
   );
 }
 ```
 
-### Next.js App Router (SSR)
-
-For Next.js with Server Components, use dynamic import with `ssr: false`:
+### With Search
 
 ```tsx
-'use client';
+import { SeoSelectSearch, type SeoSelectRef } from 'seo-select/react';
+import { useRef } from 'react';
 
-import dynamic from 'next/dynamic';
-import { useRef, useEffect } from 'react';
+export default function SearchExample() {
+  const selectRef = useRef<SeoSelectRef>(null);
 
-// Dynamic import to avoid SSR issues
-const SeoSelectLoader = dynamic(
-  () => import('seo-select').then(() => ({ default: () => null })),
-  { ssr: false }
-);
-
-export default function SelectComponent() {
-  const selectRef = useRef<SeoSelectElement>(null);
-
-  useEffect(() => {
-    // Import client-side only
-    import('seo-select/types');
-    import('seo-select/styles');
-    import('seo-select');
-
-    const element = selectRef.current;
-    if (!element) return;
-
-    element.optionItems = [
-      { value: 'next', label: 'Next.js' },
-      { value: 'remix', label: 'Remix' }
-    ];
-
-    const handleSelect = (e: CustomEvent<{ label: string; value: string }>) => {
-      console.log('Selected:', e.detail);
-    };
-
-    element.addEventListener('onSelect', handleSelect);
-    return () => element.removeEventListener('onSelect', handleSelect);
-  }, []);
+  const handleReset = () => {
+    selectRef.current?.reset();
+  };
 
   return (
     <>
-      <SeoSelectLoader />
-      <seo-select ref={selectRef} name="framework" theme="float" />
+      <SeoSelectSearch
+        ref={selectRef}
+        name="city"
+        multiple
+        showReset
+        optionItems={[
+          { value: 'seoul', label: 'Seoul' },
+          { value: 'tokyo', label: 'Tokyo' },
+          { value: 'beijing', label: 'Beijing' }
+        ]}
+        onSelect={(e) => console.log('Selected:', e.detail)}
+        onSearchChange={(e) => console.log('Search:', e.detail.searchText)}
+      />
+      <button onClick={handleReset}>Reset</button>
     </>
   );
 }
 ```
 
-### Custom React Hook (Reusable)
+---
 
-Create a reusable hook for cleaner code:
-
-```tsx
-// hooks/useSeoSelect.ts
-import { useRef, useEffect, useCallback } from 'react';
-
-interface UseSeoSelectOptions {
-  options?: Array<{ value: string; label: string }>;
-  onSelect?: (detail: { label: string; value: string }) => void;
-  onDeselect?: (detail: { label: string; value: string }) => void;
-  onReset?: (detail: any) => void;
-  onChange?: () => void;
-}
-
-export function useSeoSelect<T extends SeoSelectElement = SeoSelectElement>(
-  config: UseSeoSelectOptions = {}
-) {
-  const ref = useRef<T>(null);
-
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-
-    if (config.options) {
-      element.optionItems = config.options;
-    }
-
-    const handlers: Array<[string, EventListener]> = [];
-
-    if (config.onSelect) {
-      const handler = (e: Event) => config.onSelect!((e as CustomEvent).detail);
-      element.addEventListener('onSelect', handler);
-      handlers.push(['onSelect', handler]);
-    }
-
-    if (config.onDeselect) {
-      const handler = (e: Event) => config.onDeselect!((e as CustomEvent).detail);
-      element.addEventListener('onDeselect', handler);
-      handlers.push(['onDeselect', handler]);
-    }
-
-    if (config.onReset) {
-      const handler = (e: Event) => config.onReset!((e as CustomEvent).detail);
-      element.addEventListener('onReset', handler);
-      handlers.push(['onReset', handler]);
-    }
-
-    if (config.onChange) {
-      const handler = () => config.onChange!();
-      element.addEventListener('onChange', handler);
-      handlers.push(['onChange', handler]);
-    }
-
-    return () => {
-      handlers.forEach(([event, handler]) => {
-        element.removeEventListener(event, handler);
-      });
-    };
-  }, [config.options, config.onSelect, config.onDeselect, config.onReset, config.onChange]);
-
-  return ref;
-}
-
-// Usage
-export default function MyComponent() {
-  const selectRef = useSeoSelect({
-    options: [
-      { value: 'react', label: 'React' },
-      { value: 'vue', label: 'Vue' }
-    ],
-    onSelect: (detail) => console.log('Selected:', detail),
-    onReset: (detail) => console.log('Reset:', detail)
-  });
-
-  return <seo-select ref={selectRef} name="framework" theme="float" />;
-}
-```
-
-## Vue 3 / Nuxt 3
+## Vue 3
 
 ```vue
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import 'seo-select/types';
-import 'seo-select/styles'
-import 'seo-select/components/seo-select-search';
+import { SeoSelect, SeoSelectSearch } from 'seo-select/vue';
+import 'seo-select/styles';
 
-const selectRef = ref<SeoSelectElement>();
+const options = [
+  { value: 'vue', label: 'Vue 3' },
+  { value: 'nuxt', label: 'Nuxt 3' },
+  { value: 'vite', label: 'Vite' }
+];
 
-onMounted(() => {
-  if (selectRef.value) {
-    selectRef.value.optionItems = [
-      { value: 'vue', label: 'Vue 3' },
-      { value: 'nuxt', label: 'Nuxt 3' },
-      { value: 'vite', label: 'Vite' }
-    ];
-  }
-});
-
-const handleSelect = (event: CustomEvent<{ label: string; value: string }>) => {
-  console.log('Vue - Selected:', event.detail);
+const handleSelect = (detail: { label: string; value: string }) => {
+  console.log('Selected:', detail);
 };
 </script>
 
 <template>
-  <seo-select-search
-    ref="selectRef"
-    name="vue-framework"
+  <SeoSelect
+    name="framework"
     theme="float"
-    multiple
-    @onSelect="handleSelect"
-    @onSearchChange="(e) => console.log('Search:', e.detail.searchText)"
+    :optionItems="options"
+    @select="handleSelect"
   />
 </template>
 ```
 
-## Vue 2 / Nuxt 2
+### With Search and Multiple Selection
 
 ```vue
-<template>
-  <div>
-    <seo-select
-      ref="selectElement"
-      name="vue2-framework"
-      theme="float"
-      @onSelect="handleSelect"
-    />
-  </div>
-</template>
+<script setup lang="ts">
+import { ref } from 'vue';
+import { SeoSelectSearch } from 'seo-select/vue';
 
-<script lang="ts">
-import 'seo-select/types';
-import 'seo-select/styles'
-import 'seo-select';
+const selectRef = ref();
 
-export default {
-  mounted() {
-    const select = this.$refs.selectElement as SeoSelectElement;
-
-    if (select) {
-      select.optionItems = [
-        { value: 'vue2', label: 'Vue 2' },
-        { value: 'vuex', label: 'Vuex' },
-        { value: 'nuxt2', label: 'Nuxt 2' }
-      ];
-    }
-  },
-
-  methods: {
-    handleSelect(event: CustomEvent<{ label: string; value: string }>) {
-      console.log('Vue 2 - Selected:', event.detail);
-    }
-  }
+const handleReset = () => {
+  selectRef.value?.reset();
 };
 </script>
+
+<template>
+  <SeoSelectSearch
+    ref="selectRef"
+    name="city"
+    multiple
+    showReset
+    :optionItems="[
+      { value: 'seoul', label: 'Seoul' },
+      { value: 'tokyo', label: 'Tokyo' }
+    ]"
+    @select="(detail) => console.log('Selected:', detail)"
+    @searchChange="(detail) => console.log('Search:', detail.searchText)"
+  />
+  <button @click="handleReset">Reset</button>
+</template>
 ```
 
-## Svelte / SvelteKit
-
-```svelte
-<script lang="ts">
-  import { onMount } from 'svelte';
-  import 'seo-select/types';
-  import 'seo-select/styles'
-  import 'seo-select/components/seo-select-search';
-
-  let selectElement: SeoSelectElement;
-
-  onMount(() => {
-    if (selectElement) {
-      selectElement.optionItems = [
-        { value: 'svelte', label: 'Svelte' },
-        { value: 'sveltekit', label: 'SvelteKit' },
-        { value: 'vite', label: 'Vite' }
-      ];
-    }
-  });
-
-  function handleSelect(event: CustomEvent<{ label: string; value: string }>) {
-    console.log('Svelte - Selected:', event.detail);
-  }
-
-  function handleSearchChange(event: CustomEvent<{ searchText: string }>) {
-    console.log('Svelte - Search:', event.detail.searchText);
-  }
-</script>
-
-<seo-select-search
-  bind:this={selectElement}
-  name="svelte-framework"
-  theme="float"
-  multiple
-  on:onSelect={handleSelect}
-  on:onSearchChange={handleSearchChange}
-/>
-```
+---
 
 ## Angular
 
 ```typescript
-import { Component, ViewChild, ElementRef, AfterViewInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import 'seo-select/types';
-import 'seo-select/styles'
-import 'seo-select';
+import { Component } from '@angular/core';
+import { SeoSelectComponent, SeoSelectSearchComponent } from 'seo-select/angular';
+import 'seo-select/styles';
 
 @Component({
-  selector: 'app-select',
+  selector: 'app-select-demo',
+  standalone: true,
+  imports: [SeoSelectComponent, SeoSelectSearchComponent],
   template: `
-    <seo-select
-      #selectElement
-      name="angular-framework"
+    <app-seo-select
+      name="framework"
       theme="float"
-      language="ko"
-      (onSelect)="onSelect($event)"
-      (onReset)="onReset($event)"
-    ></seo-select>
-  `,
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+      [optionItems]="options"
+      (selectEvent)="onSelect($event)"
+      (resetEvent)="onReset($event)"
+    />
+  `
 })
-export class SelectComponent implements AfterViewInit {
-  @ViewChild('selectElement')
-  selectElement!: ElementRef<SeoSelectElement>;
+export class SelectDemoComponent {
+  options = [
+    { value: 'angular', label: 'Angular' },
+    { value: 'ionic', label: 'Ionic' },
+    { value: 'ngrx', label: 'NgRx' }
+  ];
 
-  ngAfterViewInit() {
-    const select = this.selectElement.nativeElement;
-
-    select.optionItems = [
-      { value: 'angular', label: 'Angular' },
-      { value: 'ionic', label: 'Ionic' },
-      { value: 'ngrx', label: 'NgRx' }
-    ];
+  onSelect(detail: { label: string; value: string }) {
+    console.log('Selected:', detail);
   }
 
-  onSelect(event: CustomEvent<{ label: string; value: string }>) {
-    console.log('Angular - Selected:', event.detail);
-  }
-
-  onReset(event: CustomEvent<{ value: string; label: string } | { values: string[]; labels: string[] }>) {
-    console.log('Angular - Reset:', event.detail);
+  onReset(detail: any) {
+    console.log('Reset:', detail);
   }
 }
 ```
 
-## Qwik / QwikCity
+### With Search
+
+```typescript
+@Component({
+  selector: 'app-search-demo',
+  standalone: true,
+  imports: [SeoSelectSearchComponent],
+  template: `
+    <app-seo-select-search
+      name="city"
+      [multiple]="true"
+      [showReset]="true"
+      [optionItems]="options"
+      (selectEvent)="onSelect($event)"
+      (searchChangeEvent)="onSearchChange($event)"
+    />
+  `
+})
+export class SearchDemoComponent {
+  options = [
+    { value: 'seoul', label: 'Seoul' },
+    { value: 'tokyo', label: 'Tokyo' }
+  ];
+
+  onSelect(detail: { label: string; value: string }) {
+    console.log('Selected:', detail);
+  }
+
+  onSearchChange(detail: { searchText: string }) {
+    console.log('Search:', detail.searchText);
+  }
+}
+```
+
+---
+
+## Solid.js
 
 ```tsx
-import { component$, useSignal } from '@builder.io/qwik';
-import 'seo-select/types';
-import 'seo-select/styles'
-import 'seo-select/components/seo-select-search';
+import { SeoSelect, SeoSelectSearch } from 'seo-select/solid';
+import 'seo-select/styles';
 
-export const SelectDemo = component$(() => {
-  const selectRef = useSignal<SeoSelectElement>();
+export default function MyComponent() {
+  const options = [
+    { value: 'solid', label: 'Solid.js' },
+    { value: 'start', label: 'SolidStart' }
+  ];
 
   return (
-    <div>
-      <seo-select-search
-        ref={selectRef}
-        name="qwik-framework"
-        theme="float"
+    <SeoSelect
+      name="framework"
+      theme="float"
+      optionItems={options}
+      onSelect={(e) => console.log('Selected:', e.detail)}
+    />
+  );
+}
+```
+
+### With Ref
+
+```tsx
+import { SeoSelectSearch } from 'seo-select/solid';
+
+export default function SearchExample() {
+  let selectEl: HTMLElement | undefined;
+
+  const handleReset = () => {
+    (selectEl as any)?.reset?.();
+  };
+
+  return (
+    <>
+      <SeoSelectSearch
+        ref={(el) => { selectEl = el; }}
+        name="city"
         multiple
-        document:onSelect$={(event) => {
-          console.log('Qwik - Selected:', event.detail); // Fully typed!
-        }}
-        document:onSearchChange$={(event) => {
-          console.log('Qwik - Search:', event.detail.searchText);
-        }}
+        optionItems={[
+          { value: 'seoul', label: 'Seoul' },
+          { value: 'tokyo', label: 'Tokyo' }
+        ]}
+        onSelect={(e) => console.log('Selected:', e.detail)}
+        onSearchChange={(e) => console.log('Search:', e.detail.searchText)}
       />
-    </div>
+      <button onClick={handleReset}>Reset</button>
+    </>
+  );
+}
+```
+
+---
+
+## Qwik
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { SeoSelect, SeoSelectSearch } from 'seo-select/qwik';
+import 'seo-select/styles';
+
+export const SelectDemo = component$(() => {
+  const options = [
+    { value: 'qwik', label: 'Qwik' },
+    { value: 'qwikcity', label: 'QwikCity' }
+  ];
+
+  return (
+    <SeoSelect
+      name="framework"
+      theme="float"
+      optionItems={options}
+      onSelect$={(e) => console.log('Selected:', e.detail)}
+    />
   );
 });
 ```
 
-## Lit (Web Components)
-
-```typescript
-import { LitElement, html } from 'lit';
-import { customElement, query } from 'lit/decorators.js';
-import 'seo-select/types';
-import 'seo-select/styles'
-import 'seo-select';
-
-@customElement('my-lit-app')
-export class MyLitApp extends LitElement {
-  @query('seo-select') selectElement!: SeoSelectElement;
-
-  firstUpdated() {
-    this.selectElement.optionItems = [
-      { value: 'lit', label: 'Lit' },
-      { value: 'polymer', label: 'Polymer' },
-      { value: 'stencil', label: 'Stencil' }
-    ];
-  }
-
-  private handleSelect(event: CustomEvent<{ label: string; value: string }>) {
-    console.log('Lit - Selected:', event.detail);
-  }
-
-  render() {
-    return html`
-      <seo-select
-        name="lit-framework"
-        theme="float"
-        @onSelect=${this.handleSelect}
-      ></seo-select>
-    `;
-  }
-}
-```
-
-## Stencil (Ionic)
+### With Search
 
 ```tsx
-import { Component, h } from '@stencil/core';
-import 'seo-select/types';
-import 'seo-select/styles'
-import 'seo-select';
+import { component$ } from '@builder.io/qwik';
+import { SeoSelectSearch } from 'seo-select/qwik';
 
-@Component({
-  tag: 'my-stencil-app',
-  styleUrl: 'my-stencil-app.css',
-  shadow: true,
-})
-export class MyStencilApp {
-  render() {
-    return (
-      <seo-select
-        name="stencil-framework"
-        theme="float"
-        onOnSelect={(event) => {
-          console.log('Stencil - Selected:', event.detail); // Fully typed!
-        }}
-      />
-    );
-  }
-}
+export const SearchDemo = component$(() => {
+  return (
+    <SeoSelectSearch
+      name="city"
+      multiple
+      showReset
+      optionItems={[
+        { value: 'seoul', label: 'Seoul' },
+        { value: 'tokyo', label: 'Tokyo' }
+      ]}
+      onSelect$={(e) => console.log('Selected:', e.detail)}
+      onSearchChange$={(e) => console.log('Search:', e.detail.searchText)}
+    />
+  );
+});
 ```
 
-## Vanilla TypeScript/JavaScript
+---
+
+## Vanilla JavaScript / Web Component
+
+For vanilla JavaScript or other frameworks, use the web component directly:
 
 ```typescript
 import 'seo-select/types';
-import 'seo-select/styles'
+import 'seo-select/styles';
 import 'seo-select/components/seo-select-search';
 
-// Type-safe element creation
 const select = document.createElement('seo-select-search');
 
-// Configure properties
 select.optionItems = [
   { value: 'vanilla', label: 'Vanilla JS' },
-  { value: 'typescript', label: 'TypeScript' },
-  { value: 'webcomponents', label: 'Web Components' }
+  { value: 'typescript', label: 'TypeScript' }
 ];
 select.theme = 'float';
 select.multiple = true;
-select.language = 'ko';
 
-// Type-safe event listeners
 select.addEventListener('onSelect', (event) => {
-  console.log('Vanilla - Selected:', event.detail.label, event.detail.value);
+  console.log('Selected:', event.detail);
 });
 
-select.addEventListener('onSearchChange', (event) => {
-  console.log('Vanilla - Search:', event.detail.searchText);
-});
-
-// Or use helper methods
-select.onSelect(({ label, value }) => {
-  console.log('Helper - Selected:', label, value);
-});
-
-// Append to DOM
 document.body.appendChild(select);
 ```
 
@@ -1409,40 +1245,6 @@ The component uses a sophisticated color system based on Open Color with primary
 | `--dark-search-input-focus-shadow` | `0 0 0 2px rgba(96, 165, 250, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3)` | Search input focus shadow |
 
 </details>
-
-## Troubleshooting
-
-### CSS Style Conflicts
-
-By default, seo-select uses Light DOM (no Shadow DOM) for maximum CSS compatibility. If you experience style conflicts with your existing CSS:
-
-**Option 1: CSS Scoping with Wrapper Class**
-```css
-/* Scope your styles to avoid conflicts */
-.my-app-container .seo-select {
-  /* Your custom styles */
-}
-```
-
-**Option 2: Use CSS Custom Properties**
-```css
-/* Override using CSS variables instead of direct selectors */
-seo-select {
-  --select-font-size: 14px;
-  --primary-color: #your-brand-color;
-}
-```
-
-### SPA Memory Management
-
-seo-select properly cleans up resources when components are removed from the DOM. For SPA applications (React, Vue, etc.):
-
-- Event listeners are automatically removed in `disconnectedCallback`
-- Virtual scroll instances are destroyed
-- All DOM references are released
-- Static instance references are nullified
-
-If you notice memory leaks in your SPA, ensure components are properly unmounted when navigating between routes.
 
 ## License
 
