@@ -28,6 +28,7 @@
       "import": "./dist/constants/constants.js"
     },
     "./styles": {
+      "types": "./dist/styles/style.d.ts",
       "import": "./dist/styles/components/style.css"
     },
     "./react": {
@@ -85,7 +86,7 @@
     "build": "npm run clean && npm run build:lib && npm run build:types && npm run build:wrapper-types",
     "build:lib": "vite build --mode production",
     "build:types": "tsc --emitDeclarationOnly --outDir dist",
-    "build:wrapper-types": "cp src/wrappers/react/index.d.ts dist/wrappers/react/ && cp src/wrappers/vue/index.d.ts dist/wrappers/vue/ && cp src/wrappers/angular/index.d.ts dist/wrappers/angular/ && cp src/wrappers/solid/index.d.ts dist/wrappers/solid/ && cp src/wrappers/qwik/index.d.ts dist/wrappers/qwik/",
+    "build:wrapper-types": "cp src/wrappers/react/index.d.ts dist/wrappers/react/ && cp src/wrappers/vue/index.d.ts dist/wrappers/vue/ && cp src/wrappers/angular/index.d.ts dist/wrappers/angular/ && cp src/wrappers/solid/index.d.ts dist/wrappers/solid/ && cp src/wrappers/qwik/index.d.ts dist/wrappers/qwik/ && mkdir -p dist/styles && cp src/styles/style.d.ts dist/styles/",
     "build:min": "vite build --config vite.config.min.ts",
     "build:demo": "tsx scripts/build-demo.ts",
     "clean": "rm -rf dist min",

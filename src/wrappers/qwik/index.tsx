@@ -11,6 +11,10 @@ import {
   type QRL,
 } from '@builder.io/qwik';
 
+// Import the actual web components to register them
+import '../../components/seo-select/index';
+import '../../components/seo-select-search/index';
+
 import type {
   VirtualSelectOption,
   SupportedLanguage,

@@ -53,7 +53,11 @@ export default defineConfig({
         interop: 'auto'
       },
       treeshake: {
-        moduleSideEffects: false,
+        moduleSideEffects: (id) => {
+          // Keep side effects for component imports in wrappers
+          if (id.includes('components/seo-select')) return true;
+          return false;
+        },
         propertyReadSideEffects: false,
         unknownGlobalSideEffects: false
       }
