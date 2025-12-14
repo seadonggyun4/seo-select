@@ -29,6 +29,26 @@
     },
     "./styles": {
       "import": "./dist/styles/components/style.css"
+    },
+    "./react": {
+      "types": "./dist/wrappers/react/index.d.ts",
+      "import": "./dist/wrappers/react/index.js"
+    },
+    "./vue": {
+      "types": "./dist/wrappers/vue/index.d.ts",
+      "import": "./dist/wrappers/vue/index.js"
+    },
+    "./angular": {
+      "types": "./dist/wrappers/angular/index.d.ts",
+      "import": "./dist/wrappers/angular/index.js"
+    },
+    "./solid": {
+      "types": "./dist/wrappers/solid/index.d.ts",
+      "import": "./dist/wrappers/solid/index.js"
+    },
+    "./qwik": {
+      "types": "./dist/wrappers/qwik/index.d.ts",
+      "import": "./dist/wrappers/qwik/index.js"
     }
   },
   "files": [
@@ -48,6 +68,8 @@
     "react",
     "vue",
     "angular",
+    "solid",
+    "qwik",
     "esm"
   ],
   "author": "seo dong gyun <seadonggyun@gmail.com>",
@@ -61,12 +83,12 @@
   },
   "homepage": "https://seo-select.netlify.app/",
   "scripts": {
-    "build": "npm run clean && npm run build:lib && npm run build:types",
+    "build": "npm run clean && npm run build:lib && npm run build:types && npm run build:wrapper-types",
     "build:lib": "vite build --mode production",
     "build:types": "tsc --emitDeclarationOnly --outDir dist",
+    "build:wrapper-types": "cp src/wrappers/react/index.d.ts dist/wrappers/react/ && cp src/wrappers/vue/index.d.ts dist/wrappers/vue/ && cp src/wrappers/angular/index.d.ts dist/wrappers/angular/ && cp src/wrappers/solid/index.d.ts dist/wrappers/solid/ && cp src/wrappers/qwik/index.d.ts dist/wrappers/qwik/",
     "build:min": "vite build --config vite.config.min.ts",
     "build:demo": "tsx scripts/build-demo.ts",
-    "build:all": "npm run build && npm run build:react",
     "clean": "rm -rf dist min",
     "release": "bash scripts/release.sh",
     "release:patch": "bash scripts/release.sh patch",
@@ -76,30 +98,45 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublishOnly": "npm run type-check && npm run build",
-    "build:react": "cd react && npm run build",
-    "dev:react": "cd react && npm run dev",
-    "publish:react": "cd react && npm run publish:npm",
-    "install:react": "cd react && npm install",
-    "clean:all": "npm run clean && cd react && npm run clean",
-    "setup": "npm install && npm run install:react",
-    "build:release": "npm run build:all && echo 'Both packages built successfully'"
+    "prepublishOnly": "npm run type-check && npm run build"
   },
   "dependencies": {
     "lit": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.1.0",
+    "@types/react": "^18.2.0",
     "sass": "^1.89.2",
+    "terser": "^5.44.1",
     "tsx": "^4.19.2",
     "typescript": "~5.8.3",
     "vite": "^7.0.6"
   },
   "peerDependencies": {
-    "typescript": ">=4.0.0"
+    "@angular/core": ">=14.0.0",
+    "@builder.io/qwik": ">=1.0.0",
+    "react": ">=17.0.0",
+    "solid-js": ">=1.0.0",
+    "typescript": ">=4.0.0",
+    "vue": ">=3.0.0"
   },
   "peerDependenciesMeta": {
     "typescript": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    },
+    "@angular/core": {
+      "optional": true
+    },
+    "solid-js": {
+      "optional": true
+    },
+    "@builder.io/qwik": {
       "optional": true
     }
   },
