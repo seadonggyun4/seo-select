@@ -1,253 +1,120 @@
 #!/bin/bash
 
-# 버전 타입 파라미터 (patch, minor, major)
+set -e  # 에러 발생 시 즉시 종료
+
+# ============================================================================
+# Configuration
+# ============================================================================
 VERSION_TYPE=$1
+REQUIRED_TOOLS=("gh" "git" "jq" "node")
 
-if [ -z "$VERSION_TYPE" ]; then
-  echo "Usage: ./scripts/release.sh <version-type>"
-  echo "  version-type: patch | minor | major"
-  echo ""
-  echo "Examples:"
-  echo "  ./scripts/release.sh patch   # 2.0.13 → 2.0.14"
-  echo "  ./scripts/release.sh minor   # 2.0.13 → 2.1.0"
-  echo "  ./scripts/release.sh major   # 2.0.13 → 3.0.0"
-  exit 1
-fi
+# ============================================================================
+# Helper Functions
+# ============================================================================
+log_info() { echo "→ $1"; }
+log_success() { echo "✓ $1"; }
+log_error() { echo "✗ $1" >&2; exit 1; }
+log_header() { echo -e "\n[$1]"; }
 
-# 유효한 버전 타입 검증
-if [[ ! "$VERSION_TYPE" =~ ^(patch|minor|major)$ ]]; then
-  echo "❌ Invalid version type: $VERSION_TYPE"
-  echo "   Valid options: patch, minor, major"
-  exit 1
-fi
-
-echo "🚀 Starting release process with $VERSION_TYPE version bump..."
-
-# 0. 환경 검증
-echo "🔍 Checking environment..."
-if ! command -v gh &> /dev/null; then
-    echo "❌ GitHub CLI (gh) is required but not installed."
-    exit 1
-fi
-
-if ! command -v git &> /dev/null; then
-    echo "❌ Git is required but not installed."
-    exit 1
-fi
-
-if ! command -v jq &> /dev/null; then
-    echo "❌ jq is required but not installed. Please install it first."
-    echo "   - Ubuntu/Debian: sudo apt-get install jq"
-    echo "   - macOS: brew install jq"
-    exit 1
-fi
-
-if ! command -v node &> /dev/null; then
-    echo "❌ Node.js is required but not installed."
-    exit 1
-fi
-
-# Git 상태 확인
-if [ -n "$(git status --porcelain)" ]; then
-    echo "❌ Working directory is not clean. Please commit or stash changes."
-    exit 1
-fi
-
-# package.json 존재 확인
-if [ ! -f "package.json" ]; then
-    echo "❌ package.json not found!"
-    exit 1
-fi
-
-# 1. 현재 버전 확인 및 새 버전 계산
-CURRENT_VERSION=$(jq -r '.version' package.json)
-echo "📋 Current version: $CURRENT_VERSION"
-
-# 새 버전 계산 함수
-calculate_new_version() {
-    local current=$1
-    local type=$2
-
-    # 버전을 major.minor.patch로 분할
-    IFS='.' read -ra VERSION_PARTS <<< "$current"
-    local major=${VERSION_PARTS[0]}
-    local minor=${VERSION_PARTS[1]}
-    local patch=${VERSION_PARTS[2]}
-
-    case $type in
-        "patch")
-            patch=$((patch + 1))
-            ;;
-        "minor")
-            minor=$((minor + 1))
-            patch=0
-            ;;
-        "major")
-            major=$((major + 1))
-            minor=0
-            patch=0
-            ;;
-    esac
-
-    echo "$major.$minor.$patch"
+check_tool() {
+    command -v "$1" &> /dev/null || log_error "$1 is not installed"
 }
 
-NEW_VERSION=$(calculate_new_version $CURRENT_VERSION $VERSION_TYPE)
-NEW_VERSION_TAG="v$NEW_VERSION"
+calculate_version() {
+    local current=$1 type=$2
+    IFS='.' read -ra v <<< "$current"
+    case $type in
+        patch) echo "${v[0]}.${v[1]}.$((v[2] + 1))" ;;
+        minor) echo "${v[0]}.$((v[1] + 1)).0" ;;
+        major) echo "$((v[0] + 1)).0.0" ;;
+    esac
+}
 
-echo "📝 New version will be: $NEW_VERSION ($NEW_VERSION_TAG)"
-
-# 사용자 확인
-echo ""
-read -p "🤔 Do you want to proceed with this version bump? (y/N): " -n 1 -r
-echo ""
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "❌ Release cancelled by user."
+# ============================================================================
+# Validation
+# ============================================================================
+[[ -z "$VERSION_TYPE" ]] && {
+    echo "Usage: $0 <patch|minor|major>"
+    echo "  patch: 1.0.0 → 1.0.1"
+    echo "  minor: 1.0.0 → 1.1.0"
+    echo "  major: 1.0.0 → 2.0.0"
     exit 1
-fi
+}
 
-# 2. package.json 버전 업데이트
-echo "📝 Updating package.json version to $NEW_VERSION..."
-jq ".version = \"$NEW_VERSION\"" package.json > package.json.tmp && mv package.json.tmp package.json
+[[ ! "$VERSION_TYPE" =~ ^(patch|minor|major)$ ]] && log_error "Invalid type: $VERSION_TYPE"
 
-if [ $? -ne 0 ]; then
-    echo "❌ Failed to update package.json version!"
-    exit 1
-fi
+# ============================================================================
+# Pre-flight Checks
+# ============================================================================
+log_header "Pre-flight Checks"
 
-echo "✅ package.json version updated successfully"
+for tool in "${REQUIRED_TOOLS[@]}"; do check_tool "$tool"; done
+log_success "Required tools installed"
 
-# 3. 타입 체크
-echo "🔍 Type checking..."
+[[ -n "$(git status --porcelain)" ]] && log_error "Working directory not clean"
+log_success "Working directory clean"
+
+[[ ! -f "package.json" ]] && log_error "package.json not found"
+
+CURRENT_VERSION=$(jq -r '.version' package.json)
+NEW_VERSION=$(calculate_version "$CURRENT_VERSION" "$VERSION_TYPE")
+TAG="v$NEW_VERSION"
+
+echo ""
+echo "  Current: $CURRENT_VERSION"
+echo "  New:     $NEW_VERSION ($TAG)"
+echo ""
+read -p "Proceed? (y/N): " -n 1 -r
+echo ""
+[[ ! $REPLY =~ ^[Yy]$ ]] && exit 0
+
+# ============================================================================
+# Build & Publish
+# ============================================================================
+log_header "Build"
+
+jq ".version = \"$NEW_VERSION\"" package.json > tmp.json && mv tmp.json package.json
+log_info "Version updated to $NEW_VERSION"
+
 npm run type-check
-if [ $? -ne 0 ]; then
-    echo "❌ Type check failed!"
-    exit 1
-fi
+log_success "Type check passed"
 
-# 4. 빌드 (npm 배포용)
-echo "📦 Building for NPM distribution..."
 npm run build
-if [ $? -ne 0 ]; then
-    echo "❌ Build failed!"
-    exit 1
-fi
+log_success "Build completed"
 
-# 5. 빌드 결과 검증
-echo "✅ Verifying build output..."
-if [ ! -f "dist/index.js" ]; then
-    echo "❌ NPM build file not found!"
-    exit 1
-fi
+log_header "Publish"
 
-echo "📁 Build verification complete:"
-echo "  - NPM built file: $(du -h dist/index.js | cut -f1)"
+npm publish
+log_success "Published to npm"
 
-# 6. npm 배포
-echo "📤 Publishing to npm..."
-npm publish --dry-run
-if [ $? -eq 0 ]; then
-    echo "🎯 Dry run successful, proceeding with actual publish..."
-    npm publish
-    if [ $? -ne 0 ]; then
-        echo "❌ npm publish failed!"
-        exit 1
-    fi
-else
-    echo "❌ npm publish dry run failed!"
-    exit 1
-fi
+# ============================================================================
+# Git & GitHub
+# ============================================================================
+log_header "Git"
 
-# 7. Git 태그 및 커밋
-echo "📝 Creating git commit and tag..."
 git add package.json
-git commit -m "chore: bump version to $NEW_VERSION_TAG"
-
-if [ $? -ne 0 ]; then
-    echo "❌ Failed to create commit!"
-    exit 1
-fi
-
-git tag -a $NEW_VERSION_TAG -m "Release $NEW_VERSION_TAG"
-
-if [ $? -ne 0 ]; then
-    echo "❌ Failed to create git tag!"
-    exit 1
-fi
-
-# 8. GitHub 푸시
-echo "📤 Pushing to GitHub..."
+git commit -m "chore: release $TAG"
+git tag -a "$TAG" -m "Release $TAG"
 git push origin main
-git push origin $NEW_VERSION_TAG
+git push origin "$TAG"
+log_success "Pushed to GitHub"
 
-# 9. GitHub Release 생성
-echo "🎉 Creating GitHub Release..."
-gh release create $NEW_VERSION_TAG \
-  --title "🚀 $NEW_VERSION_TAG" \
-  --notes "
-## 🎉 What's New in $NEW_VERSION_TAG
+log_header "GitHub Release"
 
-### 📦 Installation
-
+gh release create "$TAG" --title "$TAG" --notes "## Installation
 \`\`\`bash
 npm install seo-select@$NEW_VERSION
 \`\`\`
 
-### 📖 Usage
+[Documentation](https://github.com/seadonggyun4/seo-select#readme) | [Changelog](https://github.com/seadonggyun4/seo-select/releases)"
 
-\`\`\`javascript
-// Import basic select component
-import 'seo-select';
+log_success "Release created"
 
-// Import search-enabled select component
-import 'seo-select/components/seo-select-search';
-
-// Import Style
-import 'seo-select/styles';
-
-// Import Types
-import 'seo-select/types';
-\`\`\`
-
-### 🚀 Framework Wrappers
-
-\`\`\`javascript
-// React
-import { SeoSelect, SeoSelectSearch } from 'seo-select/react';
-
-// Vue
-import { SeoSelect, SeoSelectSearch } from 'seo-select/vue';
-
-// Angular
-import { SeoSelectComponent, SeoSelectSearchComponent } from 'seo-select/angular';
-
-// Solid.js
-import { SeoSelect, SeoSelectSearch } from 'seo-select/solid';
-
-// Qwik
-import { SeoSelect, SeoSelectSearch } from 'seo-select/qwik';
-\`\`\`
-
----
-[📖 Full Documentation](https://github.com/seadonggyun4/seo-select#readme) | [🐛 Report Issues](https://github.com/seadonggyun4/seo-select/issues)
-"
-
-if [ $? -ne 0 ]; then
-    echo "❌ GitHub release creation failed!"
-    exit 1
-fi
-
-# 10. 배포 완료 안내
+# ============================================================================
+# Done
+# ============================================================================
 echo ""
-echo "✅ Release $NEW_VERSION_TAG completed successfully!"
-echo ""
-echo "📝 Changes made:"
-echo "  - Updated package.json version: $CURRENT_VERSION → $NEW_VERSION"
-echo "  - Created git commit and tag: $NEW_VERSION_TAG"
-echo "  - Published to npm: seo-select@$NEW_VERSION"
-echo "  - Created GitHub Release"
-echo ""
-echo "🎯 Install:"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  Released: seo-select@$NEW_VERSION"
 echo "  npm install seo-select@$NEW_VERSION"
-echo ""
-echo "🎉 Happy coding! 🚀"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
