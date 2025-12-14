@@ -111,7 +111,6 @@ export class SeoSelect extends HTMLElement {
     this._calculatedWidth = null;
     this._calculatedHeight = null;
     this._handleKeydownBound = (e: KeyboardEvent) => this._virtual?.handleKeydown(e);
-    this.tabIndex = 0;
     this._pendingActiveIndex = null;
   }
 
@@ -162,6 +161,11 @@ export class SeoSelect extends HTMLElement {
 
   connectedCallback(): void {
     if (!isBrowser()) return;
+
+    // Set tabIndex here instead of constructor for React 19 compatibility
+    if (!this.hasAttribute('tabindex')) {
+      this.tabIndex = 0;
+    }
 
     this.style.width = this.width !== '100%' ? '' : '100%';
     this.initializeOptionsFromPropsOrSlot();
