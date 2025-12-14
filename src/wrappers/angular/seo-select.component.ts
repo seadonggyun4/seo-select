@@ -127,7 +127,7 @@ export class SeoSelectComponent implements AfterViewInit, OnDestroy, OnChanges {
     el.addEventListener('onSelect', this.handleSelect);
     el.addEventListener('onDeselect', this.handleDeselect);
     el.addEventListener('onReset', this.handleReset);
-    el.addEventListener('change', this.handleChange);
+    el.addEventListener('onChange', this.handleChange);
   }
 
   ngOnDestroy(): void {
@@ -135,7 +135,7 @@ export class SeoSelectComponent implements AfterViewInit, OnDestroy, OnChanges {
     el.removeEventListener('onSelect', this.handleSelect);
     el.removeEventListener('onDeselect', this.handleDeselect);
     el.removeEventListener('onReset', this.handleReset);
-    el.removeEventListener('change', this.handleChange);
+    el.removeEventListener('onChange', this.handleChange);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -153,17 +153,24 @@ export class SeoSelectComponent implements AfterViewInit, OnDestroy, OnChanges {
   // Public methods
   reset(): void {
     const el = this.selectElement.nativeElement;
-    (el as any).reset?.();
+    (el as any).resetToDefault?.(new Event('reset'));
   }
 
   getValue(): string | string[] | undefined {
-    const el = this.selectElement.nativeElement;
-    return (el as any).value;
+    const el = this.selectElement.nativeElement as any;
+    if (el.multiple) {
+      return el.selectedValues || [];
+    }
+    return el.value;
   }
 
   setValue(value: string | string[]): void {
-    const el = this.selectElement.nativeElement;
-    (el as any).value = value;
+    const el = this.selectElement.nativeElement as any;
+    if (el.multiple && Array.isArray(value)) {
+      el.selectedValues = value;
+    } else {
+      el.value = value;
+    }
   }
 }
 
@@ -251,7 +258,7 @@ export class SeoSelectSearchComponent implements AfterViewInit, OnDestroy, OnCha
     el.addEventListener('onSelect', this.handleSelect);
     el.addEventListener('onDeselect', this.handleDeselect);
     el.addEventListener('onReset', this.handleReset);
-    el.addEventListener('change', this.handleChange);
+    el.addEventListener('onChange', this.handleChange);
     el.addEventListener('onSearchChange', this.handleSearchChange);
   }
 
@@ -260,7 +267,7 @@ export class SeoSelectSearchComponent implements AfterViewInit, OnDestroy, OnCha
     el.removeEventListener('onSelect', this.handleSelect);
     el.removeEventListener('onDeselect', this.handleDeselect);
     el.removeEventListener('onReset', this.handleReset);
-    el.removeEventListener('change', this.handleChange);
+    el.removeEventListener('onChange', this.handleChange);
     el.removeEventListener('onSearchChange', this.handleSearchChange);
   }
 
@@ -282,16 +289,23 @@ export class SeoSelectSearchComponent implements AfterViewInit, OnDestroy, OnCha
   // Public methods
   reset(): void {
     const el = this.selectElement.nativeElement;
-    (el as any).reset?.();
+    (el as any).resetToDefault?.(new Event('reset'));
   }
 
   getValue(): string | string[] | undefined {
-    const el = this.selectElement.nativeElement;
-    return (el as any).value;
+    const el = this.selectElement.nativeElement as any;
+    if (el.multiple) {
+      return el.selectedValues || [];
+    }
+    return el.value;
   }
 
   setValue(value: string | string[]): void {
-    const el = this.selectElement.nativeElement;
-    (el as any).value = value;
+    const el = this.selectElement.nativeElement as any;
+    if (el.multiple && Array.isArray(value)) {
+      el.selectedValues = value;
+    } else {
+      el.value = value;
+    }
   }
 }

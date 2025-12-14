@@ -105,7 +105,7 @@ export const SeoSelect = defineComponent({
       el.addEventListener('onSelect', handleSelect);
       el.addEventListener('onDeselect', handleDeselect);
       el.addEventListener('onReset', handleReset);
-      el.addEventListener('change', handleChange);
+      el.addEventListener('onChange', handleChange);
     });
 
     onBeforeUnmount(() => {
@@ -115,7 +115,7 @@ export const SeoSelect = defineComponent({
       el.removeEventListener('onSelect', handleSelect);
       el.removeEventListener('onDeselect', handleDeselect);
       el.removeEventListener('onReset', handleReset);
-      el.removeEventListener('change', handleChange);
+      el.removeEventListener('onChange', handleChange);
     });
 
     // Watch for prop changes
@@ -136,18 +136,27 @@ export const SeoSelect = defineComponent({
       element: elementRef,
       reset: () => {
         if (elementRef.value) {
-          (elementRef.value as any).reset?.();
+          (elementRef.value as any).resetToDefault?.(new Event('reset'));
         }
       },
       getValue: () => {
         if (elementRef.value) {
-          return (elementRef.value as any).value;
+          const el = elementRef.value as any;
+          if (el.multiple) {
+            return el.selectedValues || [];
+          }
+          return el.value;
         }
         return undefined;
       },
       setValue: (value: string | string[]) => {
         if (elementRef.value) {
-          (elementRef.value as any).value = value;
+          const el = elementRef.value as any;
+          if (el.multiple && Array.isArray(value)) {
+            el.selectedValues = value;
+          } else {
+            el.value = value;
+          }
         }
       },
     });
@@ -218,7 +227,7 @@ export const SeoSelectSearch = defineComponent({
       el.addEventListener('onSelect', handleSelect);
       el.addEventListener('onDeselect', handleDeselect);
       el.addEventListener('onReset', handleReset);
-      el.addEventListener('change', handleChange);
+      el.addEventListener('onChange', handleChange);
       el.addEventListener('onSearchChange', handleSearchChange);
     });
 
@@ -229,7 +238,7 @@ export const SeoSelectSearch = defineComponent({
       el.removeEventListener('onSelect', handleSelect);
       el.removeEventListener('onDeselect', handleDeselect);
       el.removeEventListener('onReset', handleReset);
-      el.removeEventListener('change', handleChange);
+      el.removeEventListener('onChange', handleChange);
       el.removeEventListener('onSearchChange', handleSearchChange);
     });
 
@@ -257,18 +266,27 @@ export const SeoSelectSearch = defineComponent({
       element: elementRef,
       reset: () => {
         if (elementRef.value) {
-          (elementRef.value as any).reset?.();
+          (elementRef.value as any).resetToDefault?.(new Event('reset'));
         }
       },
       getValue: () => {
         if (elementRef.value) {
-          return (elementRef.value as any).value;
+          const el = elementRef.value as any;
+          if (el.multiple) {
+            return el.selectedValues || [];
+          }
+          return el.value;
         }
         return undefined;
       },
       setValue: (value: string | string[]) => {
         if (elementRef.value) {
-          (elementRef.value as any).value = value;
+          const el = elementRef.value as any;
+          if (el.multiple && Array.isArray(value)) {
+            el.selectedValues = value;
+          } else {
+            el.value = value;
+          }
         }
       },
     });

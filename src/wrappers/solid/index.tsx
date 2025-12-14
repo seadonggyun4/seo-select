@@ -107,7 +107,7 @@ export const SeoSelect: Component<SeoSelectProps> = (props) => {
       element.addEventListener('onReset', props.onReset as EventListener);
     }
     if (props.onChange) {
-      element.addEventListener('change', props.onChange as EventListener);
+      element.addEventListener('onChange', props.onChange as EventListener);
     }
 
     // Call ref if provided
@@ -129,7 +129,7 @@ export const SeoSelect: Component<SeoSelectProps> = (props) => {
       element.removeEventListener('onReset', props.onReset as EventListener);
     }
     if (props.onChange) {
-      element.removeEventListener('change', props.onChange as EventListener);
+      element.removeEventListener('onChange', props.onChange as EventListener);
     }
   });
 
@@ -198,7 +198,7 @@ export const SeoSelectSearch: Component<SeoSelectSearchProps> = (props) => {
       element.addEventListener('onReset', props.onReset as EventListener);
     }
     if (props.onChange) {
-      element.addEventListener('change', props.onChange as EventListener);
+      element.addEventListener('onChange', props.onChange as EventListener);
     }
     if (props.onSearchChange) {
       element.addEventListener('onSearchChange', props.onSearchChange as EventListener);
@@ -223,7 +223,7 @@ export const SeoSelectSearch: Component<SeoSelectSearchProps> = (props) => {
       element.removeEventListener('onReset', props.onReset as EventListener);
     }
     if (props.onChange) {
-      element.removeEventListener('change', props.onChange as EventListener);
+      element.removeEventListener('onChange', props.onChange as EventListener);
     }
     if (props.onSearchChange) {
       element.removeEventListener('onSearchChange', props.onSearchChange as EventListener);
