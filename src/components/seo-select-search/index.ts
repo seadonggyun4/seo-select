@@ -395,8 +395,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
         const noDataOption = [{ value: 'all_selected', label: searchTexts.noMatchText, disabled: true }];
         this._virtual.setData(noDataOption, undefined);
         this._calculatedHeight = this.calculateDropdownHeight();
+        this._updateDropdownHeight();
         triggerSearchFilterEvent(this, [], rawInput, false);
-        this._debouncedUpdate();
         return;
       }
 
@@ -404,8 +404,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       this._noMatchVisible = false;
 
       this._calculatedHeight = this.calculateDropdownHeight();
+      this._updateDropdownHeight();
       triggerSearchFilterEvent(this, allOptions, rawInput, true);
-      this._debouncedUpdate();
       return;
     }
 
@@ -415,8 +415,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       const noDataOption = [{ value: 'all_selected', label: searchTexts.noMatchText, disabled: true }];
       this._virtual.setData(noDataOption, undefined);
       this._calculatedHeight = `${60 + 50 + 5}px`;
+      this._updateDropdownHeight();
       triggerSearchFilterEvent(this, [], rawInput, false);
-      this._debouncedUpdate();
       return;
     }
 
@@ -430,8 +430,8 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
       this._virtual.setData(noMatchOption, this.multiple ? undefined : this.getCurrentValue());
 
       this._calculatedHeight = `${60 + 50 + 5}px`;
+      this._updateDropdownHeight();
       triggerSearchFilterEvent(this, [], rawInput, false);
-      this._debouncedUpdate();
       return;
     }
 
@@ -443,9 +443,23 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
     const computedHeight = filtered.length * rowHeight;
     const finalHeight = filtered.length > 10 ? maxHeight : computedHeight;
     this._calculatedHeight = `${finalHeight + searchInputHeight + 5}px`;
+    this._updateDropdownHeight();
 
     triggerSearchFilterEvent(this, filtered, rawInput, true);
-    this._debouncedUpdate();
+  }
+
+  private _updateDropdownHeight(): void {
+    const listbox = this.querySelector(`.${CSS_CLASSES.LISTBOX}`) as HTMLElement;
+    if (listbox && this._calculatedHeight) {
+      listbox.style.height = this._calculatedHeight;
+    }
+    const scrollEl = this.querySelector(`.${CSS_CLASSES.SCROLL}`) as HTMLElement;
+    if (scrollEl && this._calculatedHeight) {
+      const height = parseInt(this._calculatedHeight, 10);
+      if (!isNaN(height)) {
+        scrollEl.style.height = `${height - 50}px`;
+      }
+    }
   }
 
   public override removeTag = (e: Event, valueToRemove: string): void => {
