@@ -184,26 +184,24 @@ export const SeoSelect = forwardRef<SeoSelectRef, SeoSelectReactProps>(
       };
     }, [onSelect, onDeselect, onReset, onChange]);
 
-    // Build attributes object
-    // Note: For React 19 compatibility with custom elements, boolean attributes
-    // must be set as empty strings, not true/false values
-    const attrs: Record<string, any> = {
-      ref: elementRef,
-    };
-
-    if (id) attrs.id = id;
-    if (name) attrs.name = name;
-    if (required) attrs.required = '';
-    if (width) attrs.width = width;
-    if (height) attrs.height = height;
-    if (showReset) attrs['show-reset'] = '';
-    if (multiple) attrs.multiple = '';
-    if (theme) attrs.theme = theme;
-    if (dark) attrs.dark = '';
-    if (language) attrs.language = language;
-    if (autoWidth) attrs['auto-width'] = '';
-
-    return React.createElement('seo-select', attrs, children);
+    return (
+      <seo-select
+        ref={elementRef as React.RefObject<any>}
+        id={id}
+        name={name}
+        required={required ? '' : undefined}
+        width={width}
+        height={height}
+        show-reset={showReset ? '' : undefined}
+        multiple={multiple ? '' : undefined}
+        theme={theme}
+        dark={dark ? '' : undefined}
+        language={language}
+        auto-width={autoWidth ? '' : undefined}
+      >
+        {children}
+      </seo-select>
+    );
   }
 );
 
@@ -329,26 +327,24 @@ export const SeoSelectSearch = forwardRef<SeoSelectRef, SeoSelectSearchReactProp
       };
     }, [onSelect, onDeselect, onReset, onChange, onSearchChange]);
 
-    // Build attributes object
-    // Note: For React 19 compatibility with custom elements, boolean attributes
-    // must be set as empty strings, not true/false values
-    const attrs: Record<string, any> = {
-      ref: elementRef,
-    };
-
-    if (id) attrs.id = id;
-    if (name) attrs.name = name;
-    if (required) attrs.required = '';
-    if (width) attrs.width = width;
-    if (height) attrs.height = height;
-    if (showReset) attrs['show-reset'] = '';
-    if (multiple) attrs.multiple = '';
-    if (theme) attrs.theme = theme;
-    if (dark) attrs.dark = '';
-    if (language) attrs.language = language;
-    if (autoWidth) attrs['auto-width'] = '';
-
-    return React.createElement('seo-select-search', attrs, children);
+    return (
+      <seo-select-search
+        ref={elementRef as React.RefObject<any>}
+        id={id}
+        name={name}
+        required={required ? '' : undefined}
+        width={width}
+        height={height}
+        show-reset={showReset ? '' : undefined}
+        multiple={multiple ? '' : undefined}
+        theme={theme}
+        dark={dark ? '' : undefined}
+        language={language}
+        auto-width={autoWidth ? '' : undefined}
+      >
+        {children}
+      </seo-select-search>
+    );
   }
 );
 
@@ -368,30 +364,32 @@ declare global {
   namespace JSX {
     interface IntrinsicElements {
       'seo-select': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        ref?: React.RefObject<any>;
         id?: string;
         name?: string;
-        required?: boolean;
+        required?: string;
         width?: string;
         height?: string;
-        'show-reset'?: boolean;
-        multiple?: boolean;
+        'show-reset'?: string;
+        multiple?: string;
         theme?: string;
-        dark?: boolean;
+        dark?: string;
         language?: string;
-        'auto-width'?: boolean;
+        'auto-width'?: string;
       };
       'seo-select-search': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        ref?: React.RefObject<any>;
         id?: string;
         name?: string;
-        required?: boolean;
+        required?: string;
         width?: string;
         height?: string;
-        'show-reset'?: boolean;
-        multiple?: boolean;
+        'show-reset'?: string;
+        multiple?: string;
         theme?: string;
-        dark?: boolean;
+        dark?: string;
         language?: string;
-        'auto-width'?: boolean;
+        'auto-width'?: string;
       };
     }
   }
