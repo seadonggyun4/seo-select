@@ -119,30 +119,50 @@ export const SeoSelect = forwardRef<SeoSelectRef, SeoSelectReactProps>(
       element: elementRef.current,
       reset: () => {
         if (elementRef.current) {
-          (elementRef.current as any).reset?.();
+          (elementRef.current as any).resetToDefault?.(new Event('reset'));
         }
       },
       getValue: () => {
         if (elementRef.current) {
-          return (elementRef.current as any).value;
+          const el = elementRef.current as any;
+          if (el.multiple) {
+            return el.selectedValues || [];
+          }
+          return el.value;
         }
         return undefined;
       },
       setValue: (value: string | string[]) => {
         if (elementRef.current) {
-          (elementRef.current as any).value = value;
+          const el = elementRef.current as any;
+          if (el.multiple && Array.isArray(value)) {
+            el.selectedValues = value;
+          } else {
+            el.value = value;
+          }
         }
       },
     }));
 
+    // Track previous optionItems to avoid unnecessary updates
+    const prevOptionsRef = useRef<VirtualSelectOption[] | undefined>();
+
     // Set up object properties (not attributes)
     useEffect(() => {
       const element = elementRef.current;
-      if (!element) return;
+      if (!element || !optionItems) return;
 
-      if (optionItems) {
-        (element as any).optionItems = optionItems;
+      // Compare with previous options to avoid unnecessary updates
+      const prevOptions = prevOptionsRef.current;
+      if (prevOptions && prevOptions.length === optionItems.length) {
+        const isSame = optionItems.every((opt, i) =>
+          opt.value === prevOptions[i].value && opt.label === prevOptions[i].label
+        );
+        if (isSame) return;
       }
+
+      prevOptionsRef.current = optionItems;
+      (element as any).optionItems = optionItems;
     }, [optionItems]);
 
     useEffect(() => {
@@ -159,32 +179,33 @@ export const SeoSelect = forwardRef<SeoSelectRef, SeoSelectReactProps>(
       const element = elementRef.current;
       if (!element) return;
 
+      const handlers: Array<[string, EventListener]> = [];
+
       if (onSelect) {
-        element.addEventListener('onSelect', onSelect as EventListener);
+        const handler = onSelect as EventListener;
+        element.addEventListener('onSelect', handler);
+        handlers.push(['onSelect', handler]);
       }
       if (onDeselect) {
-        element.addEventListener('onDeselect', onDeselect as EventListener);
+        const handler = onDeselect as EventListener;
+        element.addEventListener('onDeselect', handler);
+        handlers.push(['onDeselect', handler]);
       }
       if (onReset) {
-        element.addEventListener('onReset', onReset as EventListener);
+        const handler = onReset as EventListener;
+        element.addEventListener('onReset', handler);
+        handlers.push(['onReset', handler]);
       }
       if (onChange) {
-        element.addEventListener('change', onChange as EventListener);
+        const handler = onChange as EventListener;
+        element.addEventListener('onChange', handler);
+        handlers.push(['onChange', handler]);
       }
 
       return () => {
-        if (onSelect) {
-          element.removeEventListener('onSelect', onSelect as EventListener);
-        }
-        if (onDeselect) {
-          element.removeEventListener('onDeselect', onDeselect as EventListener);
-        }
-        if (onReset) {
-          element.removeEventListener('onReset', onReset as EventListener);
-        }
-        if (onChange) {
-          element.removeEventListener('change', onChange as EventListener);
-        }
+        handlers.forEach(([event, handler]) => {
+          element.removeEventListener(event, handler);
+        });
       };
     }, [onSelect, onDeselect, onReset, onChange]);
 
@@ -247,30 +268,50 @@ export const SeoSelectSearch = forwardRef<SeoSelectRef, SeoSelectSearchReactProp
       element: elementRef.current,
       reset: () => {
         if (elementRef.current) {
-          (elementRef.current as any).reset?.();
+          (elementRef.current as any).resetToDefault?.(new Event('reset'));
         }
       },
       getValue: () => {
         if (elementRef.current) {
-          return (elementRef.current as any).value;
+          const el = elementRef.current as any;
+          if (el.multiple) {
+            return el.selectedValues || [];
+          }
+          return el.value;
         }
         return undefined;
       },
       setValue: (value: string | string[]) => {
         if (elementRef.current) {
-          (elementRef.current as any).value = value;
+          const el = elementRef.current as any;
+          if (el.multiple && Array.isArray(value)) {
+            el.selectedValues = value;
+          } else {
+            el.value = value;
+          }
         }
       },
     }));
 
+    // Track previous optionItems to avoid unnecessary updates
+    const prevOptionsRef = useRef<VirtualSelectOption[] | undefined>();
+
     // Set up object properties
     useEffect(() => {
       const element = elementRef.current;
-      if (!element) return;
+      if (!element || !optionItems) return;
 
-      if (optionItems) {
-        (element as any).optionItems = optionItems;
+      // Compare with previous options to avoid unnecessary updates
+      const prevOptions = prevOptionsRef.current;
+      if (prevOptions && prevOptions.length === optionItems.length) {
+        const isSame = optionItems.every((opt, i) =>
+          opt.value === prevOptions[i].value && opt.label === prevOptions[i].label
+        );
+        if (isSame) return;
       }
+
+      prevOptionsRef.current = optionItems;
+      (element as any).optionItems = optionItems;
     }, [optionItems]);
 
     useEffect(() => {
@@ -296,38 +337,38 @@ export const SeoSelectSearch = forwardRef<SeoSelectRef, SeoSelectSearchReactProp
       const element = elementRef.current;
       if (!element) return;
 
+      const handlers: Array<[string, EventListener]> = [];
+
       if (onSelect) {
-        element.addEventListener('onSelect', onSelect as EventListener);
+        const handler = onSelect as EventListener;
+        element.addEventListener('onSelect', handler);
+        handlers.push(['onSelect', handler]);
       }
       if (onDeselect) {
-        element.addEventListener('onDeselect', onDeselect as EventListener);
+        const handler = onDeselect as EventListener;
+        element.addEventListener('onDeselect', handler);
+        handlers.push(['onDeselect', handler]);
       }
       if (onReset) {
-        element.addEventListener('onReset', onReset as EventListener);
+        const handler = onReset as EventListener;
+        element.addEventListener('onReset', handler);
+        handlers.push(['onReset', handler]);
       }
       if (onChange) {
-        element.addEventListener('change', onChange as EventListener);
+        const handler = onChange as EventListener;
+        element.addEventListener('onChange', handler);
+        handlers.push(['onChange', handler]);
       }
       if (onSearchChange) {
-        element.addEventListener('onSearchChange', onSearchChange as EventListener);
+        const handler = onSearchChange as EventListener;
+        element.addEventListener('onSearchChange', handler);
+        handlers.push(['onSearchChange', handler]);
       }
 
       return () => {
-        if (onSelect) {
-          element.removeEventListener('onSelect', onSelect as EventListener);
-        }
-        if (onDeselect) {
-          element.removeEventListener('onDeselect', onDeselect as EventListener);
-        }
-        if (onReset) {
-          element.removeEventListener('onReset', onReset as EventListener);
-        }
-        if (onChange) {
-          element.removeEventListener('change', onChange as EventListener);
-        }
-        if (onSearchChange) {
-          element.removeEventListener('onSearchChange', onSearchChange as EventListener);
-        }
+        handlers.forEach(([event, handler]) => {
+          element.removeEventListener(event, handler);
+        });
       };
     }, [onSelect, onDeselect, onReset, onChange, onSearchChange]);
 
