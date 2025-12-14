@@ -1,4 +1,4 @@
-# seo-select
+# SeoSelect
 ![npm](https://img.shields.io/npm/dt/seo-select?style=flat&label=NPM%20)
 ![GitHub Repo stars](https://img.shields.io/github/stars/seadonggyun4/seo-select?style=flat&label=GitHub%20Stars)
 
