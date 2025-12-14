@@ -109,13 +109,13 @@ export const SeoSelect = component$<SeoSelectProps>((props) => {
     el.addEventListener('onSelect', handleSelect);
     el.addEventListener('onDeselect', handleDeselect);
     el.addEventListener('onReset', handleReset);
-    el.addEventListener('change', handleChange);
+    el.addEventListener('onChange', handleChange);
 
     cleanup(() => {
       el.removeEventListener('onSelect', handleSelect);
       el.removeEventListener('onDeselect', handleDeselect);
       el.removeEventListener('onReset', handleReset);
-      el.removeEventListener('change', handleChange);
+      el.removeEventListener('onChange', handleChange);
     });
   });
 
@@ -199,14 +199,14 @@ export const SeoSelectSearch = component$<SeoSelectSearchProps>((props) => {
     el.addEventListener('onSelect', handleSelect);
     el.addEventListener('onDeselect', handleDeselect);
     el.addEventListener('onReset', handleReset);
-    el.addEventListener('change', handleChange);
+    el.addEventListener('onChange', handleChange);
     el.addEventListener('onSearchChange', handleSearchChange);
 
     cleanup(() => {
       el.removeEventListener('onSelect', handleSelect);
       el.removeEventListener('onDeselect', handleDeselect);
       el.removeEventListener('onReset', handleReset);
-      el.removeEventListener('change', handleChange);
+      el.removeEventListener('onChange', handleChange);
       el.removeEventListener('onSearchChange', handleSearchChange);
     });
   });
