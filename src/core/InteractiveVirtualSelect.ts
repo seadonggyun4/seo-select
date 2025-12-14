@@ -1,3 +1,5 @@
+import { isBrowser, safeRequestAnimationFrame } from '../utils/environment.js';
+
 interface OptionData {
   value: string;
   label: string;
@@ -43,6 +45,25 @@ export class InteractiveVirtualSelect {
   private _onScroll!: () => void;
 
   constructor(container: HTMLElement, data: OptionData[], options: InteractiveVirtualSelectOptions = {}) {
+    // SSR 환경에서는 초기화하지 않음
+    if (!isBrowser()) {
+      this.container = container;
+      this.data = data;
+      this.rowHeight = options.rowHeight || 36;
+      this.overscan = options.overscan || 20;
+      this.renderOption = options.renderOption || null;
+      this.onClick = options.onClick || null;
+      this.onEscape = options.onEscape || null;
+      this.isMultiple = options.isMultiple || false;
+      this.total = data.length;
+      this.focusedIndex = -1;
+      this.activeIndex = -1;
+      this._prevStart = -1;
+      this._prevEnd = -1;
+      this.pool = [];
+      return;
+    }
+
     this.container = container;
     this.data = data;
     this.rowHeight = options.rowHeight || 36;
@@ -62,7 +83,7 @@ export class InteractiveVirtualSelect {
     this._ensureWrapper();
     this._buildDOM();
 
-    requestAnimationFrame(() => {
+    safeRequestAnimationFrame(() => {
       this._initializeContainer();
       this._buildPool();
       this._bindScroll();
@@ -181,7 +202,7 @@ export class InteractiveVirtualSelect {
 
       if (!this._ticking) {
         this._ticking = true;
-        requestAnimationFrame(() => {
+        safeRequestAnimationFrame(() => {
           this.render();
           this._ticking = false;
         });
@@ -207,7 +228,7 @@ export class InteractiveVirtualSelect {
       this._setPlaceholders(startIdx, endIdx);
       this._renderPool(startIdx);
 
-      requestAnimationFrame(() => {
+      safeRequestAnimationFrame(() => {
         const delta = Math.abs(this.container.scrollTop - scrollTop);
         if (delta > 1) {
           this.container.scrollTop = scrollTop;
@@ -453,16 +474,16 @@ export class InteractiveVirtualSelect {
 
     if (this.total > 0) {
       this._initializeContainer();
-      
+
       this._rebuildPoolIfNeeded();
-      
+
       const endIdx = Math.min(this.total, this.poolSize);
       this._setPlaceholders(0, endIdx);
       this._renderPool(0);
-      
-      requestAnimationFrame(() => {
+
+      safeRequestAnimationFrame(() => {
         this._applyHighlight();
-        
+
         if (this.focusedIndex >= 0) {
           this._scrollIntoView(this.focusedIndex);
         }
@@ -517,7 +538,7 @@ export class InteractiveVirtualSelect {
     this.poolSize = 0;
     this.visibleCount = 0;
 
-    requestAnimationFrame(() => {
+    safeRequestAnimationFrame(() => {
       this.container.offsetHeight;
     });
   }
@@ -545,8 +566,8 @@ export class InteractiveVirtualSelect {
         if (this.isMultiple) {
           el.classList.remove('active');
         }
-        
-        requestAnimationFrame(() => {
+
+        safeRequestAnimationFrame(() => {
           this._applyHighlight();
         });
       }
@@ -571,8 +592,8 @@ export class InteractiveVirtualSelect {
       this._setPlaceholders(this._prevStart, currentEndIdx);
       this._renderPool(this._prevStart);
     }
-    
-    requestAnimationFrame(() => {
+
+    safeRequestAnimationFrame(() => {
       this._applyHighlight();
     });
   }
@@ -618,19 +639,36 @@ export class InteractiveVirtualSelect {
     
     this._setPlaceholders(startIdx, endIdx);
     this._renderPool(startIdx);
-    
-    requestAnimationFrame(() => {
+
+    safeRequestAnimationFrame(() => {
       this._applyHighlight();
     });
   }
 
   destroy(): void {
+    // 스크롤 이벤트 제거
     this.container.removeEventListener('scroll', this._onScroll);
-    this.pool.forEach(el => el.remove());
+
+    // 풀 요소 제거 및 이벤트 리스너 정리
+    this.pool.forEach(el => {
+      el.replaceWith(el.cloneNode(false)); // 이벤트 리스너 제거를 위해 노드 교체
+      el.remove();
+    });
+
     this.wrapper.style.height = '0';
     this.topPad?.remove();
     this.botPad?.remove();
     this.pool = [];
+
+    // 콜백 참조 해제 (메모리 누수 방지)
+    this.renderOption = null;
+    this.onClick = null;
+    this.onEscape = null;
+
+    // 데이터 참조 해제
+    this.data = [];
+
+    // 정적 인스턴스 정리
     if (InteractiveVirtualSelect.activeInstance === this) {
       InteractiveVirtualSelect.activeInstance = null;
     }

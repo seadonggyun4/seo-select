@@ -18,6 +18,11 @@ import {
   triggerOpenEvent,
   SeoSelectEventListener
 } from '../../event/index.js';
+import {
+  isBrowser,
+  safeRequestAnimationFrame,
+  safeDefineCustomElement
+} from '../../utils/environment.js';
 
 import type {
   VirtualSelectOption,
@@ -114,7 +119,7 @@ export class SeoSelect extends LitElement {
     this.texts = {};
     this.autoWidth = false;
     this._calculatedWidth = null;
-    this._calculatedHeight = null; 
+    this._calculatedHeight = null;
     this._handleKeydownBound = (e: KeyboardEvent) => this._virtual?.handleKeydown(e);
     this.tabIndex = 0;
     this._pendingActiveIndex = null;
@@ -161,6 +166,8 @@ export class SeoSelect extends LitElement {
   }
 
   connectedCallback(): void {
+    if (!isBrowser()) return;
+
     this.style.width = this.width !== '100%' ? '' : '100%';
     super.connectedCallback();
     this.initializeOptionsFromPropsOrSlot();
@@ -171,24 +178,44 @@ export class SeoSelect extends LitElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    window.removeEventListener(EVENT_NAMES.SELECT_OPEN, this.onOtherSelectOpened);
-    window.removeEventListener('click', this.handleOutsideClick);
+
+    if (isBrowser()) {
+      window.removeEventListener(EVENT_NAMES.SELECT_OPEN, this.onOtherSelectOpened);
+      window.removeEventListener('click', this.handleOutsideClick);
+    }
+
     this.removeEventListener('keydown', this._handleKeydownBound);
+
+    // Virtual select 정리
     this._virtual?.destroy();
     this._virtual = null;
+
+    // 캐시 정리
     this._optionsCache.clear();
     this._widthCalculationCache.clear();
     this._localizedTextCache = null;
 
+    // 디바운스 타이머 정리
     if (this._updateDebounceTimer) {
       clearTimeout(this._updateDebounceTimer);
+      this._updateDebounceTimer = null;
     }
 
+    // 옵션 요소 참조 해제 (메모리 누수 방지)
+    this._options.forEach(opt => opt.remove());
+    this._options = [];
+
+    // 상태 초기화
     if (this.multiple) {
       this._selectedValues = [];
     } else {
-      this.value = '';
+      this._value = null;
+      this._labelText = '';
     }
+
+    // 초기값 참조 해제
+    this._initialValue = null;
+    this._initialLabel = null;
   }
 
   public _debouncedUpdate(): void {
@@ -259,6 +286,8 @@ export class SeoSelect extends LitElement {
   }
 
   public calculateAutoWidth(): void {
+    if (!isBrowser()) return;
+
     if (this.width || this._options.length === 0) {
       this._calculatedWidth = null;
       return;
@@ -266,31 +295,31 @@ export class SeoSelect extends LitElement {
 
     const optionTexts = this._options.map(opt => opt.textContent || '');
     const cacheKey = optionTexts.join('|') + `|${this.multiple}`;
-    
+
     if (this._widthCalculationCache.has(cacheKey)) {
       const cachedWidth = this._widthCalculationCache.get(cacheKey)!;
       this._calculatedWidth = `${cachedWidth}px`;
       return;
     }
 
-    requestAnimationFrame(() => {
+    safeRequestAnimationFrame(() => {
       const texts = this.getLocalizedText();
       const textsToMeasure = [...optionTexts];
-      
+
       if (this.multiple) {
         textsToMeasure.push(texts.placeholder);
       }
 
       const computedStyle = window.getComputedStyle(this);
       const font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`;
-      
+
       const maxTextWidth = this.getMaxOptionWidth(textsToMeasure, font);
       const additionalSpace = this.multiple ? 120 : 80;
       const totalWidth = Math.max(maxTextWidth + additionalSpace, 150);
-      
+
       this._widthCalculationCache.set(cacheKey, totalWidth);
       this._calculatedWidth = `${totalWidth}px`;
-      
+
       if (this.isConnected) {
         this._debouncedUpdate();
       }
@@ -766,8 +795,13 @@ export class SeoSelect extends LitElement {
   };
 
   public getMaxOptionWidth(texts: string[], font: string): number {
+    if (!isBrowser()) {
+      // SSR 환경에서는 문자열 길이 기반 추정값 반환
+      return Math.max(...texts.map(t => t.length * 8), 100);
+    }
+
     const cacheKey = `${texts.join('|')}|${font}`;
-    
+
     if (this._widthCalculationCache.has(cacheKey)) {
       return this._widthCalculationCache.get(cacheKey)!;
     }
@@ -775,12 +809,12 @@ export class SeoSelect extends LitElement {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
     ctx.font = font;
-    
+
     const maxWidth = Math.max(...texts.map((t) => {
       const width = ctx.measureText(t).width;
       return width > 100 ? width : 100;
     }));
-    
+
     this._widthCalculationCache.set(cacheKey, maxWidth);
     return maxWidth;
   }
@@ -1334,6 +1368,5 @@ export class SeoSelect extends LitElement {
   }
 }
 
-if (!customElements.get('seo-select')) {
-  customElements.define('seo-select', SeoSelect);
-}
+// SSR-safe 커스텀 엘리먼트 등록
+safeDefineCustomElement('seo-select', SeoSelect);

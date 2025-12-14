@@ -18,6 +18,11 @@ import {
   triggerSearchFilterEvent,
   SeoSelectEventListener
 } from '../../event/index.js';
+import {
+  isBrowser,
+  safeDefineCustomElement,
+  isDev
+} from '../../utils/environment.js';
 
 import type {
   VirtualSelectOption,
@@ -72,7 +77,7 @@ export class SeoSelectSearch extends SeoSelect {
     listener: SeoSelectEventListener<T>,
     options?: AddEventListenerOptions
   ): void {
-    if (process.env.NODE_ENV !== 'production') {
+    if (isDev()) {
       console.warn(`addSeoSelectEventListener is deprecated. Use standard addEventListener instead:
 Before: searchSelect.addSeoSelectEventListener('${type}', handler);
 After:  searchSelect.addEventListener('${type}', handler);`);
@@ -85,7 +90,7 @@ After:  searchSelect.addEventListener('${type}', handler);`);
     listener: SeoSelectEventListener<T>,
     options?: EventListenerOptions
   ): void {
-    if (process.env.NODE_ENV !== 'production') {
+    if (isDev()) {
       console.warn(`removeSeoSelectEventListener is deprecated. Use standard removeEventListener instead:
 Before: searchSelect.removeSeoSelectEventListener('${type}', handler);
 After:  searchSelect.removeEventListener('${type}', handler);`);
@@ -619,16 +624,18 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
   }
 
   public override calculateAutoWidth(): void {
+    if (!isBrowser()) return;
+
     if (this.width || this._options.length === 0) {
       this._calculatedWidth = null;
       return;
     }
 
     const optionTexts = this._options.map(opt => opt.textContent || '');
-    
+
     const texts = this.getLocalizedText();
     const searchTexts = this.getSearchLocalizedText();
-    
+
     if (this.multiple) {
       optionTexts.push(texts.placeholder);
     }
@@ -636,12 +643,12 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
 
     const computedStyle = window.getComputedStyle(this);
     const font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`;
-    
+
     const maxTextWidth = this.getMaxOptionWidth(optionTexts, font);
-    
+
     const additionalSpace = this.multiple ? 140 : 100;
     const totalWidth = maxTextWidth + additionalSpace;
-    
+
     this._calculatedWidth = `${Math.max(totalWidth, 200)}px`;
   }
 
@@ -1113,6 +1120,5 @@ After:  searchSelect.removeEventListener('${type}', handler);`);
   }
 }
 
-if (!customElements.get('seo-select-search')) {
-  customElements.define('seo-select-search', SeoSelectSearch);
-}
+// SSR-safe 커스텀 엘리먼트 등록
+safeDefineCustomElement('seo-select-search', SeoSelectSearch);
