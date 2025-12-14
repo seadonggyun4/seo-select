@@ -1,10 +1,11 @@
 # SeoSelect
-![npm](https://img.shields.io/npm/dt/seo-select?style=flat&label=NPM%20)
-![GitHub Repo stars](https://img.shields.io/github/stars/seadonggyun4/seo-select?style=flat&label=GitHub%20Stars)
 
 <img width="300" height="300" alt="logo" src="https://github.com/user-attachments/assets/e567ea31-d046-45b3-80d1-9a1e32c7e002" />
 
 A lightweight and extensible select component built with pure Web Components (no dependencies), designed to work seamlessly across frameworks. Supports search, virtual scrolling, multiple selection, i18n, and flexible theming.
+
+[![NPM](https://img.shields.io/npm/dt/seo-select.svg?label=NPM)](https://www.npmjs.com/package/seo-select)
+[![GitHub stars](https://img.shields.io/github/stars/seadonggyun4/seo-select.svg)](https://github.com/seadonggyun4/seo-select/stargazers)
 
 > 🌟 Support with a `GitHub star` — your encouragement means the world to me!
 
