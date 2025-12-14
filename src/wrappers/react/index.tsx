@@ -185,21 +185,23 @@ export const SeoSelect = forwardRef<SeoSelectRef, SeoSelectReactProps>(
     }, [onSelect, onDeselect, onReset, onChange]);
 
     // Build attributes object
+    // Note: For React 19 compatibility with custom elements, boolean attributes
+    // must be set as empty strings, not true/false values
     const attrs: Record<string, any> = {
       ref: elementRef,
     };
 
     if (id) attrs.id = id;
     if (name) attrs.name = name;
-    if (required) attrs.required = true;
+    if (required) attrs.required = '';
     if (width) attrs.width = width;
     if (height) attrs.height = height;
-    if (showReset) attrs['show-reset'] = true;
-    if (multiple) attrs.multiple = true;
+    if (showReset) attrs['show-reset'] = '';
+    if (multiple) attrs.multiple = '';
     if (theme) attrs.theme = theme;
-    if (dark) attrs.dark = true;
+    if (dark) attrs.dark = '';
     if (language) attrs.language = language;
-    if (autoWidth) attrs['auto-width'] = true;
+    if (autoWidth) attrs['auto-width'] = '';
 
     return React.createElement('seo-select', attrs, children);
   }
@@ -328,21 +330,23 @@ export const SeoSelectSearch = forwardRef<SeoSelectRef, SeoSelectSearchReactProp
     }, [onSelect, onDeselect, onReset, onChange, onSearchChange]);
 
     // Build attributes object
+    // Note: For React 19 compatibility with custom elements, boolean attributes
+    // must be set as empty strings, not true/false values
     const attrs: Record<string, any> = {
       ref: elementRef,
     };
 
     if (id) attrs.id = id;
     if (name) attrs.name = name;
-    if (required) attrs.required = true;
+    if (required) attrs.required = '';
     if (width) attrs.width = width;
     if (height) attrs.height = height;
-    if (showReset) attrs['show-reset'] = true;
-    if (multiple) attrs.multiple = true;
+    if (showReset) attrs['show-reset'] = '';
+    if (multiple) attrs.multiple = '';
     if (theme) attrs.theme = theme;
-    if (dark) attrs.dark = true;
+    if (dark) attrs.dark = '';
     if (language) attrs.language = language;
-    if (autoWidth) attrs['auto-width'] = true;
+    if (autoWidth) attrs['auto-width'] = '';
 
     return React.createElement('seo-select-search', attrs, children);
   }
