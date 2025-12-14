@@ -278,6 +278,7 @@
             <button class="nav-btn" data-section="dynamic">Dynamic Options</button>
             <button class="nav-btn" data-section="advanced">Advanced Features</button>
             <button class="nav-btn" data-section="frameworks">Framework Usage</button>
+            <button class="nav-btn" data-section="troubleshooting">Troubleshooting</button>
         </nav>
 
         <main class="content">
@@ -1219,6 +1220,235 @@ selectElement.optionItems = [
                     </div>
                 </div>
             </section>
+
+            <!-- Troubleshooting Section -->
+            <section id="troubleshooting" class="demo-section">
+                <h2 class="section-title">
+                    <i class="fas fa-wrench"></i>
+                    Troubleshooting
+                </h2>
+
+                <div class="feature-highlight">
+                    <h4>Common Issues & Solutions</h4>
+                    <p>Solutions for common issues you might encounter when using SEO Select components in your projects.</p>
+                </div>
+
+                <div class="use-case">
+                    <h3>CSS Style Conflicts</h3>
+                    <p>
+                        SEO Select uses Light DOM (no Shadow DOM) for maximum CSS compatibility. If you experience style conflicts with your existing CSS, try these solutions:
+                    </p>
+
+                    <div class="code-example">
+                        <h4>Option 1: CSS Scoping with Wrapper Class</h4>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                            <pre><code class="language-css">/* Scope your styles to avoid conflicts */
+.my-app-container .seo-select {
+  /* Your custom styles */
+}
+
+/* Or use more specific selectors */
+.my-form seo-select .select-trigger {
+  border-color: #your-color;
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="code-example">
+                        <h4>Option 2: Use CSS Custom Properties</h4>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                            <pre><code class="language-css">/* Override using CSS variables instead of direct selectors */
+seo-select {
+  --select-font-size: 14px;
+  --primary-color: #your-brand-color;
+  --select-border-radius: 8px;
+  --select-background: #ffffff;
+}
+
+/* Dark mode overrides */
+seo-select[dark] {
+  --select-background: #1a1a2e;
+  --select-text-color: #ffffff;
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="demo-description">
+                        <span>💡</span>
+                        <span>CSS Custom Properties provide the cleanest way to customize styles without conflicts</span>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>SPA Memory Management</h3>
+                    <p>
+                        SEO Select properly cleans up resources when components are removed from the DOM. For Single Page Applications (React, Vue, Next.js, Nuxt, etc.):
+                    </p>
+
+                    <div class="feature-list">
+                        <ul>
+                            <li><strong>Automatic Cleanup:</strong> Event listeners are automatically removed in <code>disconnectedCallback</code></li>
+                            <li><strong>Virtual Scroll:</strong> Virtual scroll instances are properly destroyed</li>
+                            <li><strong>DOM References:</strong> All DOM references are released to prevent memory leaks</li>
+                            <li><strong>Static Instances:</strong> Static instance references are nullified</li>
+                        </ul>
+                    </div>
+
+                    <div class="code-example">
+                        <h4>React: Proper Cleanup Pattern</h4>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                            <pre><code class="language-javascript">// React useEffect cleanup ensures proper unmounting
+useEffect(() => {
+  const element = selectRef.current;
+  if (!element) return;
+
+  const handleSelect = (e) => console.log(e.detail);
+  element.addEventListener('onSelect', handleSelect);
+
+  // Cleanup function - runs when component unmounts
+  return () => {
+    element.removeEventListener('onSelect', handleSelect);
+    // Component's disconnectedCallback handles internal cleanup
+  };
+}, []);</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="code-example">
+                        <h4>Vue: Proper Cleanup Pattern</h4>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                            <pre><code class="language-javascript">// Vue Composition API cleanup
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+
+const selectRef = ref(null);
+let handleSelect = null;
+
+onMounted(() => {
+  handleSelect = (e) => console.log(e.detail);
+  selectRef.value?.addEventListener('onSelect', handleSelect);
+});
+
+onBeforeUnmount(() => {
+  selectRef.value?.removeEventListener('onSelect', handleSelect);
+  // Component's disconnectedCallback handles internal cleanup
+});</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="demo-description">
+                        <span>🧹</span>
+                        <span>If you notice memory leaks, ensure components are properly unmounted when navigating between routes</span>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>SSR Hydration Issues</h3>
+                    <p>
+                        When using SEO Select with SSR frameworks (Next.js, Nuxt, SvelteKit), you may encounter hydration mismatches. Here's how to handle them:
+                    </p>
+
+                    <div class="code-example">
+                        <h4>Next.js: Dynamic Import Solution</h4>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                            <pre><code class="language-javascript">'use client';
+
+import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
+
+// Disable SSR for the component
+const SelectWrapper = dynamic(
+  () => import('./SelectWrapper'),
+  { ssr: false }
+);
+
+export default function Page() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return &lt;div&gt;Loading...&lt;/div&gt;;
+
+  return &lt;SelectWrapper /&gt;;
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="code-example">
+                        <h4>Nuxt 3: ClientOnly Wrapper</h4>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                            <pre><code class="language-html">&lt;template&gt;
+  &lt;ClientOnly&gt;
+    &lt;seo-select name="example" width="200px"&gt;
+      &lt;option value="1"&gt;Option 1&lt;/option&gt;
+      &lt;option value="2"&gt;Option 2&lt;/option&gt;
+    &lt;/seo-select&gt;
+
+    &lt;template #fallback&gt;
+      &lt;div&gt;Loading...&lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/ClientOnly&gt;
+&lt;/template&gt;</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="demo-description">
+                        <span>🌐</span>
+                        <span>Web Components require browser APIs, so SSR frameworks need client-only rendering</span>
+                    </div>
+                </div>
+
+                <div class="use-case">
+                    <h3>React Event Binding</h3>
+                    <p>
+                        React's synthetic event system does not automatically bind to Web Component custom events. You must use <code>ref</code> with <code>addEventListener</code>:
+                    </p>
+
+                    <div class="code-example">
+                        <h4>Incorrect (Won't Work)</h4>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                            <pre><code class="language-javascript">// This will NOT work - React doesn't bind custom events
+&lt;seo-select
+  onSelect={(e) => console.log(e.detail)}  // Won't fire!
+  onReset={(e) => console.log(e.detail)}   // Won't fire!
+/&gt;</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="code-example">
+                        <h4>Correct (Use ref + addEventListener)</h4>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>
+                            <pre><code class="language-javascript">const selectRef = useRef(null);
+
+useEffect(() => {
+  const el = selectRef.current;
+  if (!el) return;
+
+  const handleSelect = (e) => console.log(e.detail);
+  el.addEventListener('onSelect', handleSelect);
+
+  return () => el.removeEventListener('onSelect', handleSelect);
+}, []);
+
+return &lt;seo-select ref={selectRef} name="example" /&gt;;</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="demo-description">
+                        <span>⚛️</span>
+                        <span>This is a React limitation with Web Components, not an SEO Select issue</span>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <footer class="footer">
@@ -1250,7 +1480,7 @@ selectElement.optionItems = [
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script type="module" src="src/main.ts"></script>
-    <script src="/demo.ts"></script>
+    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/demo.ts"></script>
 </body>
 </html>
