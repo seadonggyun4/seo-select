@@ -1,6 +1,6 @@
 {
   "name": "seo-select",
-  "version": "4.3.7",
+  "version": "4.3.8",
   "description": "Customizable, high-performance select dropdown Web Component with search, virtual scroll, multiple selection, i18n, and framework compatibility (React, Vue, Svelte, Angular, Qwik). Accessible, SSR-safe, and zero dependencies.",
   "type": "module",
   "main": "./dist/index.js",
