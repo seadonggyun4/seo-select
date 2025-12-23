@@ -2,65 +2,66 @@
 
 <img width="300" height="300" alt="logo" src="https://github.com/user-attachments/assets/8ea33832-77b7-43d6-acdb-b622b20ea17b" />
 
-A lightweight and extensible select component built with pure Web Components (no dependencies), designed to work seamlessly across frameworks. Supports search, virtual scrolling, multiple selection, i18n, and flexible theming.
+A lightweight and extensible select component built with pure Web Components, designed to operate seamlessly across frameworks. This library provides search functionality, virtual scrolling, multiple selection, internationalization, and flexible theming capabilities without external dependencies.
 
 [![NPM](https://img.shields.io/npm/dt/seo-select.svg?label=NPM)](https://www.npmjs.com/package/seo-select)
 [![GitHub stars](https://img.shields.io/github/stars/seadonggyun4/seo-select.svg)](https://github.com/seadonggyun4/seo-select/stargazers)
 
-> 🌟 Support with a `GitHub star` — your encouragement means the world to me!
+- **[GitHub Repository](https://github.com/seadonggyun4/seo-select)**
+- **[Documentation Site](https://seo-select.netlify.app/)**
 
-- **[GitHub](https://github.com/seadonggyun4/seo-select)**
-- **[DemoSite](https://seo-select.netlify.app/)**
+---
 
 ## Features
-- 🎨 **Multiple Themes**: Basic, float themes with dark mode support
-- 🌍 **Internationalization**: Built-in support for multiple languages (EN, KO, JA, ZH)
-- 🔍 **Search Functionality**: Advanced multilingual search with fuzzy matching
-- ♿ **Accessibility**: Full keyboard navigation and screen reader support
-- 🚀 **Virtual Scrolling**: High performance with large datasets
-- 📏 **Auto Width**: Automatic width calculation based on content
-- 🎯 **Multiple Selection**: Tag-based multi-select with individual remove buttons
-- 💡 **Zero Dependencies**: Built with native Web Components (no Lit, no external libraries) for minimal bundle size and maximum compatibility.
-- ⚡ **Modern Event System**: Standard addEventListener with type-safe helpers
 
-# Why SeoSelect?
+- **Multiple Themes**: Support for basic and float themes with dark mode compatibility
+- **Internationalization**: Built-in localization for English, Korean, Japanese, and Chinese
+- **Search Functionality**: Advanced multilingual search with fuzzy matching algorithms
+- **Accessibility**: Complete keyboard navigation and screen reader compatibility
+- **Virtual Scrolling**: Optimized performance for large-scale datasets
+- **Auto Width**: Automatic width calculation based on content dimensions
+- **Multiple Selection**: Tag-based multi-select interface with individual removal controls
+- **Zero Dependencies**: Implemented with native Web Components for minimal bundle size and maximum compatibility
+- **Modern Event System**: Standard addEventListener with type-safe helper methods
 
-SeoSelect is designed to solve the real-world pain points of select components across modern web projects. Here’s how it stands out compared to popular alternatives:
+---
+
+## Comparative Analysis
+
+SeoSelect addresses common limitations found in existing select component libraries. The following table presents a comparative analysis with established alternatives:
 
 | Feature            | SeoSelect                      | react-select      | headlessui      | antd / prime     |
 | ------------------ | ----------------------------- | ---------------- | -------------- | --------------- |
-| Framework Agnostic | ✅ Web Component               | ❌ React only     | ❌ React/Vue    | ❌ Framework-bound |
-| Bundle Size        | ✅ Ultra-small (0 deps)        | ❌ Large (~700KB+) | △              | ❌ Large         |
-| Dependencies       | ✅ Zero                        | ❌ Many           | △              | ❌ Many          |
-| Virtual Scroll     | ✅ Built-in                    | ❌ Extra setup    | ❌ None         | △ Limited        |
-| Multilingual Search| ✅ Korean/JP/Chinese support   | ❌ None           | ❌ None         | ❌ None          |
-| Search Accuracy    | ✅ Fuzzy + Multilingual        | △ Simple filter  | ❌              | △               |
-| Keyboard Access    | ✅ Full support                | △                | △              | △               |
-| Type Safety        | ✅ Global type extension       | △                | △              | ❌ Complex       |
-| Event Design       | ✅ Standard + type helpers     | ❌ React props    | ❌              | ❌               |
-| Multi-Framework    | ✅ React/Vue/Angular/Qwik/Solid| ❌               | ❌              | ❌               |
-| Customization      | ✅ CSS Variables               | △                | △              | ❌ Theme-locked  |
-| SSR Safe           | ✅                             | ❌               | △              | ❌               |
+| Framework Agnostic | Web Component                  | React only        | React/Vue       | Framework-bound  |
+| Bundle Size        | Minimal (0 dependencies)       | Large (~700KB+)   | Moderate        | Large            |
+| Dependencies       | None                           | Multiple          | Moderate        | Multiple         |
+| Virtual Scroll     | Built-in                       | Requires setup    | Not available   | Limited          |
+| Multilingual Search| Korean/Japanese/Chinese        | Not available     | Not available   | Not available    |
+| Search Accuracy    | Fuzzy + Multilingual           | Basic filter      | Not available   | Moderate         |
+| Keyboard Access    | Full support                   | Partial           | Partial         | Partial          |
+| Type Safety        | Global type extension          | Partial           | Partial         | Complex          |
+| Event Design       | Standard + type helpers        | React props       | Not available   | Not available    |
+| Multi-Framework    | React/Vue/Angular/Qwik/Solid   | Not available     | Not available   | Not available    |
+| Customization      | CSS Variables                  | Partial           | Partial         | Theme-locked     |
+| SSR Safe           | Yes                            | No                | Partial         | No               |
 
-**Why choose SeoSelect?**
+### Key Advantages
 
-- **Framework Independence:** Use anywhere—React, Vue, Angular, Svelte, Qwik, or plain HTML. No lock-in.
-- **Tiny & Dependency-Free:** No runtime dependencies, minimal bundle size, and lightning-fast load times.
-- **Advanced Search:** Out-of-the-box support for Korean initial consonant, Japanese romaji, and Chinese pinyin search. Fuzzy matching for all languages.
-- **Virtual Scrolling:** Handles thousands of options smoothly without extra setup.
-- **Accessibility:** Full keyboard navigation and screen reader support.
-- **TypeScript First:** Global type extensions for safe, ergonomic event handling in any environment.
-- **Customizable:** Style every aspect with CSS variables—no theme lock-in.
-- **SSR Safe:** Works seamlessly in SSR (Next.js, Nuxt, SvelteKit, etc.) and browser environments.
-- **Modern Event System:** Standard `addEventListener` with type-safe helpers for best DX.
+- **Framework Independence**: Compatible with React, Vue, Angular, Svelte, Qwik, and plain HTML without vendor lock-in
+- **Minimal Footprint**: Zero runtime dependencies resulting in minimal bundle size and optimized load times
+- **Advanced Search Capabilities**: Native support for Korean initial consonant search, Japanese romaji conversion, and Chinese pinyin matching with fuzzy matching for all languages
+- **Virtual Scrolling**: Efficient handling of large option sets without additional configuration
+- **Accessibility Compliance**: Comprehensive keyboard navigation and screen reader support
+- **TypeScript Integration**: Global type extensions for type-safe event handling across environments
+- **Customization**: Complete styling control through CSS variables without theme restrictions
+- **SSR Compatibility**: Functions correctly in server-side rendering environments including Next.js, Nuxt, and SvelteKit
+- **Modern Event System**: Standard `addEventListener` implementation with type-safe helper methods
 
-SeoSelect is the only select component you need for modern, scalable, and framework-agnostic web apps.
-
-
+---
 
 ## Installation
 
-### For Modern Bundlers (Recommended)
+### Module Bundlers (Recommended)
 
 ```bash
 npm install seo-select
@@ -73,36 +74,39 @@ import 'seo-select';
 // Import search-enabled select component
 import 'seo-select/components/seo-select-search';
 
-// Import Style
+// Import stylesheet
 import 'seo-select/styles'
 
-// Import Types
+// Import type definitions
 import 'seo-select/types';
 ```
 
-### For Direct Browser Usage
+### Direct Browser Usage
 
 ```html
-<!-- Import both JavaScript and CSS files -->
 <link rel="stylesheet" href="./min/index.css">
 <script type="module" src="./min/index.js"></script>
 ```
 
-**Alternative**: Download pre-built files from [GitHub Releases](https://github.com/seadonggyun4/seo-select/releases)
+Pre-built files are available from [GitHub Releases](https://github.com/seadonggyun4/seo-select/releases).
 
-## Components Overview
+---
 
-### `seo-select` - Basic Select Component
+## Component Overview
 
-Standard dropdown functionality with virtual scrolling, multiple selection, themes, and form integration.
+### seo-select
 
-### `seo-select-search` - Search-Enhanced Select Component
+The basic select component provides standard dropdown functionality with virtual scrolling, multiple selection, theme support, and form integration.
 
-Extended component with real-time multilingual search including Korean initial consonant search (ㅎㄱㅇ → 한국어), Japanese romaji search (nihongo → 日本語), and Chinese pinyin search (beijing → 北京).
+### seo-select-search
 
-## Basic Usage Examples
+The search-enhanced select component extends the basic component with real-time multilingual search capabilities, including Korean initial consonant matching, Japanese romaji conversion, and Chinese pinyin search.
 
-### Simple Select
+---
+
+## Usage Examples
+
+### Basic Implementation
 
 ```html
 <!DOCTYPE html>
@@ -122,7 +126,7 @@ Extended component with real-time multilingual search including Korean initial c
 </html>
 ```
 
-### Search-enabled Select
+### Search-Enabled Implementation
 
 ```html
 <script type="module">
@@ -140,7 +144,7 @@ Extended component with real-time multilingual search including Korean initial c
 </seo-select-search>
 ```
 
-### Multiple Selection
+### Multiple Selection Implementation
 
 ```html
 <seo-select-search
@@ -154,14 +158,15 @@ Extended component with real-time multilingual search including Korean initial c
 </seo-select-search>
 ```
 
+---
 
 ## Event System
 
 ### Standard addEventListener (Recommended)
 
 ```typescript
-// Works in any framework — listen to custom events emitted by the component.
-// All event payloads are provided in `event.detail`.
+// Event listeners for custom events emitted by the component
+// All event payloads are provided in event.detail
 
 searchSelect.addEventListener('onSelect', (event: CustomEvent<{ label: string; value: string }>) => {
   console.log('Selected:', event.detail.label, event.detail.value);
@@ -173,7 +178,7 @@ searchSelect.addEventListener('onDeselect', (event: CustomEvent<{ label: string;
 
 searchSelect.addEventListener(
   'onReset',
-  ( event: CustomEvent<{ value: string; label: string } | { values: string[]; labels: string[] } >) => {
+  (event: CustomEvent<{ value: string; label: string } | { values: string[]; labels: string[] }>) => {
     if ('values' in event.detail) {
       console.log('Reset multiple:', event.detail.values, event.detail.labels);
     } else {
@@ -193,20 +198,18 @@ searchSelect.addEventListener('onOpen', (event: CustomEvent<{ selectInstance?: a
 // Search-specific events (seo-select-search only)
 searchSelect.addEventListener(
   'onSearchChange',
-  ( event: CustomEvent<{ searchText: string } | { searchText: string; previousSearchText: string } > ) => {
+  (event: CustomEvent<{ searchText: string } | { searchText: string; previousSearchText: string }>) => {
     console.log('Search text changed:', event.detail.searchText);
   }
 );
 
 searchSelect.addEventListener(
   'onSearchFilter',
-  (
-    event: CustomEvent<{
-      filteredOptions: VirtualSelectOption[];
-      searchText: string;
-      hasResults: boolean;
-    }>
-  ) => {
+  (event: CustomEvent<{
+    filteredOptions: VirtualSelectOption[];
+    searchText: string;
+    hasResults: boolean;
+  }>) => {
     console.log(
       `Search filtered: ${event.detail.filteredOptions.length} results for "${event.detail.searchText}"`
     );
@@ -214,11 +217,10 @@ searchSelect.addEventListener(
 );
 ```
 
-### Type-Safe Helper Methods (Built-in)
+### Type-Safe Helper Methods
 
 ```typescript
-// These helper methods wrap `addEventListener` for better DX (Developer Experience).
-// They provide typed callbacks and cleaner syntax.
+// Helper methods provide typed callbacks and cleaner syntax
 
 searchSelect.onSelect(({ label, value }) => {
   console.log('Selected:', label, value);
@@ -240,7 +242,7 @@ searchSelect.onOpen(() => {
   console.log('Dropdown opened');
 });
 
-// Search-specific helpers
+// Search-specific helper methods
 searchSelect.onSearchChange((searchText) => {
   console.log('Search text changed:', searchText);
 });
@@ -248,15 +250,13 @@ searchSelect.onSearchChange((searchText) => {
 searchSelect.onSearchFilter((filteredOptions) => {
   console.log('Filtered results count:', filteredOptions.length);
 });
-
 ```
 
-### JavaScript/TypeScript Usage
+### Programmatic Usage
 
 ```typescript
 import 'seo-select/components/seo-select-search';
 
-// Create the element programmatically
 const select = document.createElement('seo-select-search');
 select.optionItems = [
   { value: 'option1', label: 'Option 1' },
@@ -266,38 +266,39 @@ select.multiple = true;
 select.theme = 'float';
 select.language = 'ko';
 
-// Append to the DOM
 document.body.appendChild(select);
 
-// Handle events using addEventListener
 select.addEventListener('onSelect', (event: CustomEvent<{ label: string; value: string }>) => {
   console.log('Selected:', event.detail.label, event.detail.value);
 });
 
-// Or use the built-in helper methods
 select.onSelect(({ label, value }) => {
   console.log('Selected:', label, value);
 });
 ```
 
-## Events Reference
+---
 
-### Common Events (Both Components)
+## Event Reference
 
-| Event Name | Properties | Description |
-|------------|------------|-------------|
-| `onSelect` | `{ label, value }` | User selects an option |
-| `onDeselect` | `{ label, value }` | User removes selected option (multiple mode) |
-| `onChange` | - | Form value changes |
-| `onReset` | `{ value, label }` or `{ values, labels }` | Component resets to default |
-| `onOpen` | - | Dropdown opens |
-
-### Search Component Additional Events (SeoSelectSearch Only)
+### Common Events
 
 | Event Name | Properties | Description |
 |------------|------------|-------------|
-| `onSearchChange` | `searchText: string` | Search text changes in real-time |
-| `onSearchFilter` | `filteredOptions: VirtualSelectOption[]` | Search results are filtered |
+| `onSelect` | `{ label, value }` | Triggered when an option is selected |
+| `onDeselect` | `{ label, value }` | Triggered when an option is removed (multiple mode) |
+| `onChange` | - | Triggered when the form value changes |
+| `onReset` | `{ value, label }` or `{ values, labels }` | Triggered when the component resets to default |
+| `onOpen` | - | Triggered when the dropdown opens |
+
+### Search Component Events
+
+| Event Name | Properties | Description |
+|------------|------------|-------------|
+| `onSearchChange` | `searchText: string` | Triggered when search text changes |
+| `onSearchFilter` | `filteredOptions: VirtualSelectOption[]` | Triggered when search results are filtered |
+
+---
 
 ## Component Properties
 
@@ -306,35 +307,35 @@ select.onSelect(({ label, value }) => {
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `name` | `string` | - | Form field name |
-| `required` | `boolean` | `false` | Whether the field is required |
-| `multiple` | `boolean` | `false` | Enable multiple selection |
-| `theme` | `'basic' \| 'float'` | `'float'` | Visual theme |
-| `dark` | `boolean` | `false` | Enable dark mode |
+| `required` | `boolean` | `false` | Indicates whether the field is required |
+| `multiple` | `boolean` | `false` | Enables multiple selection mode |
+| `theme` | `'basic' \| 'float'` | `'float'` | Visual theme selection |
+| `dark` | `boolean` | `false` | Enables dark mode |
 | `language` | `'en' \| 'ko' \| 'ja' \| 'zh'` | `'en'` | Interface language |
-| `showReset` | `boolean` | `true` | Show reset button |
-| `width` | `string` | `null` | Custom width (auto-calculated if not set) |
+| `showReset` | `boolean` | `true` | Displays reset button |
+| `width` | `string` | `null` | Custom width (auto-calculated if not specified) |
 
 ### SeoSelectSearch Additional Properties
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `searchTexts` | `Partial<SearchLocalizedTexts>` | `{}` | Custom search-related texts |
+| `searchTexts` | `Partial<SearchLocalizedTexts>` | `{}` | Custom search-related localization texts |
 
+---
 
 ## Methods
 
 ### SeoSelect (Basic Component)
 
-The basic `seo-select` component provides fundamental option management and value control methods:
-
 #### Value Management
+
 ```typescript
 // Get/Set single value
 const currentValue = select.value;
 select.value = 'option1';
 
 // Get/Set multiple values (when multiple=true)
-const selectedValues = select.selectedValues; // ['opt1', 'opt2']
+const selectedValues = select.selectedValues;
 select.selectedValues = ['opt1', 'opt3'];
 
 // Reset to default value
@@ -342,23 +343,24 @@ select.resetToDefaultValue();
 ```
 
 #### Dynamic Option Management
+
 ```typescript
-// Add multiple options at once (replaces existing options)
+// Replace existing options with new set
 select.addOptions([
   { value: 'opt1', label: 'Option 1' },
   { value: 'opt2', label: 'Option 2' }
-], preserveSelection); // preserveSelection: boolean (default: false)
+], preserveSelection);
 
-// Add a single option
-select.addOption({ value: 'new', label: 'New Option' }, index); // index: optional position
+// Add single option at specified position
+select.addOption({ value: 'new', label: 'New Option' }, index);
 
-// Remove a specific option by value
+// Remove specific option by value
 select.clearOption('option-value-to-remove');
 
 // Remove all options
 select.clearAllOptions();
 
-// Batch update operations (highly optimized for performance)
+// Batch update operations (optimized for performance)
 select.batchUpdateOptions([
   { action: 'add', option: { value: 'new1', label: 'New 1' } },
   { action: 'remove', value: 'old-option' },
@@ -367,9 +369,10 @@ select.batchUpdateOptions([
 ```
 
 #### Customization Methods
+
 ```typescript
 // Change language dynamically
-select.setLanguage('ko'); // 'en' | 'ko' | 'ja' | 'zh'
+select.setLanguage('ko');
 
 // Set custom localized texts
 select.setTexts({
@@ -381,39 +384,12 @@ select.setTexts({
 // Enable/disable auto-width calculation
 select.setAutoWidth(true);
 
-// Clear internal caches (useful for memory optimization)
+// Clear internal caches (for memory optimization)
 select.clearCaches();
 ```
 
-#### Event Management (Type-Safe Helpers)
-```typescript
-// Basic events (always available)
-select.onSelect((event) => {
-  console.log('Selected:', event.label, event.value);
-});
-
-select.onDeselect((event) => {
-  console.log('Deselected:', event.label, event.value);
-});
-
-select.onReset((event) => {
-  if (select.multiple) {
-    console.log('Reset multiple:', event.values, event.labels);
-  } else {
-    console.log('Reset single:', event.value, event.label);
-  }
-});
-
-select.onChange(() => {
-  console.log('Form value changed');
-});
-
-select.onOpen(() => {
-  console.log('Dropdown opened');
-});
-```
-
 #### Utility Methods
+
 ```typescript
 // Get current option count
 const optionCount = select.options.length;
@@ -430,20 +406,17 @@ const hasOptions = !select.hasNoOptions();
 
 ### SeoSelectSearch (Search-Enhanced Component)
 
-The `seo-select-search` component extends the basic component with advanced search functionality:
-
 #### Search-Specific Methods
-```typescript
-// ► Practical example: Auto-focus search when dropdown opens
-searchSelect.onOpen(() => {
-  // Set initial search text to help users
-  searchSelect.searchText = 'Seoul';
 
-  // Or clear previous search and let user type fresh
+```typescript
+// Set search text programmatically
+searchSelect.onOpen(() => {
+  searchSelect.searchText = 'Seoul';
+  // Or clear previous search
   searchSelect.clearSearchText();
 });
 
-// ► Advanced example: Set search based on previous selection
+// Conditional search based on previous selection
 let lastSelected = '';
 searchSelect.onSelect((event) => {
   lastSelected = event.value;
@@ -457,78 +430,76 @@ searchSelect.onOpen(() => {
 ```
 
 #### Advanced Option Management
+
 ```typescript
 // Update options while preserving search state
 searchSelect.updateOptionsWithSearch([
   { value: 'opt1', label: 'Searchable Option 1' },
   { value: 'opt2', label: 'Searchable Option 2' }
-], preserveSearch); // preserveSearch: boolean (default: true)
+], preserveSearch);
 
 // Load options dynamically based on search
 await searchSelect.loadOptionsForSearch('search term', async (searchText) => {
-  // Custom async function to load options
   const response = await fetch(`/api/search?q=${searchText}`);
   return await response.json();
 });
 ```
 
 #### Search Event Handling
+
 ```typescript
-// Listen to search text changes
 searchSelect.onSearchChange((searchText) => {
   console.log('User typed:', searchText);
-  // Trigger API calls, analytics, etc.
 });
 
-// Listen to search filter events
 searchSelect.onSearchFilter((filteredOptions) => {
   console.log(`Found ${filteredOptions.length} results`);
-  // Update UI indicators, show result counts, etc.
 });
 ```
 
 #### Custom Search Texts
+
 ```typescript
-// Set search-specific localized texts
 searchSelect.setSearchTexts({
   searchPlaceholder: 'Type to search...',
   noMatchText: 'No results found'
 });
 ```
 
-#### Inherited Methods
-The `seo-select-search` component inherits all methods from the basic `seo-select` component, so you can use all the value management, option management, and customization methods mentioned above.
+#### Performance Optimization
 
-#### Performance Considerations
 ```typescript
-// For large datasets, use batch operations
+// Use batch operations for large datasets
 searchSelect.batchUpdateOptions(largeUpdateArray);
 
-// Clear caches when dealing with frequent option updates
+// Clear caches for frequent option updates
 searchSelect.clearCaches();
 
-// Use preserveSelection for better UX when updating options
-searchSelect.addOptions(newOptions, true); // Preserves current selection
+// Preserve selection when updating options
+searchSelect.addOptions(newOptions, true);
 ```
-# Framework Wrappers
-
-seo-select provides official wrapper components for major frameworks. Each wrapper offers native-feeling APIs with proper event handling and TypeScript support.
-
-## Supported Frameworks
-
-| Framework | Import Path | Version |
-|-----------|-------------|---------|
-| React | `seo-select/react` | >= 17.0.0 |
-| Vue | `seo-select/vue` | >= 3.0.0 |
-| Angular | `seo-select/angular` | >= 14.0.0 |
-| Solid.js | `seo-select/solid` | >= 1.0.0 |
-| Qwik | `seo-select/qwik` | >= 1.0.0 |
-
-> All framework dependencies are **optional peer dependencies** - only install what you need!
 
 ---
 
-## React
+## Framework Integration
+
+SeoSelect provides official wrapper components for major frameworks with native APIs, proper event handling, and TypeScript support.
+
+### Supported Frameworks
+
+| Framework | Import Path | Minimum Version |
+|-----------|-------------|-----------------|
+| React | `seo-select/react` | 17.0.0 |
+| Vue | `seo-select/vue` | 3.0.0 |
+| Angular | `seo-select/angular` | 14.0.0 |
+| Solid.js | `seo-select/solid` | 1.0.0 |
+| Qwik | `seo-select/qwik` | 1.0.0 |
+
+All framework dependencies are optional peer dependencies.
+
+---
+
+### React
 
 ```tsx
 import { SeoSelect, SeoSelectSearch } from 'seo-select/react';
@@ -554,7 +525,7 @@ export default function MyComponent() {
 }
 ```
 
-### With Search
+#### With Search and Ref
 
 ```tsx
 import { SeoSelectSearch, type SeoSelectRef } from 'seo-select/react';
@@ -590,7 +561,7 @@ export default function SearchExample() {
 
 ---
 
-## Vue 3
+### Vue 3
 
 ```vue
 <script setup lang="ts">
@@ -618,7 +589,7 @@ const handleSelect = (detail: { label: string; value: string }) => {
 </template>
 ```
 
-### With Search and Multiple Selection
+#### With Search and Multiple Selection
 
 ```vue
 <script setup lang="ts">
@@ -651,7 +622,7 @@ const handleReset = () => {
 
 ---
 
-## Angular
+### Angular
 
 ```typescript
 import { Component } from '@angular/core';
@@ -689,7 +660,7 @@ export class SelectDemoComponent {
 }
 ```
 
-### With Search
+#### With Search
 
 ```typescript
 @Component({
@@ -725,7 +696,7 @@ export class SearchDemoComponent {
 
 ---
 
-## Solid.js
+### Solid.js
 
 ```tsx
 import { SeoSelect, SeoSelectSearch } from 'seo-select/solid';
@@ -748,7 +719,7 @@ export default function MyComponent() {
 }
 ```
 
-### With Ref
+#### With Ref
 
 ```tsx
 import { SeoSelectSearch } from 'seo-select/solid';
@@ -781,7 +752,7 @@ export default function SearchExample() {
 
 ---
 
-## Qwik
+### Qwik
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -805,7 +776,7 @@ export const SelectDemo = component$(() => {
 });
 ```
 
-### With Search
+#### With Search
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -830,9 +801,7 @@ export const SearchDemo = component$(() => {
 
 ---
 
-## Vanilla JavaScript / Web Component
-
-For vanilla JavaScript or other frameworks, use the web component directly:
+### Vanilla JavaScript / Web Component
 
 ```typescript
 import 'seo-select/types';
@@ -855,14 +824,16 @@ select.addEventListener('onSelect', (event) => {
 document.body.appendChild(select);
 ```
 
+---
+
 ## TypeScript Support
 
 ### Type Definitions
 
-For TypeScript projects, import the type definitions to enable full type safety and IntelliSense support for custom events and component APIs:
+Import type definitions to enable full type safety and IntelliSense support:
 
 ```typescript
-// Import type definitions (add this once in your project)
+// Import type definitions (required once per project)
 import 'seo-select/types';
 
 // Import components
@@ -870,12 +841,12 @@ import 'seo-select';
 import 'seo-select/components/seo-select-search';
 ```
 
-**That's it!** With just `import 'seo-select/types';`, you get:
+This import provides:
 
-- ✅ **Full type safety** for all event listeners (`addEventListener`)
-- ✅ **IntelliSense support** for event properties (`event.label`, `event.value`)
-- ✅ **Global type extensions** for `HTMLElementEventMap`
-- ✅ **Zero configuration** - works immediately
+- Full type safety for all event listeners (`addEventListener`)
+- IntelliSense support for event properties (`event.label`, `event.value`)
+- Global type extensions for `HTMLElementEventMap`
+- Zero configuration requirement
 
 ### Basic Usage with Type Safety
 
@@ -885,14 +856,11 @@ import 'seo-select';
 
 const select = document.createElement('seo-select');
 
-// All event listeners are now fully type-safe
 select.addEventListener('onSelect', (event) => {
-  // TypeScript knows event.label and event.value exist
   console.log('Selected:', event.label, event.value);
 });
 
 select.addEventListener('onReset', (event) => {
-  // TypeScript automatically infers the correct event type
   if (event.values) {
     console.log('Multiple reset:', event.values, event.labels);
   } else {
@@ -902,8 +870,6 @@ select.addEventListener('onReset', (event) => {
 ```
 
 ### Advanced Usage with Specific Types
-
-When you need specific types for your application logic, import them explicitly:
 
 ```typescript
 import 'seo-select/types';
@@ -915,18 +881,15 @@ import type {
   BatchUpdateOption
 } from 'seo-select/types';
 
-// Type-safe option creation
 const options: VirtualSelectOption[] = [
   { value: 'us', label: 'United States' },
   { value: 'kr', label: 'South Korea' }
 ];
 
-// Type-safe element creation
 const selectElement = document.createElement('seo-select') as SeoSelectElement;
 selectElement.optionItems = options;
 selectElement.language = 'ko' as SupportedLanguage;
 
-// Type-safe batch operations
 const updates: BatchUpdateOption[] = [
   { action: 'add', option: { value: 'jp', label: 'Japan' } },
   { action: 'remove', value: 'us' }
@@ -938,18 +901,17 @@ selectElement.batchUpdateOptions(updates);
 
 | Category | Types |
 |----------|-------|
-| **Component Elements** | `SeoSelectElement`, `SeoSelectSearchElement` |
-| **Options & Data** | `VirtualSelectOption`, `OptionItem`, `BatchUpdateOption` |
-| **Configuration** | `SupportedLanguage`, `SelectTheme`, `LocalizedTexts`, `SearchLocalizedTexts` |
-| **Component Props** | `SeoSelectProps`, `SeoSelectSearchProps` |
-| **Events** | `ResetEventData`, `SeoSelectEventType`, `SeoSelectEvents` |
+| Component Elements | `SeoSelectElement`, `SeoSelectSearchElement` |
+| Options and Data | `VirtualSelectOption`, `OptionItem`, `BatchUpdateOption` |
+| Configuration | `SupportedLanguage`, `SelectTheme`, `LocalizedTexts`, `SearchLocalizedTexts` |
+| Component Props | `SeoSelectProps`, `SeoSelectSearchProps` |
+| Events | `ResetEventData`, `SeoSelectEventType`, `SeoSelectEvents` |
 
 ### Event Constants
 
 ```typescript
 import { SeoSelectEvents } from 'seo-select/types';
 
-// Use event constants for consistency
 select.addEventListener(SeoSelectEvents.SELECT, (event) => {
   console.log('Selected:', event.label);
 });
@@ -959,10 +921,11 @@ select.addEventListener(SeoSelectEvents.SEARCH_CHANGE, (event) => {
 });
 ```
 
+---
 
 ## Styling and Customization
 
-### Quick Styling Example
+### Basic Styling Example
 
 ```css
 seo-select {
@@ -980,10 +943,10 @@ seo-select[dark] {
 }
 ```
 
-### Complete CSS Variables Reference
+### CSS Variables Reference
 
 <details>
-<summary><strong>📏 Basic Layout & Sizing Variables</strong></summary>
+<summary><strong>Basic Layout and Sizing Variables</strong></summary>
 
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
@@ -999,7 +962,7 @@ seo-select[dark] {
 </details>
 
 <details>
-<summary><strong>🎨 Theme Styles</strong></summary>
+<summary><strong>Theme Styles</strong></summary>
 
 **Basic Theme:**
 | Variable | Default Value | Description |
@@ -1018,7 +981,7 @@ seo-select[dark] {
 </details>
 
 <details>
-<summary><strong>🏷️ Multiple Selection & Tags Variables</strong></summary>
+<summary><strong>Multiple Selection and Tags Variables</strong></summary>
 
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
@@ -1037,7 +1000,7 @@ seo-select[dark] {
 </details>
 
 <details>
-<summary><strong>📋 Dropdown Variables</strong></summary>
+<summary><strong>Dropdown Variables</strong></summary>
 
 **Basic Dropdown:**
 | Variable | Default Value | Description |
@@ -1060,7 +1023,7 @@ seo-select[dark] {
 </details>
 
 <details>
-<summary><strong>🔍 Search Input Variables</strong></summary>
+<summary><strong>Search Input Variables</strong></summary>
 
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
@@ -1072,7 +1035,7 @@ seo-select[dark] {
 </details>
 
 <details>
-<summary><strong>⏳ Loading State Variables</strong></summary>
+<summary><strong>Loading State Variables</strong></summary>
 
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
@@ -1089,7 +1052,7 @@ seo-select[dark] {
 </details>
 
 <details>
-<summary><strong>📭 Empty State Variables</strong></summary>
+<summary><strong>Empty State Variables</strong></summary>
 
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
@@ -1099,7 +1062,7 @@ seo-select[dark] {
 </details>
 
 <details>
-<summary><strong>📃 Option Items Variables</strong></summary>
+<summary><strong>Option Items Variables</strong></summary>
 
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
@@ -1110,7 +1073,7 @@ seo-select[dark] {
 </details>
 
 <details>
-<summary><strong>🔄 Reset Button Variables</strong></summary>
+<summary><strong>Reset Button Variables</strong></summary>
 
 **Single Select Reset:**
 | Variable | Default Value | Description |
@@ -1132,7 +1095,7 @@ seo-select[dark] {
 </details>
 
 <details>
-<summary><strong>↗️ Dropdown Arrow Variables</strong></summary>
+<summary><strong>Dropdown Arrow Variables</strong></summary>
 
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
@@ -1144,7 +1107,7 @@ seo-select[dark] {
 </details>
 
 <details>
-<summary><strong>🎨 Color Palette Variables</strong></summary>
+<summary><strong>Color Palette Variables</strong></summary>
 
 **Primary Colors:**
 | Variable | Default Value | Description |
@@ -1183,7 +1146,7 @@ seo-select[dark] {
 | `--box-head-border-color` | `color.mix(#fff, pick(gray, 2), 35%)` | Box header border color |
 
 **Extended Color Palette (Open Color System):**
-The component uses a sophisticated color system based on Open Color with primary color mixing:
+The component utilizes a color system based on Open Color with primary color mixing:
 
 | Color Name | Usage | Available Shades |
 |------------|-------|------------------|
@@ -1201,9 +1164,8 @@ The component uses a sophisticated color system based on Open Color with primary
 | `yellow` | Warning states, attention | 0-10 |
 | `orange` | Warning states, alerts | 0-10 |
 
-**Using the Color System:**
+**Color System Usage:**
 ```scss
-// Access colors using the pick() function
 .my-element {
   background-color: pick(blue, 2);    // Light blue
   border-color: pick(blue, 5);        // Medium blue
@@ -1214,7 +1176,7 @@ The component uses a sophisticated color system based on Open Color with primary
 </details>
 
 <details>
-<summary><strong>🌙 Dark Mode Color Variables</strong></summary>
+<summary><strong>Dark Mode Color Variables</strong></summary>
 
 **Background Colors:**
 | Variable | Default Value | Description |
@@ -1281,7 +1243,8 @@ The component uses a sophisticated color system based on Open Color with primary
 
 </details>
 
+---
+
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
-
+MIT License - Refer to the [LICENSE](LICENSE) file for details.
